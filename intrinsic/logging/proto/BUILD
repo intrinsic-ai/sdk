@@ -19,6 +19,7 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("//bazel:go_macros.bzl", "go_library", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -128,31 +129,9 @@ py_proto_library(
     deps = [":blob_proto"],
 )
 
-proto_library(
-    name = "context_proto",
-    srcs = ["context.proto"],
-)
-
-cc_proto_library(
-    name = "context_cc_proto",
-    deps = [":context_proto"],
-)
-
-go_proto_library(
-    name = "context_go_proto",
-    importpath = "intrinsic/logging/proto/context_go_proto",
-    protos = [":context_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
-)
-
 js_library(
     name = "context_jspb_proto",
-    deps = [":context_proto"],
-)
-
-py_proto_library(
-    name = "context_py_pb2",
-    deps = [":context_proto"],
+    deps = ["//intrinsic/logging/proto:context_proto"],
 )
 
 proto_library(
@@ -291,7 +270,6 @@ proto_library(
     srcs = ["log_item.proto"],
     deps = [
         ":blob_proto",
-        ":context_proto",
         ":critical_event_log",
         ":flowstate_event",
         "//intrinsic/executive/proto:log_items_proto",
@@ -299,6 +277,7 @@ proto_library(
         "//intrinsic/icon/proto:joint_space_proto",
         "//intrinsic/icon/proto:part_status_proto",
         "//intrinsic/logging/errors/proto:error_report_proto",
+        "//intrinsic/logging/proto:context_proto",
         "//intrinsic/skills/proto:skill_service_proto",
         "//intrinsic/util/status:extended_status_proto",
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:marker_array_proto",
@@ -320,7 +299,6 @@ go_proto_library(
     deps = [
         ":bag_metadata_go_proto",
         ":blob_go_proto",
-        ":context_go_proto",
         ":critical_event_log_go_proto",
         ":flowstate_event_go_proto",
         ":visualization_context_go_proto",
@@ -341,6 +319,7 @@ go_proto_library(
         "//intrinsic/kinematics/types:dynamic_limits_check_mode_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",
         "//intrinsic/logging/errors/proto:error_report_go_proto",
+        "//intrinsic/logging/proto:context_go_proto",
         "//intrinsic/math/proto:affine_go_proto",
         "//intrinsic/math/proto:array_go_proto",
         "//intrinsic/math/proto:matrix_go_proto",
@@ -636,4 +615,29 @@ js_library(
 py_proto_library(
     name = "visualization_context_py_pb2",
     deps = [":visualization_context_proto"],
+)
+
+proto_library(
+    name = "context_proto",
+    srcs = ["context.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "context_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":context_proto"],
+)
+
+go_proto_library(
+    name = "context_go_proto",
+    importpath = "intrinsic/logging/proto/context_go_proto",
+    protos = [":context_proto"],
+    visibility = ["//visibility:public"],
+)
+
+py_proto_library(
+    name = "context_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":context_proto"],
 )

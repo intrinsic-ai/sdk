@@ -20,6 +20,7 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
@@ -34,11 +35,11 @@ cc_library(
     srcs = ["status_builder.cc"],
     hdrs = ["status_builder.h"],
     deps = [
-        ":extended_status_cc_proto",
         "//intrinsic/icon/release:source_location",
         "//intrinsic/logging/proto:context_cc_proto",
         "//intrinsic/util:proto_time",
         "//intrinsic/util/proto:type_url",
+        "//intrinsic/util/status:extended_status_cc_proto",
         "@abseil-cpp//absl/base:core_headers",
         "@abseil-cpp//absl/base:log_severity",
         "@abseil-cpp//absl/container:flat_hash_map",
@@ -238,8 +239,8 @@ cc_library(
     srcs = ["get_extended_status.cc"],
     hdrs = ["get_extended_status.h"],
     deps = [
-        ":extended_status_cc_proto",
         "//intrinsic/util/proto:type_url",
+        "//intrinsic/util/status:extended_status_cc_proto",
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
@@ -256,11 +257,11 @@ cc_library(
     srcs = ["status_specs.cc"],
     hdrs = ["status_specs.h"],
     deps = [
-        ":extended_status_cc_proto",
         ":status_builder",
         "//intrinsic/assets/proto:status_spec_cc_proto",
         "//intrinsic/logging/proto:context_cc_proto",
         "//intrinsic/util:proto_time",
+        "//intrinsic/util/status:extended_status_cc_proto",
         "@abseil-cpp//absl/base:no_destructor",
         "@abseil-cpp//absl/container:flat_hash_map",
         "@abseil-cpp//absl/log",
@@ -277,12 +278,12 @@ cc_test(
     name = "status_specs_test",
     srcs = ["status_specs_test.cc"],
     deps = [
-        ":extended_status_cc_proto",
         ":status_builder",
         ":status_macros",
         ":status_specs",
         "//intrinsic/assets/proto:status_spec_cc_proto",
         "//intrinsic/util/proto:parse_text_proto",
+        "//intrinsic/util/status:extended_status_cc_proto",
         "//intrinsic/util/testing:status_payload_matchers",
         "@abseil-cpp//absl/log:check",
         "@abseil-cpp//absl/status",
@@ -297,12 +298,12 @@ cc_test(
     name = "get_extended_status_test",
     srcs = ["get_extended_status_test.cc"],
     deps = [
-        ":extended_status_cc_proto",
         ":get_extended_status",
         ":status_builder",
         ":status_conversion_grpc",
         ":status_conversion_rpc",
         "//intrinsic/util/proto:parse_text_proto",
+        "//intrinsic/util/status:extended_status_cc_proto",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@com_github_grpc_grpc//:grpc++",
@@ -343,10 +344,10 @@ cc_test(
     name = "status_builder_test",
     srcs = ["status_builder_test.cc"],
     deps = [
-        ":extended_status_cc_proto",
         ":status_builder",
         "//intrinsic/icon/release:source_location",
         "//intrinsic/util/proto:type_url",
+        "//intrinsic/util/status:extended_status_cc_proto",
         "//intrinsic/util/testing:status_payload_matchers",
         "@abseil-cpp//absl/base:log_severity",
         "@abseil-cpp//absl/log:log_entry",
@@ -406,46 +407,18 @@ go_proto_library(
     protos = [":status_proto"],
 )
 
-proto_library(
-    name = "extended_status_proto",
-    srcs = ["extended_status.proto"],
-    deps = [
-        "//intrinsic/logging/proto:context_proto",
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-go_proto_library(
-    name = "extended_status_go_proto",
-    importpath = "intrinsic/util/status/extended_status_go_proto",
-    protos = [":extended_status_proto"],
-    deps = [
-        "//intrinsic/logging/proto:context_go_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "extended_status_cc_proto",
-    deps = [":extended_status_proto"],
-)
-
-py_proto_library(
-    name = "extended_status_py_pb2",
-    deps = [":extended_status_proto"],
-)
-
 js_library(
     name = "extended_status_jspb_proto",
-    deps = [":extended_status_proto"],
+    deps = ["//intrinsic/util/status:extended_status_proto"],
 )
 
 py_library(
     name = "status_exception",
     srcs = ["status_exception.py"],
     deps = [
-        ":extended_status_py_pb2",
         "//intrinsic/logging/proto:context_py_pb2",
         "//intrinsic/util/grpc:limits_py",
+        "//intrinsic/util/status:extended_status_py_pb2",
         requirement("grpcio"),
         "@com_google_googleapis//google/rpc:code_py_proto",
         "@com_google_googleapis//google/rpc:status_py_proto",
@@ -464,9 +437,9 @@ py_library(
     name = "status_specs_py",
     srcs = ["status_specs.py"],
     deps = [
-        ":extended_status_py_pb2",
         ":status_exception",
         "//intrinsic/assets/proto:status_spec_py_pb2",
+        "//intrinsic/util/status:extended_status_py_pb2",
         requirement("grpcio"),
         "@com_google_protobuf//:protobuf_python",
     ],
@@ -476,7 +449,7 @@ py_library(
     name = "get_extended_status_py",
     srcs = ["get_extended_status.py"],
     deps = [
-        ":extended_status_py_pb2",
+        "//intrinsic/util/status:extended_status_py_pb2",
         "@ai_intrinsic_sdks_pip_deps//grpcio_status",
         requirement("grpcio"),
     ],
@@ -486,10 +459,10 @@ py_test(
     name = "status_specs_py_test",
     srcs = ["status_specs_py_test.py"],
     deps = [
-        ":extended_status_py_pb2",
         ":status_specs_py",
         "//intrinsic/assets/proto:status_spec_py_pb2",
         "//intrinsic/solutions/testing:compare",
+        "//intrinsic/util/status:extended_status_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
         "@rules_python//python/runfiles",
     ],
@@ -509,10 +482,10 @@ py_test(
     name = "status_exception_test",
     srcs = ["status_exception_test.py"],
     deps = [
-        ":extended_status_py_pb2",
         ":status_exception",
         "//intrinsic/logging/proto:context_py_pb2",
         "//intrinsic/solutions/testing:compare",
+        "//intrinsic/util/status:extended_status_py_pb2",
         requirement("grpcio"),
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_googleapis//google/rpc:code_py_proto",
@@ -527,9 +500,9 @@ go_library(
     srcs = ["extstatus.go"],
     importpath = "intrinsic/util/status/extstatus",
     deps = [
-        ":extended_status_go_proto",
         "//intrinsic/logging/proto:context_go_proto",
         "//intrinsic/util/grpc:grpclimits",
+        "//intrinsic/util/status:extended_status_go_proto",
         "@com_github_golang_glog//:go_default_library",
         "@org_golang_google_genproto_googleapis_rpc//status",
         "@org_golang_google_grpc//codes:go_default_library",
@@ -545,10 +518,10 @@ go_test(
     embed = [":extstatus"],
     importpath = "intrinsic/util/status/extstatus_test",
     deps = [
-        ":extended_status_go_proto",
         ":test_service_go_proto",
         "//intrinsic/logging/proto:context_go_proto",
         "//intrinsic/testing:grpctest",
+        "//intrinsic/util/status:extended_status_go_proto",
         "@com_github_google_go_cmp//cmp:go_default_library",
         "@org_golang_google_genproto_googleapis_rpc//errdetails",
         "@org_golang_google_grpc//:go_default_library",
@@ -596,10 +569,10 @@ go_library(
     srcs = ["statusspecs.go"],
     importpath = "intrinsic/util/status/statusspecs",
     deps = [
-        ":extended_status_go_proto",
         ":extstatus",
         "//intrinsic/assets/proto:status_spec_go_proto",
         "//intrinsic/logging/proto:context_go_proto",
+        "//intrinsic/util/status:extended_status_go_proto",
         "@com_github_golang_glog//:go_default_library",
         "@org_golang_google_protobuf//proto",
     ],
@@ -611,12 +584,44 @@ go_test(
     embed = [":statusspecs"],
     importpath = "intrinsic/util/status/statusspecs_test",
     deps = [
-        ":extended_status_go_proto",
         ":extstatus",
         "//intrinsic/assets/proto:status_spec_go_proto",
         "//intrinsic/logging/proto:context_go_proto",
+        "//intrinsic/util/status:extended_status_go_proto",
         "@com_github_google_go_cmp//cmp:go_default_library",
         "@org_golang_google_protobuf//testing/protocmp:go_default_library",
         "@org_golang_google_protobuf//types/known/timestamppb",
     ],
+)
+
+proto_library(
+    name = "extended_status_proto",
+    srcs = ["extended_status.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//intrinsic/logging/proto:context_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "extended_status_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":extended_status_proto"],
+)
+
+go_proto_library(
+    name = "extended_status_go_proto",
+    importpath = "intrinsic/util/status/extended_status_go_proto",
+    protos = [":extended_status_proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//intrinsic/logging/proto:context_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "extended_status_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":extended_status_proto"],
 )

@@ -1,0 +1,112 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.status;
+
+import "google/protobuf/timestamp.proto";
+import "intrinsic/logging/proto/context.proto";
+
+option go_package = "intrinsic/util/status/extended_status_go_proto";
+
+// A code that identifies a particular error of the given component.
+message StatusCode {
+  // A string identifier of the component. This must consist of a package name
+  // (examples: ai.intrinsic or com.example) and an entity name (examples:
+  // my_skill, my_service). Examples for component strings:
+  // ai.intrinsic.executive, com.example.my_skill.
+  string component = 1;
+
+  // A unique error code. Use values greater than 10000, smaller values are
+  // reserved for system and generic errors.
+  uint32 code = 2;
+}
+
+message ExtendedStatus {
+  enum Severity {
+    option allow_alias = true;
+
+    DEFAULT = 0;  // Default log severity is info unless otherwise specified.
+    // Severity values are the same as the ones for absl::LogSeverity.
+    INFO = 0;
+    WARNING = 1;
+    ERROR = 2;
+    FATAL = 3;
+  }
+
+  StatusCode status_code = 1;
+  Severity severity = 2;
+
+  // One-line summary that can be used as a headline to describe the error.
+  //
+  // More guidance:
+  // https://flowstate.intrinsic.ai/docs/guides/build_with_code/extended_status_guide/
+  string title = 3;
+
+  // Time when the error occurred that produced the extended status
+  google.protobuf.Timestamp timestamp = 4;
+
+  repeated ExtendedStatus context = 5;
+
+  message Relations {
+    message BehaviorTreeNodeReference {
+      string tree_id = 1;
+      uint32 node_id = 2;
+    }
+    optional BehaviorTreeNodeReference behavior_tree_node = 1;
+    optional intrinsic_proto.data_logger.Context log_context = 2;
+  }
+
+  optional Relations related_to = 6;
+
+  // An actionable report of the error to be read by the user of the system.
+  //
+  // More guidance:
+  // https://flowstate.intrinsic.ai/docs/guides/build_with_code/extended_status_guide/
+  message UserReport {
+    string message = 1;
+    string instructions = 2;
+
+    // To be extended later, e.g., machine-readable interactive instructions,
+    // images, links etc.
+  }
+
+  // Additional information for debugging by the component owner. This
+  // information can be passed on by the system user to investigate an
+  // error. This is publicly visible, but is not necessarily expected to be
+  // digestible to the user.
+  //
+  // Include information meaningful to a debugging journey. There is a limit of
+  // the overall amount of data that can be sent in response to an error. This
+  // limit applies to the overall hierarchical extended status. Therefore, be
+  // mindful and aim for less than 10kB of text for the debug report.
+  message DebugReport {
+    string message = 1;
+
+    // Optionally a stack trace of an error if useful and not confidential.
+    optional string stack_trace = 2;
+  }
+
+  // This report is shown to users. It is intended to be helpful to analyze a
+  // run-time problem by the caller of the component.
+  optional UserReport user_report = 12;
+
+  // Debug report intended for developers/owners of the component, but visible
+  // to all if they expand it in the UI. This information may not necessarily be
+  // helpful to the user to investigate an issue, but to the component developer
+  // to investigate a reported issue.
+  optional DebugReport debug_report = 13;
+
+}
