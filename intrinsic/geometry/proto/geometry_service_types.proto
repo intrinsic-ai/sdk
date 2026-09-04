@@ -29,7 +29,10 @@ option go_package = "intrinsic/geometry/proto/geometry_service_types_go_proto";
 
 // Response message for getting geometry from the geometry service.
 message GeometryWithMetadata {
-  // Deprecated, will be removed soon. Use geometry_storage_refs instead.
+  // Deprecated. We are still accepting and handling v0 refs on incoming
+  // requests for backward compatibility, but are no longer writing
+  // geometry_storage_refs_v0 protos in responses (use geometry_storage_refs
+  // instead).
   GeometryStorageRefs geometry_storage_refs_v0 = 3 [deprecated = true];
 
   // The references to the stored geometry artifacts.
@@ -48,8 +51,10 @@ message GeometryWithMetadata {
 
 // Response message for getting renderable data from the geometry service.
 message RenderableWithMetadata {
-  // The references to the stored geometry artifacts.
-  // Deprecated, will be removed soon. Use geometry_storage_refs instead.
+  // Deprecated. We are still accepting and handling v0 refs on incoming
+  // requests for backward compatibility, but are no longer writing
+  // geometry_storage_refs_v0 protos in responses (use geometry_storage_refs
+  // instead).
   GeometryStorageRefs geometry_storage_refs_v0 = 4 [deprecated = true];
 
   // The references to the stored geometry artifacts.
