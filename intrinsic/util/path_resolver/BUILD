@@ -47,7 +47,9 @@ cc_test(
 
 go_library(
     name = "pathresolver",  # Coding style suggests to avoid using underscores in package names: http://golang.org/doc/effective_go.html#package-names
-    srcs = ["path_resolver.go"],
+    srcs = [
+        "path_resolver.go",
+    ],
     importpath = "intrinsic/util/path_resolver/pathresolver",
     deps = [
         "@io_bazel_rules_go//go/runfiles:go_default_library",

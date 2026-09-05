@@ -1,0 +1,105 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package bundle
+
+import (
+	"os"
+	"testing"
+
+	"intrinsic/skills/skillbundle"
+	"intrinsic/util/testing/testio"
+
+	_ "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_go_proto" // Needed to resolve the proto message
+)
+
+const (
+	exampleManifestPath          = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py.manifest.pbtxt"
+	exampleFileDescriptorSetPath = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_augmented_test_descriptors_transitive_set_sci.proto.bin"
+	exampleImagePath             = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py_image.tar"
+)
+
+type bundleCheck func(t *testing.T)
+
+func checkManifestHasID(t *testing.T, bundlePath string, wantPackage string, wantName string) bundleCheck {
+	return func(t *testing.T) {
+		t.Helper()
+		bundle, err := skillbundle.ReadFile(t.Context(), bundlePath)
+		if err != nil {
+			t.Fatalf("skillbundle.ReadFile(%q) failed: %v", bundlePath, err)
+		}
+		if got := bundle.Manifest.GetId().GetPackage(); got != wantPackage {
+			t.Errorf("manifest.GetId().GetPackage() = %q, want %q", got, wantPackage)
+		}
+		if got := bundle.Manifest.GetId().GetName(); got != wantName {
+			t.Errorf("manifest.GetId().GetName() = %q, want %q", got, wantName)
+		}
+	}
+}
+
+func checkHasFile(t *testing.T, bundlePath string, wantFile string) bundleCheck {
+	return func(t *testing.T) {
+		t.Helper()
+		bundle, err := skillbundle.ReadFile(t.Context(), bundlePath,
+			skillbundle.WithReadFiles(true),
+		)
+		if err != nil {
+			t.Fatalf("skillbundle.ReadFile(%q) failed: %v", bundlePath, err)
+		}
+		_, ok := bundle.Files[wantFile]
+		if !ok {
+			t.Errorf("files[%q] = nil, want non-nil", wantFile)
+		}
+	}
+}
+
+func TestBundleCreate(t *testing.T) {
+	tests := []struct {
+		name   string
+		args   []string
+		checks []bundleCheck
+	}{
+		{
+			name: "create skill",
+			args: []string{
+				"--augmented_manifest", testio.MustCreateRunfilePath(t, exampleManifestPath),
+				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--oci_image", testio.MustCreateRunfilePath(t, exampleImagePath),
+			},
+			checks: []bundleCheck{
+				checkManifestHasID(t, "skill.bundle.tar", "com.example", "example_skill"),
+				checkHasFile(t, "skill.bundle.tar", "example_skill_py_image.tar"),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Make sure we're in a writable directory.
+			os.Chdir(t.TempDir())
+			// Prevent state leaking between tests.
+			resetBundleCommand()
+
+			BundleCmd.SetArgs(tt.args)
+
+			if err := BundleCmd.Execute(); err != nil {
+				t.Fatalf("BundleCmd.Execute() failed: %v", err)
+			}
+
+			for _, check := range tt.checks {
+				check(t)
+			}
+		})
+	}
+}

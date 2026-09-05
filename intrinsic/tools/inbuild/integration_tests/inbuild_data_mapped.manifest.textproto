@@ -1,0 +1,46 @@
+# proto-file: intrinsic/assets/data/proto/v1/data_manifest.proto
+# proto-message: DataManifest
+
+# Copyright 2026 Intrinsic Innovation LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+metadata {
+  id {
+    package: "ai.intrinsic"
+    name: "test_data_mapped"
+  }
+  display_name: "Test Data Mapped"
+  vendor {
+    display_name: "Intrinsic"
+  }
+}
+data {
+  [type.googleapis.com/intrinsic_proto.data.v1.ReferencedDataStruct] {
+    fields {
+      key: "item"
+      value {
+        string_value: "hello mapped"
+      }
+    }
+    fields {
+      key: "file_ref"
+      value {
+        referenced_data_value: {
+          reference: "mapped_data.json"
+        }
+      }
+    }
+  }
+}
