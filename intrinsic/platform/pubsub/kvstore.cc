@@ -256,8 +256,9 @@ absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAnyWithRawKey(
   // imw_query() to finish before before returning. This ensures that all local
   // variables will outlive the callback.
   auto reply_functor = std::make_unique<imw_callback_functor_t>(
-      [&value, &lambda_status](const char* keyexpr, const void* response_bytes,
-                               const size_t response_bytes_len) {
+      [&value,
+       &lambda_status](const char* keyexpr, const void* response_bytes,
+                       const size_t response_bytes_len) {
         bool ok = value.ParseFromString(absl::string_view(
             static_cast<const char*>(response_bytes), response_bytes_len));
         if (ok) {
