@@ -24,6 +24,8 @@ option go_package = "intrinsic/perception/proto/v1/perception_model_go_proto";
 // PerceptionModel describes the configuration of a perception model abstracting
 // over different kind of model configurations.
 message PerceptionModel {
+  reserved 4;
+
   // Stores the configuration of the perception model.
   oneof config {
     intrinsic_proto.perception.v1.PoseEstimationConfig pose_estimation_config =
