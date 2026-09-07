@@ -47,7 +47,7 @@ absl::StatusOr<Mesh> AiSceneToMesh(const aiScene& scene) {
     // Add new rows to the vertex matrix and fill them in.
     for (int vdx = 0; vdx < ai_scene_mesh->mNumVertices; vdx++) {
       const aiVector3D& p = ai_scene_mesh->mVertices[vdx];
-      if (!(isfinite(p.x) && isfinite(p.y) && isfinite(p.z))) {
+      if (!(std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z))) {
         return absl::InvalidArgumentError("Mesh contains invalid vertices.");
       }
       vertices.emplace_back(p.x, p.y, p.z);
