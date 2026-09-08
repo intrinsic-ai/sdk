@@ -1,0 +1,58 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "intrinsic/perception/proto/v1/dimensions.proto";
+import "intrinsic/perception/proto/v1/image_buffer.proto";
+
+option go_package = "intrinsic/perception/proto/v1/post_processing_go_proto";
+
+// Post processing options for requested sensor images.
+//
+// Order of operations:
+// raw image -> undistortion -> cropping -> resizing
+message SensorImagePostProcessing {
+  // Specifies how the returned image should be encoded.
+  Encoding image_encoding = 1;
+
+  // If true, the returned image will be distorted.
+  // If false, the returned image might be undistorted depending whether the
+  // camera has undistortion parameters defined.
+  bool skip_undistortion = 2;
+
+  // Optionally crops the image. Note that cropping happens after undistortion
+  // but before resizing.
+  optional CropOptions crop = 3;
+
+  // Optionally resize the image.
+  // If not specified the fullsized camera image is returned.
+  // Note that resizing happens after the optional cropping step.
+  oneof resizing {
+    // Resize dimensions.
+    Dimensions resize = 4;
+    // Resize width. Height is set automatically to aspect ratio.
+    int32 resize_width = 5;
+    // Resize height. Width is set automatically to aspect ratio.
+    int32 resize_height = 6;
+  }
+}
+
+message CropOptions {
+  int32 origin_x = 1;
+  int32 origin_y = 2;
+  Dimensions dimensions = 3;
+}

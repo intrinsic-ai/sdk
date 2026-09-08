@@ -1,0 +1,37 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "intrinsic/perception/proto/v1/sensor_image.proto";
+
+option go_package = "intrinsic/perception/proto/v1/capture_result_go_proto";
+
+// This message represents a perception CaptureResult.
+// A container for sensor images and any associated capture metadata.
+message CaptureResult {
+  // Timestamp at which the images were captured. Value matches each
+  // sensor_image's acquisition_time, and is duplicated for capture result
+  // processing convenience.
+  google.protobuf.Timestamp capture_at = 1;
+  // Images for each of the captured sensors
+  repeated SensorImage sensor_images = 2;
+  // Duration needed to capture all images excluding post processing like HDR.
+  // Not all camera drivers will provide it.
+  optional google.protobuf.Duration capture_duration = 3;
+}
