@@ -215,6 +215,10 @@ message StereoCalibrationResult {
 }
 
 message StereoValidationResult {
+  // Root mean square (RMS) stereo reprojection error in pixels.
+  double rms_error_2d = 1;
+  // Maximum stereo reprojection error in pixels.
+  optional double max_error_2d = 2;
 }
 
 message MultiCameraValidationResult {
