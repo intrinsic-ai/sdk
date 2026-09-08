@@ -131,6 +131,7 @@ def _emit_compile(*, ctx, srcs, deps = None):
     args.add("--schema")
     args.add("-I", paths.join(".", ctx.label.workspace_root))
     args.add("-I", ".")
+
     args.add("-I", ctx.label.package)
     args.add("-I", ctx.bin_dir.path)
     args.add("-I", paths.join(ctx.bin_dir.path, ctx.label.workspace_root))
@@ -241,6 +242,7 @@ def _cc_flatbuffers_aspect_impl(target, ctx):
     args.add("-c")
     args.add("-I", paths.join(".", ctx.label.workspace_root))
     args.add("-I", ".")
+
     args.add("-I", ctx.label.package)
     args.add("-I", ctx.bin_dir.path)
     args.add("-I", paths.join(ctx.bin_dir.path, ctx.label.workspace_root))
@@ -282,6 +284,8 @@ def _cc_flatbuffers_aspect_impl(target, ctx):
     deps = getattr(ctx.rule.attr, "deps", [])
     compilation_contexts = [dep[CcInfo].compilation_context for dep in [ctx.attr._runtime, ctx.attr._flatbuffers_headers] + deps if CcInfo in dep]
 
+    compile_kwargs = {}
+
     compilation_context, _ = cc_common.compile(
         name = ctx.label.name + ("_" + ctx.attr._suffix if ctx.attr._suffix else ""),
         actions = ctx.actions,
@@ -289,6 +293,7 @@ def _cc_flatbuffers_aspect_impl(target, ctx):
         compilation_contexts = compilation_contexts,
         feature_configuration = feature_configuration,
         public_hdrs = hdrs,
+        **compile_kwargs
     )
 
     return [
@@ -531,6 +536,7 @@ def _py_flatbuffers_aspect_impl(target, ctx):
     args.add("-c")
     args.add("-I", paths.join(".", ctx.label.workspace_root))
     args.add("-I", ".")
+
     args.add("-I", ctx.label.package)
     args.add("-I", ctx.bin_dir.path)
     args.add("-I", paths.join(ctx.bin_dir.path, ctx.label.workspace_root))
