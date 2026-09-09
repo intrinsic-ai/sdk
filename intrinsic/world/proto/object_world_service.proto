@@ -107,6 +107,14 @@ service ObjectWorldService {
     };
   }
 
+  // Creates a new world from a World snapshot.
+  rpc CreateWorld(CreateWorldRequest) returns (WorldMetadata) {
+    option (google.api.http) = {
+      post: "/world/v0/worlds"
+      body: "*"
+    };
+  }
+
   // ---------------------------------------------------------------------------
   // World-level methods.
   //
@@ -766,6 +774,14 @@ message ListWorldsRequest {}
 message ListWorldsResponse {
   // The requested worlds.
   repeated WorldMetadata world_metadatas = 1;
+}
+
+message CreateWorldRequest {
+  // Complete snapshot of the world to create.
+  // If world.world_metadata.id is non-empty, it is used as the world ID if
+  // available. If the ID is already taken, a unique ID prefixed with that ID is
+  // generated. If empty, a unique ID prefixed with "World_" is generated.
+  World world = 1;
 }
 
 message GetCollisionSettingsRequest {
