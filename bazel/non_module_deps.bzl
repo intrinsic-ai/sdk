@@ -33,4 +33,28 @@ filegroup(
         urls = ["https://storage.googleapis.com/intrinsic-mirror/bazel/sysroot-2025-07-22-845e86b8.tar.zst"],
     )
 
+    # Used for compiling Wasm modules for C++.
+    http_archive(
+        name = "wasi_sdk",
+        build_file_content = """
+exports_files(["bin/clang"])
+
+filegroup(
+    name = "compiler_deps",
+    srcs = glob([
+        "share/wasi-sysroot/include/wasm32-wasip1/**",
+        "share/wasi-sysroot/lib/wasm32-wasip1/**",
+        "share/wasi-sysroot/share/wasm32-wasip1/**",
+        "bin/wasm-ld",
+        "lib/clang/**",
+        "lib/*.so*",
+    ]),
+    visibility = ["//visibility:public"]
+)
+""",
+        sha256 = "c6c38aab56e5de88adf6c1ebc9c3ae8da72f88ec2b656fb024eda8d4167a0bc5",
+        strip_prefix = "wasi-sdk-24.0-x86_64-linux",
+        urls = ["https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-24/wasi-sdk-24.0-x86_64-linux.tar.gz"],
+    )
+
 non_module_deps_ext = module_extension(implementation = _non_module_deps_impl)
