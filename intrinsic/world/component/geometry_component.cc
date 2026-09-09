@@ -98,6 +98,7 @@ absl::StatusOr<MigrationGeometry> UpdateGeometryOptions(
           result.geo->ref_t_shape());
       if (!updated_proto) {
         // Reset the proto if we've only updated options in a deserialized geo.
+        //
         result.proto = std::nullopt;
       }
     }
