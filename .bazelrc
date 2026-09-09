@@ -72,20 +72,6 @@ common --remote_timeout=6h
 # which depend on remote services.
 common --sandbox_default_allow_network=false
 
-common:remote       --remote_executor=grpcs://remotebuildexecution.googleapis.com
-common:remote_cache --remote_cache=grpcs://remotebuildexecution.googleapis.com
-
-# Enable authentication. This will pick up application default credentials by
-# default. You can use --google_credentials=some_file.json to use a service
-# account credential instead.
-common:remote       --google_default_credentials=true
-common:remote_cache --google_default_credentials=true
-
-# The toolchain container used for execution. RBE builds only support linux_x86_64.
-# More about platforms: https://docs.bazel.build/versions/master/platforms.html
-common:remote       --host_platform=//bazel:linux_x86_64
-common:remote_cache --host_platform=//bazel:linux_x86_64
-
 # Docker Sandbox Mode
 # https://bazel.build/remote/sandbox
 common:docker --experimental_docker_image="docker://us-central1-docker.pkg.dev/intrinsic-mirror/intrinsic-build-images/bazel-rbe-executor@sha256:c2d50e5f5a3bbea4c47ffcdc1b2755168d1c682ec2b3ba620fb3134eca4bab0d"
