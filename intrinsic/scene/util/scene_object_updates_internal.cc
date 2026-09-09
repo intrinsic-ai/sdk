@@ -1508,15 +1508,57 @@ absl::StatusOr<SceneObject> ProcessSceneObjectUpdate(
     return std::move(object);
   }
 
-  Pose3d parent_t_inboard = Pose3d::Identity();
-  if (kinematics.has_parent_t_inboard()) {
-    INTR_ASSIGN_OR_RETURN(parent_t_inboard,
-                          FromProtoNormalized(kinematics.parent_t_inboard()));
+  const bool preserve_parent_t_child =
+      update.parent_t_child_policy() !=
+      CreateJointUpdate::PARENT_T_CHILD_POLICY_DO_NOT_PRESERVE;
+
+  if (preserve_parent_t_child && kinematics.has_parent_t_inboard() &&
+      kinematics.has_outboard_t_child()) {
+    return absl::InvalidArgumentError(absl::Substitute(
+        "Cannot specify both parent_t_inboard and outboard_t_child when "
+        "preserving parent_t_child for joint '$0'. To explicitly specify both "
+        "transforms without preserving parent_t_child, set "
+        "parent_t_child_policy to PARENT_T_CHILD_POLICY_DO_NOT_PRESERVE.",
+        update.new_joint_name()));
   }
+
+  Pose3d parent_t_inboard = Pose3d::Identity();
   Pose3d outboard_t_child = Pose3d::Identity();
-  if (kinematics.has_outboard_t_child()) {
-    INTR_ASSIGN_OR_RETURN(outboard_t_child,
-                          FromProtoNormalized(kinematics.outboard_t_child()));
+
+  if (preserve_parent_t_child) {
+    // When inserting a joint between parent_link and child_link, we want to
+    // preserve the child link's existing resting pose relative to parent_link
+    // at 0 actuation (i.e. T_{parent_inboard} * T_{outboard_child} =
+    // T_{parent_child}). Furthermore, child_entity->parent_t_this must remain
+    // identity. Read the existing relative transform between parent and child
+    // so the unspecified pose can absorb the offset.
+    Pose3d parent_t_child = Pose3d::Identity();
+    if (child_entity->has_parent_t_this()) {
+      INTR_ASSIGN_OR_RETURN(parent_t_child,
+                            FromProtoNormalized(child_entity->parent_t_this()));
+    }
+
+    if (kinematics.has_parent_t_inboard()) {
+      INTR_ASSIGN_OR_RETURN(parent_t_inboard,
+                            FromProtoNormalized(kinematics.parent_t_inboard()));
+      outboard_t_child = parent_t_inboard.inverse() * parent_t_child;
+    } else if (kinematics.has_outboard_t_child()) {
+      INTR_ASSIGN_OR_RETURN(outboard_t_child,
+                            FromProtoNormalized(kinematics.outboard_t_child()));
+      parent_t_inboard = parent_t_child * outboard_t_child.inverse();
+    } else {
+      parent_t_inboard = parent_t_child;
+      outboard_t_child = Pose3d::Identity();
+    }
+  } else {
+    if (kinematics.has_parent_t_inboard()) {
+      INTR_ASSIGN_OR_RETURN(parent_t_inboard,
+                            FromProtoNormalized(kinematics.parent_t_inboard()));
+    }
+    if (kinematics.has_outboard_t_child()) {
+      INTR_ASSIGN_OR_RETURN(outboard_t_child,
+                            FromProtoNormalized(kinematics.outboard_t_child()));
+    }
   }
 
   eigenmath::Vector3d axis = eigenmath::Vector3d::UnitZ();
@@ -1557,6 +1599,12 @@ absl::StatusOr<SceneObject> ProcessSceneObjectUpdate(
   joint_entity->set_parent_name(update.parent_link_name());
   *joint_entity->mutable_parent_t_this() = ToProto(new_parent_t_this);
   *joint_entity->mutable_joint() = update.joint();
+  *joint_entity->mutable_joint()
+       ->mutable_kinematics_component()
+       ->mutable_parent_t_inboard() = ToProto(parent_t_inboard);
+  *joint_entity->mutable_joint()
+       ->mutable_kinematics_component()
+       ->mutable_outboard_t_child() = ToProto(outboard_t_child);
   if (kinematics.has_axis()) {
     *joint_entity->mutable_joint()
          ->mutable_kinematics_component()

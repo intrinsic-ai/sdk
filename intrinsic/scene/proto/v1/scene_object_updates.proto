@@ -353,5 +353,49 @@ message CreateJointUpdate {
   string new_joint_name = 3;
 
   // Joint definition for the new joint entity.
+  //
+  // When inserting a joint between parent_link and child_link, the child link's
+  // parent_t_this is set to Identity so downstream tools see the child link
+  // anchored directly at the joint.
+  //
+  // See parent_t_child_policy for how parent_t_inboard and outboard_t_child
+  // poses are resolved relative to the existing child link pose.
   Joint joint = 4;
+
+  // Policy for resolving the joint's parent_t_inboard and outboard_t_child
+  // poses relative to the child link's existing resting pose
+  // (T_{parent_link -> child_link} at q = 0).
+  enum ParentTChildPolicy {
+    // Unset / default behavior. Same as PARENT_T_CHILD_POLICY_PRESERVE.
+    PARENT_T_CHILD_POLICY_UNSPECIFIED = 0;
+
+    // Preserves the child link's existing resting pose relative to parent_link
+    // at 0 actuation (T_{parent_link -> child_link}) by computing the
+    // unspecified pose:
+    // - If only parent_t_inboard is specified:
+    //     T_{outboard -> child_link} =
+    //         T_{parent_link -> inboard}^-1 * T_{parent_link -> child_link}
+    // - If only outboard_t_child is specified:
+    //     T_{parent_link -> inboard} =
+    //         T_{parent_link -> child_link} * T_{outboard -> child_link}^-1
+    // - If neither is specified:
+    //     T_{parent_link -> inboard} = T_{parent_link -> child_link}
+    //     T_{outboard -> child_link} = Identity
+    //
+    // Specifying BOTH parent_t_inboard and outboard_t_child when preserving
+    // parent_t_child is an error (use PARENT_T_CHILD_POLICY_DO_NOT_PRESERVE
+    // instead to specify both poses explicitly).
+    PARENT_T_CHILD_POLICY_PRESERVE = 1;
+
+    // Do not preserve the child link's existing resting pose. The
+    // parent_t_inboard and outboard_t_child poses are used verbatim as
+    // specified (or default to Identity if omitted):
+    //   T_{parent_link -> child_link} =
+    //       T_{parent_link -> inboard} * T_{outboard -> child_link}
+    PARENT_T_CHILD_POLICY_DO_NOT_PRESERVE = 2;
+  }
+
+  // Policy for preserving parent_t_child. Defaults to
+  // PARENT_T_CHILD_POLICY_PRESERVE when unspecified.
+  ParentTChildPolicy parent_t_child_policy = 5;
 }
