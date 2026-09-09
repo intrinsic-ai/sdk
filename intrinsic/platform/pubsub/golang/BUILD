@@ -83,3 +83,15 @@ go_library(
         "@org_golang_google_protobuf//types/known/anypb",
     ],
 )
+
+go_library(
+    name = "workcell_info",
+    srcs = ["workcell_info.go"],
+    importpath = "intrinsic/platform/pubsub/golang/workcellinfo",
+    deps = [
+        ":kvstore",
+        ":pubsub",
+        "//intrinsic/platform/common/proto:workcell_info_go_proto",
+        "@com_github_golang_glog//:go_default_library",
+    ],
+)
