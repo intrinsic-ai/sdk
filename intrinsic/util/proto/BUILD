@@ -24,6 +24,21 @@ cc_library(
     name = "repeated_field_util",
     hdrs = ["repeated_field_util.h"],
     deps = [
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status:statusor",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "repeated_field_util_test",
+    srcs = ["repeated_field_util_test.cc"],
+    deps = [
+        ":repeated_field_util",
+        "//intrinsic/util/proto/testing:test_message_cc_proto",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
+        "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
     ],
 )
