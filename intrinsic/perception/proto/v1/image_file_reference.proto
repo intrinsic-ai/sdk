@@ -1,0 +1,37 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "intrinsic/perception/proto/v1/image_buffer.proto";
+
+option go_package = "intrinsic/perception/proto/v1/image_file_reference_go_proto";
+
+// Helper message that contains a reference to an image source file (or file
+// matching pattern) along with metadata about the kind of pixel data it
+// contains.
+message ImageFileReference {
+  // Path to a specific image file (relative or absolute), or a filename
+  // pattern/suffix (e.g., "_color.png", "*.png") when used as a sensor
+  // prototype for scanning a directory.
+  string path = 1;
+  // Type of the pixel, e.g. intensity vs depth.
+  PixelType pixel_type = 2;
+  // Number of channels in the image.
+  int32 num_channels = 3;
+  // Optional source sensor_id.
+  optional int64 sensor_id = 4;
+}

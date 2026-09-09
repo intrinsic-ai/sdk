@@ -93,6 +93,7 @@ proto_library(
     name = "camera_drivers_proto",
     srcs = ["camera_drivers.proto"],
     visibility = ["//intrinsic:public_api_users"],
+    deps = [":image_file_reference_proto"],
 )
 
 cc_proto_library(
@@ -112,6 +113,7 @@ go_proto_library(
     importpath = "intrinsic/perception/proto/v1/camera_drivers_go_proto",
     protos = [":camera_drivers_proto"],
     visibility = ["//intrinsic:public_api_users"],
+    deps = [":image_file_reference_go_proto"],
 )
 
 js_library(
@@ -268,6 +270,39 @@ js_library(
     name = "distortion_params_jspb_proto",
     visibility = ["//intrinsic:internal_api_users"],
     deps = ["//intrinsic/perception/proto/v1:distortion_params_proto"],
+)
+
+proto_library(
+    name = "image_file_reference_proto",
+    srcs = ["image_file_reference.proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = ["//intrinsic/perception/proto/v1:image_buffer_proto"],
+)
+
+cc_proto_library(
+    name = "image_file_reference_cc_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":image_file_reference_proto"],
+)
+
+py_proto_library(
+    name = "image_file_reference_py_pb2",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [":image_file_reference_proto"],
+)
+
+go_proto_library(
+    name = "image_file_reference_go_proto",
+    importpath = "intrinsic/perception/proto/v1/image_file_reference_go_proto",
+    protos = [":image_file_reference_proto"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = ["//intrinsic/perception/proto/v1:image_buffer_go_proto"],
+)
+
+js_library(
+    name = "image_file_reference_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = [":image_file_reference_proto"],
 )
 
 js_library(

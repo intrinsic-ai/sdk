@@ -31,5 +31,7 @@ message CameraIdentifier {
   oneof drivers {
     CameraDrivers.GenICam genicam = 3;
     CameraDrivers.Ros ros = 4;
+    CameraDrivers.FileCamera file_camera = 1;
+    CameraDrivers.FakeGenICam fake_genicam = 5;
   }
 }

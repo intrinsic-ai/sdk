@@ -18,6 +18,7 @@ package intrinsic_proto.perception.v1;
 
 option go_package = "intrinsic/perception/proto/v1/camera_drivers_go_proto";
 
+import "intrinsic/perception/proto/v1/image_file_reference.proto";
 
 // This message declares different camera drivers. Each driver references a
 // specific implementation which is used to control and communicate with
@@ -36,6 +37,59 @@ message CameraDrivers {
 
     // The driver type, used to determine the ROS service prefix.
     optional string driver_type = 2;
+  }
+
+  // A camera driver which serves image sequences from files on disk, supporting
+  // single-sensor or multi-sensor configurations.
+  message FileCamera {
+    // A sequence of file references for a single sensor.
+    message SensorFilesList {
+      // Ordered list of explicit image files to be served by this sensor.
+      repeated ImageFileReference file_references = 1;
+    }
+
+    // An explicit collection of file sequences grouped by sensor.
+    message Files {
+      // Each entry provides the file sequence for a separate sensor in a
+      // multi-sensor setup.
+      repeated SensorFilesList sensor_files_lists = 1;
+    }
+
+    // A filesystem directory to be scanned for image sequences across sensors.
+    message Directory {
+      // Root directory path to scan for image files.
+      string path = 1;
+      // Sensor prototypes used to match and categorize files in the directory.
+      // For each reference, `path` represents the filename pattern or suffix
+      // (e.g., "_color.png" or "_depth.png") associated with that sensor.
+      repeated ImageFileReference sensor_references = 2;
+      // If true, filters out any timestamped or indexed frames that do not have
+      // matching image files across all defined sensor references.
+      bool remove_incomplete_frames = 3;
+    }
+
+    // The image source configuration for the file camera.
+    oneof source {
+      // Discover frames by scanning a root directory using sensor patterns.
+      Directory directory = 1;
+      // Serve frames from explicit lists of file references per sensor.
+      Files files = 2;
+    }
+
+    // Starts capturing at the specified index in the sequence. Negative values
+    // can be used to address frames counting backwards from the end of the
+    // sequence.
+    optional int64 start_index = 4;
+
+    // If true, automatically loops back to the start of the sequence when
+    // reaching the end during sequential playback.
+    optional bool loop_files = 5;
+  }
+
+  message FakeGenICam {
+    // The existence of this message indicates that a fake camera will be used.
+    // No additional parameters are required as there can only exist a single
+    // fake camera.
   }
 
 }
