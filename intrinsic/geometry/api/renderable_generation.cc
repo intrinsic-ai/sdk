@@ -199,8 +199,7 @@ RenderableGenerator::Finish() {
   }
 
   INTR_ASSIGN_OR_RETURN(
-      auto glb_string,
-      ExportAiSceneAsGltf(&scene, Eigen::Matrix4d::Identity()));
+      auto glb_string, ExportAiSceneAsGltf(scene, Eigen::Matrix4d::Identity()));
   return std::make_shared<const Renderable>(std::move(glb_string));
 }
 

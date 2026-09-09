@@ -28,41 +28,41 @@
 namespace intrinsic::geo {
 
 void MeshToAiScene(const Mesh& mesh, const Material& material,
-                   aiScene* aiscene) {
+                   aiScene& aiscene) {
   // convert mesh to aiscene
-  aiscene->mRootNode = new aiNode();
+  aiscene.mRootNode = new aiNode();
 
-  aiscene->mMaterials = new aiMaterial*[1];
-  aiscene->mMaterials[0] = new aiMaterial();
-  aiscene->mNumMaterials = 1;
+  aiscene.mMaterials = new aiMaterial*[1];
+  aiscene.mMaterials[0] = new aiMaterial();
+  aiscene.mNumMaterials = 1;
 
   aiColor4D ambient(material.ambient[0], material.ambient[1],
                     material.ambient[2], material.ambient[3]);
-  aiscene->mMaterials[0]->AddProperty(&ambient, 1, AI_MATKEY_COLOR_AMBIENT);
+  aiscene.mMaterials[0]->AddProperty(&ambient, 1, AI_MATKEY_COLOR_AMBIENT);
   aiColor4D diffuse(material.diffuse[0], material.diffuse[1],
                     material.diffuse[2], material.diffuse[3]);
-  aiscene->mMaterials[0]->AddProperty(&diffuse, 1, AI_MATKEY_COLOR_DIFFUSE);
+  aiscene.mMaterials[0]->AddProperty(&diffuse, 1, AI_MATKEY_COLOR_DIFFUSE);
   aiColor4D specular(material.specular[0], material.specular[1],
                      material.specular[2], material.specular[3]);
-  aiscene->mMaterials[0]->AddProperty(&specular, 1, AI_MATKEY_COLOR_SPECULAR);
+  aiscene.mMaterials[0]->AddProperty(&specular, 1, AI_MATKEY_COLOR_SPECULAR);
   aiColor4D emission(material.emission[0], material.emission[1],
                      material.emission[2], material.emission[3]);
-  aiscene->mMaterials[0]->AddProperty(&emission, 1, AI_MATKEY_COLOR_EMISSIVE);
-  aiscene->mMaterials[0]->AddProperty(&material.shininess, 1,
-                                      AI_MATKEY_SHININESS);
+  aiscene.mMaterials[0]->AddProperty(&emission, 1, AI_MATKEY_COLOR_EMISSIVE);
+  aiscene.mMaterials[0]->AddProperty(&material.shininess, 1,
+                                     AI_MATKEY_SHININESS);
 
-  aiscene->mMeshes = new aiMesh*[1];
-  aiscene->mMeshes[0] = nullptr;
-  aiscene->mNumMeshes = 1;
+  aiscene.mMeshes = new aiMesh*[1];
+  aiscene.mMeshes[0] = nullptr;
+  aiscene.mNumMeshes = 1;
 
-  aiscene->mMeshes[0] = new aiMesh();
-  aiscene->mMeshes[0]->mMaterialIndex = 0;
+  aiscene.mMeshes[0] = new aiMesh();
+  aiscene.mMeshes[0]->mMaterialIndex = 0;
 
-  aiscene->mRootNode->mMeshes = new unsigned int[1];
-  aiscene->mRootNode->mMeshes[0] = 0;
-  aiscene->mRootNode->mNumMeshes = 1;
+  aiscene.mRootNode->mMeshes = new unsigned int[1];
+  aiscene.mRootNode->mMeshes[0] = 0;
+  aiscene.mRootNode->mNumMeshes = 1;
 
-  aiMesh* exported_mesh = aiscene->mMeshes[0];
+  aiMesh* exported_mesh = aiscene.mMeshes[0];
   exported_mesh->mPrimitiveTypes |= aiPrimitiveType_TRIANGLE;
 
   // copy vertices

@@ -40,12 +40,9 @@
 
 namespace intrinsic::geo {
 
-absl::StatusOr<std::string> ExportAiSceneAsGltf(const aiScene* scene,
+absl::StatusOr<std::string> ExportAiSceneAsGltf(const aiScene& scene,
                                                 const Eigen::Matrix4d& trans) {
-  if (scene == nullptr) {
-    return absl::InvalidArgumentError("Input scene is null!");
-  }
-  if (scene->mRootNode == nullptr) {
+  if (scene.mRootNode == nullptr) {
     return absl::InvalidArgumentError("Input scene has no root node!");
   }
 
@@ -56,13 +53,13 @@ absl::StatusOr<std::string> ExportAiSceneAsGltf(const aiScene* scene,
                         trans(3, 0), trans(3, 1), trans(3, 2), trans(3, 3));
 
     // Set the extra transform to the root node's transform.
-    scene->mRootNode->mTransformation = aiTrans;
+    scene.mRootNode->mTransformation = aiTrans;
   }
   Assimp::ExportProperties props;
   props.SetPropertyBool(AI_CONFIG_EXPORT_POINT_CLOUDS, true);
   Assimp::Exporter exporter;
   const aiExportDataBlob* blob =
-      exporter.ExportToBlob(scene, "glb2", 0, &props);
+      exporter.ExportToBlob(&scene, "glb2", 0, &props);
   if (blob == nullptr) {
     return absl::InternalError(
         absl::StrCat("aiScene cannot be saved to glTF 2 binary format: ",
@@ -99,7 +96,7 @@ absl::StatusOr<std::string> ExportAsGltf(std::string glb_bytes,
   }
 
   // Finally export the scene with the scale transform.
-  return ExportAiSceneAsGltf(scene, trans);
+  return ExportAiSceneAsGltf(*scene, trans);
 }
 
 absl::StatusOr<std::string> ExportAsGltf(const ExactGeometry& geometry,
@@ -108,16 +105,16 @@ absl::StatusOr<std::string> ExportAsGltf(const ExactGeometry& geometry,
   if (geometry.HasPointCloud()) {
     INTR_ASSIGN_OR_RETURN(auto point_cloud, geometry.GetPointCloud());
     INTR_ASSIGN_OR_RETURN(auto scene, PointCloudToAiScene(point_cloud.Value()));
-    return ExportAiSceneAsGltf(scene.get(), eigenmath::Matrix4d::Identity());
+    return ExportAiSceneAsGltf(*scene, eigenmath::Matrix4d::Identity());
   }
 
   aiScene scene;
   INTR_ASSIGN_OR_RETURN(auto mesh_ref, geometry.GetMesh());
   if (const Mesh& mesh = mesh_ref.Value(); !mesh.empty()) {
-    MeshToAiScene(mesh, material, &scene);
+    MeshToAiScene(mesh, material, scene);
   }
 
-  return ExportAiSceneAsGltf(&scene, Eigen::Matrix4d::Identity());
+  return ExportAiSceneAsGltf(scene, Eigen::Matrix4d::Identity());
 }
 
 }  // namespace intrinsic::geo

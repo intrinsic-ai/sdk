@@ -27,7 +27,7 @@ namespace intrinsic::geo {
 
 // Returns a string representing the serialized glb data present in the given
 // aiScene.
-absl::StatusOr<std::string> ExportAiSceneAsGltf(const aiScene* scene,
+absl::StatusOr<std::string> ExportAiSceneAsGltf(const aiScene& scene,
                                                 const Eigen::Matrix4d& trans);
 
 // Returns a string representing the serialized glb given data with the applied

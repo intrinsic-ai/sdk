@@ -179,7 +179,7 @@ absl::StatusOr<TransformedGeometry> ToGeometry(
 
     INTR_ASSIGN_OR_RETURN(
         std::string gltf_string,
-        ExportAiSceneAsGltf(ai_scene.get(), Eigen::Matrix4d::Identity()));
+        ExportAiSceneAsGltf(*ai_scene, Eigen::Matrix4d::Identity()));
 
     renderable = std::make_shared<Renderable>(gltf_string);
   } else if (material_opt.has_value()) {
