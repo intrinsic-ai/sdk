@@ -360,7 +360,7 @@ message CheckCollisionsResponse {
 service MotionPlannerService {
 
   // Plans a trajectory that fulfills the defined motion specification in the
-  // MotionPlannerRequest. Requests are cached in a volatile cache, if the
+  // `MotionPlanningRequest`. Requests are cached in a volatile cache, if the
   // service encounters identical requests it will return previously cached
   // solutions. The cache can be cleared by either restarting the service or
   // calling `ClearCache`.
@@ -373,9 +373,9 @@ service MotionPlannerService {
   }
 
   // Plans a path that fulfills the defined motion specification in the
-  // MotionPlannerRequest. In contrast to PlanTrajectory, this rpc call creates
-  // only the geometric path, not the full trajectory. As a consequence, it does
-  // not support all the motion planning features like Motion Events. In
+  // `MotionPlanningRequest`. In contrast to PlanTrajectory, this rpc call
+  // creates only the geometric path, not the full trajectory. As a consequence,
+  // it does not support all the motion planning features like Motion Events. In
   // contrast to PlanTrajectory, this call does currently not support
   // non-volatile and volatile caching.
   // This call can be useful if you are not interested in the full trajectory
