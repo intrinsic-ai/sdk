@@ -19,6 +19,7 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -486,6 +487,27 @@ py_proto_library(
     deps = [":processed_skill_manifest_proto"],
 )
 
+js_library(
+    name = "skill_parameter_metadata_jspb_proto",
+    deps = ["//intrinsic/skills/proto:skill_parameter_metadata_proto"],
+)
+
+proto_library(
+    name = "skills_all_protos",
+    deps = [
+        ":equipment_proto",
+        ":error_proto",
+        ":footprint_proto",
+        ":motion_targets_proto",
+        ":skill_registry_config_proto",
+        ":skill_registry_proto",
+        ":skill_service_config_proto",
+        ":skill_service_proto",
+        ":skills_proto",
+        "//intrinsic/resources/proto:resource_handle_proto",
+    ],
+)
+
 proto_library(
     name = "skill_parameter_metadata_proto",
     srcs = ["skill_parameter_metadata.proto"],
@@ -503,28 +525,7 @@ go_proto_library(
     protos = [":skill_parameter_metadata_proto"],
 )
 
-js_library(
-    name = "skill_parameter_metadata_jspb_proto",
-    deps = [":skill_parameter_metadata_proto"],
-)
-
 py_proto_library(
     name = "skill_parameter_metadata_py_pb2",
     deps = [":skill_parameter_metadata_proto"],
-)
-
-proto_library(
-    name = "skills_all_protos",
-    deps = [
-        ":equipment_proto",
-        ":error_proto",
-        ":footprint_proto",
-        ":motion_targets_proto",
-        ":skill_registry_config_proto",
-        ":skill_registry_proto",
-        ":skill_service_config_proto",
-        ":skill_service_proto",
-        ":skills_proto",
-        "//intrinsic/resources/proto:resource_handle_proto",
-    ],
 )

@@ -1,0 +1,74 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.proto_registry;
+
+import "google/api/annotations.proto";
+import "google/protobuf/descriptor.proto";
+
+option go_package = "intrinsic/proto_tools/proto/proto_registry_go_proto";
+
+service ProtoRegistry {
+
+  // Get a specific named file descriptor set.
+  rpc GetNamedFileDescriptorSet(GetNamedFileDescriptorSetRequest)
+      returns (NamedFileDescriptorSet) {
+    option (google.api.http) = {
+      get: "/protoRegistry/v0/fileDescriptorSets:find"
+    };
+  }
+
+}
+
+message NamedFileDescriptorSet {
+  // Unique name for the specific file descriptor set. The name is arbitrary and
+  // may change in the future, do not make assumptions about its content or
+  // structure. You may pass it to compatibility check or migration requests.
+  string name = 1;
+
+  // A transitively closed file descriptor set.
+  google.protobuf.FileDescriptorSet file_descriptor_set = 2;
+}
+
+message GetNamedFileDescriptorSetRequest {
+  oneof identifier_type {
+    // Intrinsic-style type URL of a message for which to retrieve the file
+    // descriptor set. The file descriptor set is guaranteed to satisfy the
+    // message referenced in the type URL.
+    //
+    // For type URLs in the "assets" area, the descriptor set may not be the
+    // same as when specifying `asset_id` for the same asset. In particular, the
+    // descriptor set returned for the type URL may not contain any descriptors
+    // for components the specified message does not transitively depend on.
+    //
+    // Any message in the "common" area is also accessible through type URLs
+    // starting with `type.googleapis.com` that do not specify an area.
+    //
+    // Examples:
+    // * type.intrinsic.ai/assets/com.example.my_asset/my_package.MyMessage
+    // * type.intrinsic.ai/common/google.protobuf.Duration
+    // * type.googleapis.com/google.protobuf.Duration
+    string type_url = 1;
+
+    // Name of the requested file descriptor set in the proto registry, see
+    // [NamedFileDescriptorSet.name].
+    string name = 2;
+
+    // Asset ID for which to get the file descriptor set of the currently
+    // installed version.
+    string asset_id = 3;
+  }
+}
