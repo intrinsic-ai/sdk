@@ -19,6 +19,43 @@ load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 package(default_visibility = ["//visibility:public"])
 
 proto_library(
+    name = "cluster_proto",
+    srcs = ["cluster.proto"],
+    deps = ["//intrinsic/util/status:extended_status_proto"],
+)
+
+go_proto_library(
+    name = "cluster_go_proto",
+    importpath = "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster_go_proto",
+    proto = ":cluster_proto",
+    deps = [
+        "//intrinsic/util/status:extended_status_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "cluster_py_pb2",
+    deps = [":cluster_proto"],
+)
+
+proto_library(
+    name = "dhcp_leases_proto",
+    srcs = ["dhcp_leases.proto"],
+    deps = [
+        "@com_google_googleapis//google/api:field_behavior_proto",
+    ],
+)
+
+go_proto_library(
+    name = "dhcp_leases_go_proto",
+    importpath = "intrinsic/kubernetes/intrinsic_os/protos/v1/dhcp_leases_go_proto",
+    protos = [":dhcp_leases_proto"],
+    deps = [
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
+)
+
+proto_library(
     name = "shutdown_proto",
     srcs = ["shutdown.proto"],
     deps = [
@@ -38,18 +75,34 @@ py_proto_library(
 )
 
 proto_library(
-    name = "dhcp_leases_proto",
-    srcs = ["dhcp_leases.proto"],
+    name = "cluster_service_proto",
+    srcs = ["cluster_service.proto"],
     deps = [
-        "@com_google_googleapis//google/api:field_behavior_proto",
+        ":cluster_proto",
+        ":dhcp_leases_proto",
+        ":shutdown_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
     ],
 )
 
 go_proto_library(
-    name = "dhcp_leases_go_proto",
-    importpath = "intrinsic/kubernetes/intrinsic_os/protos/v1/dhcp_leases_go_proto",
-    protos = [":dhcp_leases_proto"],
+    name = "cluster_service_go_proto",
+    compilers = [
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway:go_gen_grpc_gateway",
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
+    importpath = "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster_service_go_proto",
+    proto = ":cluster_service_proto",
     deps = [
+        ":cluster_go_proto",
+        ":dhcp_leases_go_proto",
+        ":shutdown_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
     ],
+)
+
+py_proto_library(
+    name = "cluster_service_py_pb2",
+    deps = [":cluster_service_proto"],
 )
