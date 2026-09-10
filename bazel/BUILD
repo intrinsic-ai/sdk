@@ -55,7 +55,7 @@ bzl_library(
     srcs = ["container.bzl"],
     deps = [
         "@rules_oci//oci:defs",
-        "@rules_pkg//pkg:bzl_srcs",
+        "@rules_pkg//pkg:rules_pkg_lib",
     ],
 )
 
