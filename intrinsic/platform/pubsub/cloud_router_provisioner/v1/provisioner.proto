@@ -60,3 +60,33 @@ service RouterProvisionerService {
   rpc AdminCopy(intrinsic_proto.pubsub.admin_set_grpc.v1.AdminSetRequest)
       returns (intrinsic_proto.pubsub.admin_set_grpc.v1.AdminSetResponse) {}
 }
+
+// ProvisionLineRouterRequest is the request to LineRouterProvisioner.Provision
+message ProvisionLineRouterRequest {
+  string line_id = 1;
+}
+
+// LineRouterProvisionResponse is the response from
+// LineRouterProvisioner.Provision
+message LineRouterProvisionResponse {}
+
+// DeleteLineRouterRequest is the request to LineRouterProvisioner.Delete
+message DeleteLineRouterRequest {
+  string line_id = 1;
+}
+
+// LineRouterDeleteResponse is the response from LineRouterProvisioner.Delete
+message LineRouterDeleteResponse {}
+
+// LineRouterProvisioner is used for provisioning and deletion of line-level
+// routers used for line orchestration.
+service LineRouterProvisioner {
+  // Provision provisions a router for the given line.
+  // No-op if the router is already provisioned.
+  rpc Provision(ProvisionLineRouterRequest)
+      returns (LineRouterProvisionResponse) {}
+
+  // Delete deletes a router for the given line.
+  // No-op if the router is not provisioned.
+  rpc Delete(DeleteLineRouterRequest) returns (LineRouterDeleteResponse) {}
+}
