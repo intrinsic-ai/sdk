@@ -87,7 +87,7 @@ go_library(
 
 go_library(
     name = "servicevalidate",
-    srcs = ["servicevalidate.go"],
+    srcs = ["servicevalidate.go"] + [],
     importpath = "intrinsic/assets/services/servicevalidate",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
