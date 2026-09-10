@@ -15,25 +15,44 @@
 #ifndef INTRINSIC_GEOMETRY_INTERNAL_LEGACY_POINT_CLOUD_PTS_TO_AI_SCENE_H_
 #define INTRINSIC_GEOMETRY_INTERNAL_LEGACY_POINT_CLOUD_PTS_TO_AI_SCENE_H_
 
+#include <cstdint>
 #include <memory>
+#include <optional>
+#include <span>
 #include <string>
 
 #include "absl/status/statusor.h"
 #include "assimp/scene.h"
 #include "intrinsic/eigenmath/types.h"
+#include "intrinsic/geometry/api/material.h"
 #include "intrinsic/geometry/shapes/point_cloud.h"
 
 namespace intrinsic::geo {
 
-// Read through the content of the pts file and convert it to an aiScene.
+// Returns assimp scene given the pts file.
 absl::StatusOr<std::unique_ptr<aiScene>> PtsFileToAiScene(
     const std::string& file_content,
     eigenmath::Vector3d scale = eigenmath::Vector3d::Ones());
 
-// Go through the point cloud and convert it to an aiScene.
+// Returns assimp scene for the given point cloud and optional colors and
+// material.
+//
+// `colors` is an optional contiguous span of uint8 RGB values formatted in
+// [R0, G0, B0, R1, G1, B1, ...] order.
+// - If size is 3*N (where N is point_cloud.getPoints().size()), per-point
+//   colors are assigned to vertex colors.
+// - If size is 3, a uniform color is applied to the material's diffuse color.
+//
+// Pre-conditions:
+// - If `colors` has a value, its size must be either 3 (for a uniform RGB
+// color) or 3 * point_cloud.getPoints().size() (for per-point RGB colors).
+//
+// Returns InvalidArgumentError if pre-conditions fail.
 absl::StatusOr<std::unique_ptr<aiScene>> PointCloudToAiScene(
     const PointCloud& point_cloud,
-    eigenmath::Vector3d scale = eigenmath::Vector3d::Ones());
+    eigenmath::Vector3d scale = eigenmath::Vector3d::Ones(),
+    std::optional<Material> material = std::nullopt,
+    std::optional<std::span<const uint8_t>> colors = std::nullopt);
 
 }  // namespace intrinsic::geo
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_LEGACY_POINT_CLOUD_PTS_TO_AI_SCENE_H_

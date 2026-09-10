@@ -15,6 +15,9 @@
 #ifndef INTRINSIC_GEOMETRY_INTERNAL_UTIL_EXPORT_AS_GLTF_H_
 #define INTRINSIC_GEOMETRY_INTERNAL_UTIL_EXPORT_AS_GLTF_H_
 
+#include <cstdint>
+#include <optional>
+#include <span>
 #include <string>
 
 #include "Eigen/Core"
@@ -37,8 +40,24 @@ absl::StatusOr<std::string> ExportAsGltf(std::string glb_bytes,
 
 // Returns a string representing the serialized glb data from the given
 // ExactGeometry.
-absl::StatusOr<std::string> ExportAsGltf(const ExactGeometry& geometry,
-                                         const Material& material = Material());
+//
+// `colors` is an optional contiguous span of uint8 RGB values formatted in
+// [R0, G0, B0, R1, G1, B1, ...] order. The expected size depends on the
+// geometry type:
+// - PointCloud (N points): 3*N (per-point RGB) or 3 (uniform RGB).
+// - Single primitive shape: 3 (single RGB tuple).
+// - Compound primitive shapes (M shapes): 3*M (per-primitive RGB) or 3 (uniform
+// RGB).
+// - Mesh (V vertices): 3*V (per-vertex RGB) or 3 (uniform RGB).
+//
+// Pre-conditions:
+// - If `colors` has a value, its size must match one of the valid sizes for
+//   the underlying geometry type.
+//
+// Returns InvalidArgumentError if pre-conditions fail.
+absl::StatusOr<std::string> ExportAsGltf(
+    const ExactGeometry& geometry, const Material& material = Material(),
+    std::optional<std::span<const uint8_t>> colors = std::nullopt);
 
 }  // namespace intrinsic::geo
 #endif  // INTRINSIC_GEOMETRY_INTERNAL_UTIL_EXPORT_AS_GLTF_H_

@@ -120,6 +120,8 @@ cc_library(
     deps = [
         "//intrinsic/geometry/api:material",
         "//intrinsic/geometry/internal/mesh",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
         "@assimp",
         "@com_gitlab_libeigen_eigen//:eigen",
     ],

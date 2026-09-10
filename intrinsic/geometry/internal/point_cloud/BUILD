@@ -50,6 +50,7 @@ cc_library(
     ],
     deps = [
         "//intrinsic/eigenmath",
+        "//intrinsic/geometry/api:material",
         "//intrinsic/geometry/shapes",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/status",

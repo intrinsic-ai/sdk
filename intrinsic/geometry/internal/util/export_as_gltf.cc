@@ -99,19 +99,50 @@ absl::StatusOr<std::string> ExportAsGltf(std::string glb_bytes,
   return ExportAiSceneAsGltf(*scene, trans);
 }
 
-absl::StatusOr<std::string> ExportAsGltf(const ExactGeometry& geometry,
-                                         const Material& material) {
+absl::StatusOr<std::string> ExportAsGltf(
+    const ExactGeometry& geometry, const Material& material,
+    std::optional<std::span<const uint8_t>> colors) {
   // We skip the conversion to mesh for point clouds.
   if (geometry.HasPointCloud()) {
     INTR_ASSIGN_OR_RETURN(auto point_cloud, geometry.GetPointCloud());
-    INTR_ASSIGN_OR_RETURN(auto scene, PointCloudToAiScene(point_cloud.Value()));
+    INTR_ASSIGN_OR_RETURN(
+        auto scene,
+        PointCloudToAiScene(point_cloud.Value(), eigenmath::Vector3d::Ones(),
+                            material, colors));
     return ExportAiSceneAsGltf(*scene, eigenmath::Matrix4d::Identity());
+  }
+
+  if (geometry.HasPrimitiveShapes() && colors.has_value()) {
+    const size_t num_primitives = geometry.GetPrimitiveShapes().size();
+    if (num_primitives == 1) {
+      if (colors->size() != 3) {
+        return absl::InvalidArgumentError(
+            absl::StrCat("Single primitive shape colors size (", colors->size(),
+                         ") is invalid. Expected 3 for a single RGB tuple."));
+      }
+    } else {
+      if (colors->size() != 3 && colors->size() != 3 * num_primitives) {
+        return absl::InvalidArgumentError(absl::StrCat(
+            "Compound primitive shape colors size (", colors->size(),
+            ") is invalid. Expected 3 for uniform RGB or 3 * number of "
+            "primitives (",
+            3 * num_primitives, ")."));
+      }
+    }
   }
 
   aiScene scene;
   INTR_ASSIGN_OR_RETURN(auto mesh_ref, geometry.GetMesh());
   if (const Mesh& mesh = mesh_ref.Value(); !mesh.empty()) {
-    MeshToAiScene(mesh, material, scene);
+    if (colors.has_value() && !geometry.HasPrimitiveShapes()) {
+      if (colors->size() != 3 && colors->size() != 3 * mesh.vertex_count()) {
+        return absl::InvalidArgumentError(absl::StrCat(
+            "Mesh colors size (", colors->size(),
+            ") is invalid. Expected 3 for uniform RGB or 3 * vertex_count (",
+            3 * mesh.vertex_count(), ") for per-vertex RGB."));
+      }
+    }
+    INTR_RETURN_IF_ERROR(MeshToAiScene(mesh, material, colors, scene));
   }
 
   return ExportAiSceneAsGltf(scene, Eigen::Matrix4d::Identity());
