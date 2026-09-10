@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("//bazel:go_macros.bzl", "go_library")
+load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -94,4 +94,12 @@ go_library(
         "//intrinsic/platform/common/proto:workcell_info_go_proto",
         "@com_github_golang_glog//:go_default_library",
     ],
+)
+
+go_test(
+    name = "kvstore_test",
+    size = "small",
+    srcs = ["kvstore_test.go"],
+    embed = [":kvstore"],
+    importpath = "intrinsic/platform/pubsub/golang/kvstore_test",
 )
