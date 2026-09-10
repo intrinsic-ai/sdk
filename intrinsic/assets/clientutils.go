@@ -66,6 +66,20 @@ func DialClusterFromInctl(ctx context.Context, flags *cmdutils.CmdFlags) (contex
 		return ctx, nil, "", err
 	}
 
+	return DialCluster(ctx, project, org, address, cluster, solution)
+}
+
+// DialCluster creates a connection to the cluster uniquely identified by a
+// combination of project, organization, address, cluster, and solution. These values may be
+// different from those specified in command line flags.
+//
+// The following rules apply:
+//  1. Address is prioritized over cluster, which is prioritized over solution.
+//  2. Cluster must be specified if address is a project endpoint.
+//  3. Org can be project qualified (i.e. org@project)
+//  4. Project does not need to be specified if org is project qualified,
+//     but is prioritized over the project qualified if both are specified.
+func DialCluster(ctx context.Context, project, org, address, cluster, solution string) (context.Context, *grpc.ClientConn, string, error) {
 	// Only lookup cluster using the solution if cluster is not set.  We
 	// probably shouldn't be in this scenario right now, but this isn't the
 	// spot to enforce that.
