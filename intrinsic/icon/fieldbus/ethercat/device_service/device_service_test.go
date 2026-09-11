@@ -21,11 +21,17 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	testing "testing"
 
 	"intrinsic/assets/data/fakedataassets"
+	"intrinsic/testing/grpctest"
 
 	"github.com/google/go-cmp/cmp"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/local"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 	anypb "google.golang.org/protobuf/types/known/anypb"
@@ -275,10 +281,12 @@ func TestDeviceService(t *testing.T) {
 	}
 
 	tests := []struct {
-		desc         string
-		testArgs     testArgs
-		wantResponse *dspb.GetConfigurationResponse
-		wantErr      error
+		desc            string
+		testArgs        testArgs
+		wantResponse    *dspb.GetConfigurationResponse
+		wantErr         error
+		wantErrCode     codes.Code
+		wantErrContains string
 	}{
 		{
 			desc: "valid config",
@@ -298,7 +306,7 @@ func TestDeviceService(t *testing.T) {
 				config:     config,
 				dataAssets: []*dapb.DataAsset{},
 			},
-			wantErr: ErrEsiBundleNotFound,
+			wantErrCode: codes.NotFound,
 		},
 		{
 			desc: "wrong proto type in data asset",
@@ -345,7 +353,7 @@ func TestDeviceService(t *testing.T) {
 					DeviceIdentifier: &dscpb.DeviceIdentifier{},
 				},
 			},
-			wantErr: ErrEsiBundleNotFound,
+			wantErrContains: "interface not found in resolved dependency",
 		},
 	}
 
@@ -359,6 +367,18 @@ func TestDeviceService(t *testing.T) {
 			}
 
 			service, err := NewDeviceService(ctx, tc.testArgs.config, client)
+			if tc.wantErrCode != codes.OK {
+				if status.Code(err) != tc.wantErrCode {
+					t.Fatalf("NewDeviceService(...) error code = %v, want %v (err: %v)", status.Code(err), tc.wantErrCode, err)
+				}
+				return
+			}
+			if tc.wantErrContains != "" {
+				if err == nil || !strings.Contains(err.Error(), tc.wantErrContains) {
+					t.Fatalf("NewDeviceService(...) error = %v, want error containing %q", err, tc.wantErrContains)
+				}
+				return
+			}
 			if tc.wantErr != nil {
 				if err == nil {
 					t.Fatalf("NewDeviceService(...) = nil error, want non-nil error matching %v", tc.wantErr)
@@ -1975,5 +1995,253 @@ func TestIntermediateBitLengths(t *testing.T) {
 				t.Fatalf("Unexpected error: %v", err)
 			}
 		})
+	}
+}
+
+type fakeRetryDataAssetsServer struct {
+	dagrpcpb.UnimplementedDataAssetsServer
+	mu        sync.Mutex
+	calls     int
+	failUntil int
+	failCode  codes.Code
+	dataAsset *dapb.DataAsset
+}
+
+func (s *fakeRetryDataAssetsServer) GetDataAsset(ctx context.Context, req *dagrpcpb.GetDataAssetRequest) (*dapb.DataAsset, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	idx := s.calls
+	s.calls++
+	if idx < s.failUntil {
+		code := s.failCode
+		if code == codes.OK {
+			code = codes.Unavailable
+		}
+		return nil, status.Error(code, "test transient error")
+	}
+	if s.dataAsset != nil {
+		return s.dataAsset, nil
+	}
+	return nil, status.Error(codes.NotFound, "data asset not found")
+}
+
+func (s *fakeRetryDataAssetsServer) callCount() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.calls
+}
+
+func startRetryTestServer(t *testing.T, srv dagrpcpb.DataAssetsServer) string {
+	t.Helper()
+	server := grpc.NewServer()
+	dagrpcpb.RegisterDataAssetsServer(server, srv)
+	return grpctest.StartServerT(t, server)
+}
+
+func TestFetchESIBundle_NativeGrpcRetry_Success(t *testing.T) {
+	ctx := context.Background()
+	bundleID := &ipb.Id{
+		Package: "intrinsic_proto.fieldbus.ethercat.test",
+		Name:    "test_bundle_retry",
+	}
+	iface := "data://" + esiBundleDataAssetProtoName
+	config := &dscpb.DeviceServiceConfig{
+		DeviceIdentifier: &dscpb.DeviceIdentifier{
+			VendorId:    0x0001,
+			ProductCode: 0x0002,
+			Revision:    0x0003,
+		},
+		EsiBundle: &rdpb.ResolvedDependency{
+			Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
+				iface: {
+					Protocol: &rdpb.ResolvedDependency_Interface_Data_{
+						Data: &rdpb.ResolvedDependency_Interface_Data{
+							Id: bundleID,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	bundle := &esipb.EsiBundle{
+		Files: map[string]*esipb.Esi{
+			"device.xml": {Data: makeTestEsiXml(nil, nil, nil)},
+		},
+	}
+	bundleAny, err := anypb.New(bundle)
+	if err != nil {
+		t.Fatalf("Failed to marshal bundle: %v", err)
+	}
+	validDataAsset := &dapb.DataAsset{
+		Metadata: &mpb.Metadata{IdVersion: &ipb.IdVersion{Id: bundleID}},
+		Data:     bundleAny,
+	}
+
+	// Fail attempt 1 with `Unavailable`, succeed on attempt 2
+	fakeServer := &fakeRetryDataAssetsServer{
+		failUntil: 1,
+		failCode:  codes.Unavailable,
+		dataAsset: validDataAsset,
+	}
+	srvAddr := startRetryTestServer(t, fakeServer)
+
+	opts := append(
+		DialOptions(),
+		grpc.WithTransportCredentials(local.NewCredentials()),
+	)
+	conn, err := grpc.NewClient(srvAddr, opts...)
+	if err != nil {
+		t.Fatalf("grpc.NewClient failed: %v", err)
+	}
+	t.Cleanup(func() { conn.Close() })
+	daClient := dagrpcpb.NewDataAssetsClient(conn)
+
+	svc, err := NewDeviceService(ctx, config, daClient)
+	if err != nil {
+		t.Fatalf("NewDeviceService failed unexpectedly: %v", err)
+	}
+	if svc == nil {
+		t.Fatalf("Expected non-nil DeviceService")
+	}
+	if got := fakeServer.callCount(); got != 2 {
+		t.Errorf("Expected exactly 2 calls to GetDataAsset (1 failure + 1 success retry), got %d", got)
+	}
+}
+
+func TestFetchESIBundle_NativeGrpcRetry_NonRetryable(t *testing.T) {
+	ctx := context.Background()
+	bundleID := &ipb.Id{
+		Package: "intrinsic_proto.fieldbus.ethercat.test",
+		Name:    "test_bundle_non_retryable",
+	}
+	iface := "data://" + esiBundleDataAssetProtoName
+	config := &dscpb.DeviceServiceConfig{
+		DeviceIdentifier: &dscpb.DeviceIdentifier{
+			VendorId:    0x0001,
+			ProductCode: 0x0002,
+			Revision:    0x0003,
+		},
+		EsiBundle: &rdpb.ResolvedDependency{
+			Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
+				iface: {
+					Protocol: &rdpb.ResolvedDependency_Interface_Data_{
+						Data: &rdpb.ResolvedDependency_Interface_Data{
+							Id: bundleID,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Return `NotFound` (non-retryable)
+	fakeServer := &fakeRetryDataAssetsServer{
+		failUntil: 1,
+		failCode:  codes.NotFound,
+	}
+	srvAddr := startRetryTestServer(t, fakeServer)
+
+	opts := append(
+		DialOptions(),
+		grpc.WithTransportCredentials(local.NewCredentials()),
+	)
+	conn, err := grpc.NewClient(srvAddr, opts...)
+	if err != nil {
+		t.Fatalf("grpc.NewClient failed: %v", err)
+	}
+	t.Cleanup(func() { conn.Close() })
+	daClient := dagrpcpb.NewDataAssetsClient(conn)
+
+	svc, err := NewDeviceService(ctx, config, daClient)
+	if err == nil {
+		t.Fatalf("Expected error from NewDeviceService, got nil")
+	}
+	if svc != nil {
+		t.Fatalf("Expected nil DeviceService on failure, got %v", svc)
+	}
+	if !errors.Is(err, ErrEsiBundleNotFound) {
+		t.Errorf("Expected error to wrap ErrEsiBundleNotFound, got: %v", err)
+	}
+	if status.Code(err) != codes.NotFound {
+		t.Errorf("Expected status code codes.NotFound, got: %v (code: %v)", err, status.Code(err))
+	}
+	if got := fakeServer.callCount(); got != 1 {
+		t.Errorf("Expected exactly 1 call (no retries for NotFound), got %d", got)
+	}
+}
+
+func TestFetchESIBundle_NativeGrpcRetry_Exhausted(t *testing.T) {
+	ctx := context.Background()
+	bundleID := &ipb.Id{
+		Package: "intrinsic_proto.fieldbus.ethercat.test",
+		Name:    "test_bundle_exhaust",
+	}
+	iface := "data://" + esiBundleDataAssetProtoName
+	config := &dscpb.DeviceServiceConfig{
+		DeviceIdentifier: &dscpb.DeviceIdentifier{
+			VendorId:    0x0001,
+			ProductCode: 0x0002,
+			Revision:    0x0003,
+		},
+		EsiBundle: &rdpb.ResolvedDependency{
+			Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
+				iface: {
+					Protocol: &rdpb.ResolvedDependency_Interface_Data_{
+						Data: &rdpb.ResolvedDependency_Interface_Data{
+							Id: bundleID,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Always fail with `Unavailable`
+	fakeServer := &fakeRetryDataAssetsServer{
+		failUntil: 100,
+		failCode:  codes.Unavailable,
+	}
+	srvAddr := startRetryTestServer(t, fakeServer)
+
+	// Use a test service config with 5 attempts and fast backoff (10ms) to test exhaustion without slow sleep.
+	fastRetryConfig := fmt.Sprintf(`{
+		"methodConfig": [{
+			"name": [{"service": "%s"}],
+			"retryPolicy": {
+				"maxAttempts": 5,
+				"initialBackoff": "0.01s",
+				"maxBackoff": "0.02s",
+				"backoffMultiplier": 1.5,
+				"retryableStatusCodes": ["UNAVAILABLE", "RESOURCE_EXHAUSTED"]
+			}
+		}]
+	}`, dagrpcpb.DataAssets_ServiceDesc.ServiceName)
+	conn, err := grpc.NewClient(
+		srvAddr,
+		grpc.WithDefaultServiceConfig(fastRetryConfig),
+		grpc.WithTransportCredentials(local.NewCredentials()),
+	)
+	if err != nil {
+		t.Fatalf("grpc.NewClient failed: %v", err)
+	}
+	t.Cleanup(func() { conn.Close() })
+	daClient := dagrpcpb.NewDataAssetsClient(conn)
+
+	svc, err := NewDeviceService(ctx, config, daClient)
+	if err == nil {
+		t.Fatalf("Expected error from NewDeviceService, got nil")
+	}
+	if svc != nil {
+		t.Fatalf("Expected nil DeviceService on failure, got %v", svc)
+	}
+	if !errors.Is(err, ErrEsiBundleNotFound) {
+		t.Errorf("Expected error to wrap ErrEsiBundleNotFound, got: %v", err)
+	}
+	if status.Code(err) != codes.Unavailable {
+		t.Errorf("Expected status code codes.Unavailable, got: %v (code: %v)", err, status.Code(err))
+	}
+	if got := fakeServer.callCount(); got != 5 {
+		t.Errorf("Expected exactly 5 calls to GetDataAsset (all attempts exhausted), got %d", got)
 	}
 }

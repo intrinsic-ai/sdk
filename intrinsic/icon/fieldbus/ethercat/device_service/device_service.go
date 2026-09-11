@@ -27,6 +27,7 @@ import (
 	"intrinsic/assets/dependencies/utils"
 
 	log "github.com/golang/glog"
+	"google.golang.org/grpc"
 
 	dagrpcpb "intrinsic/assets/data/proto/v1/data_assets_go_proto"
 	dscpb "intrinsic/icon/fieldbus/ethercat/device_service/v1/device_service_config_go_proto"
@@ -59,7 +60,31 @@ const (
 	// variableReferenceSeparator is the string used to concatenate PDO and Object
 	// references for use as unique keys in mapping tables.
 	variableReferenceSeparator = "::"
+
+	// `defaultServiceConfigTemplate` defines the gRPC service config template for resilient `DataAssets` calls.
+	// It retries on `UNAVAILABLE` and `RESOURCE_EXHAUSTED` for ~8 seconds total with exponential backoff and jitter.
+	defaultServiceConfigTemplate = `{
+		"methodConfig": [{
+			"name": [{"service": "%s"}],
+			"retryPolicy": {
+				"maxAttempts": 5,
+				"initialBackoff": "1s",
+				"maxBackoff": "3s",
+				"backoffMultiplier": 1.5,
+				"retryableStatusCodes": ["UNAVAILABLE", "RESOURCE_EXHAUSTED"]
+			}
+		}]
+	}`
 )
+
+// DialOptions returns the recommended gRPC dial options for client connections used by DeviceService,
+// enabling native client retry behavior.
+func DialOptions() []grpc.DialOption {
+	serviceConfig := fmt.Sprintf(defaultServiceConfigTemplate, dagrpcpb.DataAssets_ServiceDesc.ServiceName)
+	return []grpc.DialOption{
+		grpc.WithDefaultServiceConfig(serviceConfig),
+	}
+}
 
 // DeviceService implements the DeviceService rpc service.
 // It maintains indices derived from the ESI to perform rapid variable resolution.
@@ -96,7 +121,7 @@ type DeviceService struct {
 	resolvedConfiguration *dspb.ResolvedConfiguration
 }
 
-// fetchESIBundle retrieves the ESI bundle data asset from the DataAsset service.
+// `fetchESIBundle` retrieves the ESI bundle data asset from the `DataAsset` service with exponential retry backoff.
 //
 // Parameters:
 //   - ctx: The context for the RPC call.

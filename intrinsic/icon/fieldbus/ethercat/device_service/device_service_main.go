@@ -85,9 +85,10 @@ func main() {
 	}
 	log.InfoContextf(ctx, "Server is now listening at %q", address)
 
-	opts := []grpc.DialOption{
+	opts := append(
+		deviceservice.DialOptions(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	}
+	)
 
 	log.InfoContextf(ctx, "Connecting to the workcell cluster service %q", *workcellClusterServiceAddress)
 	workcellConn, err := grpc.NewClient(
