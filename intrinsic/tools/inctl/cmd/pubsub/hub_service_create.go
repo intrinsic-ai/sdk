@@ -17,159 +17,127 @@ package pubsub
 import (
 	"context"
 	"fmt"
+	"io"
 	"strings"
+
+	"google.golang.org/grpc"
 
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
-	endpointpb "intrinsic/platform/pubsub/connect/onprem/relay_router_service/endpoint_spec_go_proto"
-	pb "intrinsic/platform/pubsub/connect/onprem/relay_router_service/relay_router_service_go_proto"
+	"intrinsic/tools/inctl/auth/auth"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 const (
+	keyHubEndpoint       = "hub-endpoint"
 	keySpokeEndpoints    = "spoke-endpoint"
 	keyHubServiceVersion = "hub-service-version"
+
+	// The `cluster` flag in `hub-service-create / delete` commands is deprecated
+	// because it can only contain a cluster id. `hub-service-create` and `delete`
+	// commands need additional information (whether that cluster is on a local
+	// network or in the cloud). This information can be provided in the `hub-endpoint`
+	// flag.
+	keyClusterDeprecated = "cluster"
 
 	endpointSpecSeparator     = "@"
 	localEndpointDesignation  = "local"
 	remoteEndpointDesignation = "remote"
 )
 
-// HubServiceCreateCmdRunner handles execution of the hub-service-create command.
-// That subcommand installs or updates the relay service used for line orchestration.
-type HubServiceCreateCmdRunner struct {
-	ServiceInstallingCmdRunner
-
-	spokeEndpoints []string
-}
-
-// parseEndpointSpec creates an EndpointSpec based on a spoke-endpoint command line flag.
-func parseEndpointSpec(flagValue string) (*endpointpb.EndpointSpec, error) {
-	parts := strings.Split(flagValue, endpointSpecSeparator)
-	if len(parts) != 2 {
-		return nil, fmt.Errorf(
-			"Failed to parse %q. Each endpoint spec should consist of two parts separated by %v",
-			flagValue, endpointSpecSeparator)
-	}
-
-	result := &endpointpb.EndpointSpec{
-		WorkcellName: parts[0],
-	}
-
-	switch parts[1] {
-	case localEndpointDesignation:
-		result.ConnectionSpec = &endpointpb.EndpointSpec_Local{
-			Local: &endpointpb.LocalConnectionSpec{},
-		}
-	case remoteEndpointDesignation:
-		result.ConnectionSpec = &endpointpb.EndpointSpec_Remote{
-			Remote: &endpointpb.RemoteConnectionSpec{},
-		}
-	default:
-		result.ConnectionSpec = &endpointpb.EndpointSpec_Url{Url: parts[1]}
-	}
-
-	return result, nil
-}
-
-// makeConfig generates configuration of the relay service from command line flags.
-func (r *HubServiceCreateCmdRunner) makeConfig() (*pb.RelayRouterServiceConfig, error) {
-	spokeWorkcells := r.spokeEndpoints
-	config := &pb.RelayRouterServiceConfig{
-		HubWorkcellName: r.clusterId,
-		SpokeEndpointSpecs: make(
-			[]*endpointpb.EndpointSpec,
-			len(spokeWorkcells)),
-	}
-
-	for i, spokeWorkcell := range spokeWorkcells {
-		endpointSpec, err := parseEndpointSpec(spokeWorkcell)
-		if err != nil {
-			return nil, err
-		}
-
-		if endpointSpec.GetRemote() != nil {
-			return nil, fmt.Errorf("remote endpoints are not supported")
-		}
-
-		config.SpokeEndpointSpecs[i] = endpointSpec
-	}
-
-	fmt.Fprintf(r.outputWriter, "--- Config ---\n%v\n--- End of config ---\n", config)
-
-	return config, nil
-}
-
-// run creates a configuration proto for the relay service,
-// and triggers installation of that service.
-func (r *HubServiceCreateCmdRunner) run(ctx context.Context) error {
-	if len(r.spokeEndpoints) == 0 {
-		return fmt.Errorf("at least one spoke endpoint must be specified using --spoke-endpoint; cannot install or update the relay")
-	}
-
-	config, err := r.makeConfig()
-	if err != nil {
-		return fmt.Errorf("failed to create service config from command line flags: %w", err)
-	}
-	return r.updateInstalledServiceInstances(ctx, config)
-}
+var (
+	hubServiceCreateViper = viper.New()
+)
 
 // hubServiceCreateCmdEnvironment is the execution environment for the
 // hub-service-create command. That environment contains command line
-// flags and a connection to the gRPC service.
+// flags.
 type hubServiceCreateCmdEnvironment struct {
 	cmdFlags *cmdutils.CmdFlags
 }
 
-// RunE sets up the execution environment and invokes HubServiceCreateCmdRunner.run.
-func (e *hubServiceCreateCmdEnvironment) RunE(cmd *cobra.Command, _ []string) error {
-	ctx, conn, _, err := clientutils.DialClusterFromInctl(cmd.Context(), e.cmdFlags)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	_, cluster, _, err := e.cmdFlags.GetFlagsAddressClusterSolution()
-	if err != nil {
-		return fmt.Errorf("could not get flags: %w", err)
-	}
-
+// getServiceVersionToInstall determines the version of the service asset that should
+// be installed. It can be the version specified in the command line, or the default
+// version in the asset catalog.
+func (e *hubServiceCreateCmdEnvironment) getServiceVersionToInstall(cmd *cobra.Command, packageName, serviceName string) (string, error) {
 	versionToInstall := e.cmdFlags.GetString(keyHubServiceVersion)
+	var err error
 	if len(versionToInstall) == 0 {
 		versionToInstall, err = getDefaultVersion(
-			ctx,
+			cmd.Context(),
 			e.cmdFlags,
 			cmd.OutOrStdout(),
-			hubServicePackage,
-			hubServiceName)
+			packageName,
+			serviceName)
 		if err != nil {
-			return fmt.Errorf(
+			return "", fmt.Errorf(
 				"failed to determine which version of %v to install: %w",
-				hubServiceName,
+				serviceName,
 				err)
 		}
 	}
+	return versionToInstall, nil
+}
 
-	runner := &HubServiceCreateCmdRunner{
-		ServiceInstallingCmdRunner: ServiceInstallingCmdRunner{
-			CmdRunnerBase: *newCmdRunnerBase(
-				conn,
-				cmd.OutOrStdout(),
-				cluster,
-				hubServicePackage,
-				hubServiceName),
-			requestedVersion: versionToInstall,
-		},
-		spokeEndpoints: e.cmdFlags.GetStringSlice(keySpokeEndpoints),
+// getHubEndpoint computes the hub endpoint spec.
+//
+// It is intended to preserve backwards compatibility with previous versions of
+// the hub-service-create command, where the `--cluster` flag was used to specify
+// the hub. Newer versions use the `--hub-endpoint` flag. Unlike `--cluster`, that
+// flag allows `@local` and `@remote` suffixes. This, in turn, enables users to
+// unambiguously specify whether the hub is on a local network or a remote server.
+func getHubEndpoint(out io.Writer, cluster, hubEndpoint string) (string, error) {
+	if len(hubEndpoint) != 0 {
+		return hubEndpoint, nil
 	}
 
-	return runner.run(ctx)
+	if len(cluster) != 0 {
+		fmt.Fprintf(out, "WARNING: the --cluster flag is deprecated, use --%s instead.\n", keyHubEndpoint)
+		if strings.HasPrefix(cluster, "vmp-") {
+			fmt.Fprintf(out, "Assuming that %q is a remote server.\n", cluster)
+			return fmt.Sprintf("%s%s%s", cluster, endpointSpecSeparator, remoteEndpointDesignation), nil
+		}
+
+		fmt.Fprintf(out, "Assuming that %q is on the local network.\n", cluster)
+		return fmt.Sprintf("%s%s%s", cluster, endpointSpecSeparator, localEndpointDesignation), nil
+	}
+
+	return "", fmt.Errorf("neither cluster nor hub endpoint are specified")
+}
+
+// RunE sets up the execution environment and invokes HubServiceCreateRunner.run.
+func (e *hubServiceCreateCmdEnvironment) RunE(cmd *cobra.Command, _ []string) error {
+	project := e.cmdFlags.GetFlagProject()
+	org := e.cmdFlags.GetFlagOrganization()
+
+	hubEndpoint, err := getHubEndpoint(cmd.OutOrStdout(), e.cmdFlags.GetString(keyClusterDeprecated), e.cmdFlags.GetString(keyHubEndpoint))
+	if err != nil {
+		return fmt.Errorf("could not get hub endpoint: %w", err)
+	}
+
+	runner := &HubServiceCreateRunner{
+		project:        project,
+		org:            org,
+		hubEndpoint:    hubEndpoint,
+		spokeEndpoints: e.cmdFlags.GetStringSlice(keySpokeEndpoints),
+		dialOnpremCluster: func(ctx context.Context, project, org, cluster string) (context.Context, *grpc.ClientConn, string, error) {
+			return clientutils.DialCluster(ctx, project, org, "" /* address */, cluster, "" /* solution */)
+		},
+		dialCloudCluster: func(ctx context.Context) (*grpc.ClientConn, error) {
+			return auth.NewCloudConnection(ctx, auth.WithFlagValues(hubServiceCreateViper))
+		},
+		getServiceVersionToInstall: func(packageName string, serviceName string) (string, error) {
+			return e.getServiceVersionToInstall(cmd, packageName, serviceName)
+		},
+	}
+	return runner.run(cmd.Context(), cmd.OutOrStdout())
 }
 
 // NewHubServiceCreateCmd returns the initialized cobra command for hub-service-create.
 func NewHubServiceCreateCmd() *cobra.Command {
-	flags := cmdutils.NewCmdFlags()
+	flags := cmdutils.NewCmdFlagsWithViper(hubServiceCreateViper)
 	commandWrapper := &hubServiceCreateCmdEnvironment{cmdFlags: flags}
 
 	cmd := &cobra.Command{
@@ -180,8 +148,6 @@ func NewHubServiceCreateCmd() *cobra.Command {
 	}
 
 	flags.SetCommand(cmd)
-
-	flags.AddFlagsAddressClusterSolution()
 	flags.AddFlagsProjectOrg()
 
 	flags.StringSlice(
@@ -192,6 +158,10 @@ func NewHubServiceCreateCmd() *cobra.Command {
 		keyHubServiceVersion,
 		"",
 		"Version of the service asset to install. If not specified, the current default version will be installed.")
+	flags.OptionalString(keyHubEndpoint, "", "Hub endpoint specification (<workcell_name>@{local|remote|url})")
+	flags.OptionalString(keyClusterDeprecated, "", "Hub cluster (DEPRECATED, use hub-endpoint instead)")
+	cmd.MarkFlagsMutuallyExclusive(keyHubEndpoint, keyClusterDeprecated)
+	cmd.MarkFlagsOneRequired(keyHubEndpoint, keyClusterDeprecated)
 
 	return cmd
 }

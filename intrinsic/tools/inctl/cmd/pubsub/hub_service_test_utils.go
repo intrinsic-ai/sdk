@@ -29,6 +29,7 @@ import (
 	adgrpcpb "intrinsic/assets/proto/asset_deployment_go_proto"
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_proto"
 	aigrpcpb "intrinsic/assets/proto/v1/asset_instances_go_proto"
+	provisionerpb "intrinsic/platform/pubsub/cloud_router_provisioner/v1/provisioner_go_proto"
 )
 
 const (
@@ -37,12 +38,13 @@ const (
 )
 
 type testServerResources struct {
-	grpcServer *grpc.Server
-	listener   *bufconn.Listener
-	instServer *pubsubtesting.FakeAssetInstancesServer
-	depServer  *pubsubtesting.FakeAssetDeploymentServer
-	opServer   *pubsubtesting.FakeOperationsServer
-	iaServer   *pubsubtesting.FakeInstalledAssetsServer
+	grpcServer        *grpc.Server
+	listener          *bufconn.Listener
+	instServer        *pubsubtesting.FakeAssetInstancesServer
+	depServer         *pubsubtesting.FakeAssetDeploymentServer
+	opServer          *pubsubtesting.FakeOperationsServer
+	iaServer          *pubsubtesting.FakeInstalledAssetsServer
+	provisionerServer *pubsubtesting.FakeLineRouterProvisionerServer
 }
 
 func setupTestServer(t *testing.T) *testServerResources {
@@ -53,11 +55,13 @@ func setupTestServer(t *testing.T) *testServerResources {
 	depServer := pubsubtesting.NewFakeAssetDeploymentServer()
 	opServer := pubsubtesting.NewFakeOperationsServer()
 	iaServer := pubsubtesting.NewFakeInstalledAssetsServer()
+	provisionerServer := pubsubtesting.NewFakeLineRouterProvisionerServer()
 
 	aigrpcpb.RegisterAssetInstancesServer(s, instServer)
 	adgrpcpb.RegisterAssetDeploymentServiceServer(s, depServer)
 	lropb.RegisterOperationsServer(s, opServer)
 	iagrpcpb.RegisterInstalledAssetsServer(s, iaServer)
+	provisionerpb.RegisterLineRouterProvisionerServer(s, provisionerServer)
 
 	go func() {
 		if err := s.Serve(lis); err != nil {
@@ -71,12 +75,13 @@ func setupTestServer(t *testing.T) *testServerResources {
 	})
 
 	return &testServerResources{
-		grpcServer: s,
-		listener:   lis,
-		instServer: instServer,
-		depServer:  depServer,
-		opServer:   opServer,
-		iaServer:   iaServer,
+		grpcServer:        s,
+		listener:          lis,
+		instServer:        instServer,
+		depServer:         depServer,
+		opServer:          opServer,
+		iaServer:          iaServer,
+		provisionerServer: provisionerServer,
 	}
 }
 

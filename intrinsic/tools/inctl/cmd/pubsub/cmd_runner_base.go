@@ -37,6 +37,9 @@ const (
 	hubServicePackage = "ai.intrinsic"
 	hubServiceName    = "line_orchestration_relay"
 
+	onpremToLineRouterRelayServicePackage = "ai.intrinsic"
+	onpremToLineRouterRelayServiceName    = "onprem_to_line_router_relay"
+
 	forwardingServicePackage = "ai.intrinsic"
 	forwardingServiceName    = "line_orchestration_forwarder"
 
