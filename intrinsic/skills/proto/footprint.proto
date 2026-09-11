@@ -17,6 +17,7 @@ syntax = "proto3";
 package intrinsic_proto.skills;
 
 import "intrinsic/geometry/proto/transformed_geometry_storage_refs.proto";
+import "intrinsic/geometry/proto/v1/transformed_geometry.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
 option go_package = "intrinsic/skills/proto/footprint_go_proto";
@@ -92,7 +93,12 @@ message VolumeReservation {
 
   // The volume must be expressed using on of the following:
   oneof volume_oneof {
-    intrinsic_proto.geometry.TransformedGeometryStorageRefs shape = 4;
+    intrinsic_proto.geometry.TransformedGeometryStorageRefs shape = 4
+        [deprecated = true];
+    // The TransformedGeometry message for footprint volume reservation. If
+    // inline_geometry is provided, it must ONLY contain primitives, not
+    // meshes or point clouds.
+    intrinsic_proto.geometry.v1.TransformedGeometry transformed_geometry = 6;
   }
 
   reserved 2, 5;
