@@ -42,8 +42,8 @@ AssetCatalogRefInfo = provider(
 AssetInstanceInfo = provider(
     "An asset instance.",
     fields = {
-        "config": "Optional any proto text file of the asset's configuration",
         "instance_info": "An AssetInstanceInfo proto",
+        "service_config": "Optional any proto text file of the asset's configuration",
     },
 )
 
@@ -144,12 +144,12 @@ def _intrinsic_asset_instance_impl(ctx):
         asset_instance_output,
     )
     inputs = []
-    if ctx.file.config:
+    if ctx.file.service_config:
         args.add(
             "--config_path",
-            ctx.file.config,
+            ctx.file.service_config,
         )
-        inputs.append(ctx.file.config)
+        inputs.append(ctx.file.service_config)
 
     ctx.actions.run(
         arguments = [args],
@@ -165,8 +165,8 @@ def _intrinsic_asset_instance_impl(ctx):
             files = depset([asset_instance_output]),
         ),
         AssetInstanceInfo(
-            config = ctx.file.config,
             instance_info = asset_instance_output,
+            service_config = ctx.file.service_config,
         ),
     ]
 
@@ -175,18 +175,18 @@ intrinsic_asset_instance = rule(
         "asset": attr.string(
             mandatory = True,
         ),
-        "config": attr.label(
-            allow_single_file = [
-                ".pbtxt",
-                ".txtpb",
-                ".textproto",
-            ],
-        ),
         "instance_name": attr.string(
             doc = "Name of the instance, if it should be different than 'name'",
         ),
         "required_node_hostname": attr.string(
             mandatory = False,
+        ),
+        "service_config": attr.label(
+            allow_single_file = [
+                ".pbtxt",
+                ".txtpb",
+                ".textproto",
+            ],
         ),
         "_assetinstancegen": attr.label(
             cfg = "exec",
