@@ -38,7 +38,7 @@ importers:
         specifier: 2.14.1
         version: 2.14.1
       '@intrinsic-ai/types':
-        specifier: 0.0.1
+        specifier: workspace:*
         version: link:../types
 
   types:
