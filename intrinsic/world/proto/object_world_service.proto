@@ -159,7 +159,7 @@ service ObjectWorldService {
     };
   }
 
-  // Lists objects in a world.
+  // Lists objects in a world, including the root object.
   rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
     option (google.api.http) = {
       get: "/world/v0/worlds/{world_id}/objects"
@@ -827,7 +827,7 @@ message ListObjectsRequest {
 }
 
 message ListObjectsResponse {
-  // The requested objects.
+  // The requested objects including the root object.
   repeated Object objects = 1;
 }
 
