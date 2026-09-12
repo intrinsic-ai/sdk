@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # An acl engine using Authzed SpiceDB.
-load("//bazel:go_macros.bzl", "go_library")
+load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 package(default_visibility = [
     "//visibility:public",
@@ -37,6 +37,37 @@ go_library(
         "@com_github_golang_glog//:go_default_library",
         "@io_opencensus_go//trace:go_default_library",
         "@org_golang_google_grpc//metadata:go_default_library",
+    ],
+)
+
+go_library(
+    name = "clientcontext",
+    srcs = ["clientcontext.go"],
+    importpath = "intrinsic/kubernetes/acl/clientcontext",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":cookies",
+        "//intrinsic/stats/go:telemetry",
+        "@com_github_golang_glog//:go_default_library",
+        "@io_opencensus_go//trace:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+    ],
+)
+
+go_test(
+    name = "clientcontext_test",
+    srcs = ["clientcontext_test.go"],
+    embed = [":clientcontext"],
+    importpath = "intrinsic/kubernetes/acl/clientcontext_test",
+    deps = [
+        ":cookies",
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
     ],
 )
 
@@ -65,6 +96,7 @@ go_library(
     srcs = ["identity.go"],
     importpath = "intrinsic/kubernetes/acl/identity",
     deps = [
+        ":clientcontext",
         ":cookies",
         ":jwt",
         ":org",

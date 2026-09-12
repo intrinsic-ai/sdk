@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"intrinsic/frontend/go/origin"
+	"intrinsic/kubernetes/acl/clientcontext"
 	"intrinsic/kubernetes/acl/cookies"
 	"intrinsic/kubernetes/acl/jwt"
 	"intrinsic/kubernetes/acl/org"
@@ -32,20 +33,18 @@ import (
 
 	log "github.com/golang/glog"
 	"go.opencensus.io/trace"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 )
 
 var (
 	// ErrUnauthenticated indicates that the request was not authenticated.
-	ErrUnauthenticated = errors.New("unauthenticated")
+	ErrUnauthenticated = clientcontext.ErrUnauthenticated
 	// ErrMissingOrgID indicates that the there was no org-id found.
-	ErrMissingOrgID = errors.New("no org-id found")
+	ErrMissingOrgID = clientcontext.ErrMissingOrgID
 	// ErrMissingProject indicates that there was no project-id found.
 	ErrMissingProject = errors.New("no project-id found")
 	// ErrInvalidRequest indicates that the request is invalid.
-	ErrInvalidRequest = errors.New("invalid request")
+	ErrInvalidRequest = clientcontext.ErrInvalidRequest
 )
 
 // The following vars are implementation details and should not be used by a consumer of this lib.
@@ -84,17 +83,7 @@ var (
 
 // ErrGRPC converts errors from the identity package to the corresponding gRPC error.
 func ErrGRPC(err error) error {
-	if err == nil {
-		return nil
-	}
-	switch {
-	case errors.Is(err, ErrMissingOrgID), errors.Is(err, ErrInvalidRequest):
-		return status.Error(codes.InvalidArgument, err.Error())
-	case errors.Is(err, ErrUnauthenticated):
-		return status.Error(codes.Unauthenticated, err.Error())
-	default:
-		return status.Error(codes.Unknown, err.Error())
-	}
+	return clientcontext.ErrGRPC(err)
 }
 
 // ErrHTTP converts errors from the identity package to the corresponding HTTP status code and writes it to the response writer.
@@ -621,11 +610,7 @@ func CanonicalizeEmail(email string) (string, error) {
 // incoming authentication info. See [ToContextFromIncomingChecked] for more
 // details.
 func ToContextFromIncoming(ctx context.Context) (context.Context, error) {
-	_, span := trace.StartSpan(ctx, "identity.ToContextFromIncoming")
-	defer span.End()
-
-	ctx, _, err := ToContextFromIncomingChecked(ctx)
-	return ctx, err
+	return clientcontext.ToContextFromIncoming(ctx)
 }
 
 // ToContextFromIncomingChecked copies auth-related incoming GRPC metadata to
@@ -640,90 +625,7 @@ func ToContextFromIncoming(ctx context.Context) (context.Context, error) {
 // will be logged if certain headers have more than one value after propagating
 // incoming metadata.
 func ToContextFromIncomingChecked(ctx context.Context) (context.Context, bool, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return ctx, false, nil
-	}
-
-	var changed bool
-
-	cookieHeaders := md.Get(cookies.CookieHeaderName)
-	if len(cookieHeaders) >= 1 { // only act if a cookie header is present in incoming
-		newCtx, csChanged, err := setOutgoingValueCollisionAware(ctx, cookies.CookieHeaderName, cookieHeaders...)
-		if err != nil {
-			return ctx, false, err
-		}
-		changed = changed || csChanged
-		ctx = newCtx
-	}
-
-	authHeaders := md.Get(authHeaderName)
-	if len(authHeaders) > 1 {
-		log.WarningContextf(ctx, "ToContextFromIncomingChecked: Multiple auth headers found in incoming context metadata: %v", authHeaders)
-		return ctx, false, fmt.Errorf("%w: %w for %q in incoming context metadata", ErrInvalidRequest, errMetadataKeyConflict, authHeaderName)
-	}
-	if len(authHeaders) == 1 { // only act if a auth header is present in incoming
-		newCtx, authChanged, err := setOutgoingValueCollisionAware(ctx, authHeaderName, authHeaders...)
-		if err != nil {
-			return ctx, false, err
-		}
-		changed = changed || authChanged
-		ctx = newCtx
-	}
-
-	apikeyHeaders := md.Get(apikeyTokenHeaderName)
-	if len(apikeyHeaders) > 1 {
-		log.WarningContextf(ctx, "ToContextFromIncomingChecked: Multiple apikey headers found in incoming context metadata: %v", apikeyHeaders)
-		return ctx, false, fmt.Errorf("%w: %w for %q in incoming context metadata", ErrInvalidRequest, errMetadataKeyConflict, apikeyTokenHeaderName)
-	}
-	if len(apikeyHeaders) == 1 { // only act if a apikey header is present in incoming
-		newCtx, apikeyChanged, err := setOutgoingValueCollisionAware(ctx, apikeyTokenHeaderName, apikeyHeaders...)
-		if err != nil {
-			return ctx, false, err
-		}
-		changed = changed || apikeyChanged
-		ctx = newCtx
-	}
-
-	orgHeaders := md.Get(org.OrgIDHeader)
-	if len(orgHeaders) > 1 {
-		orgHeaders = slices.Clone(orgHeaders)
-		slices.Sort(orgHeaders)
-		orgHeaders = slices.Compact(orgHeaders)
-	}
-	if len(orgHeaders) > 1 {
-		log.WarningContextf(ctx, "ToContextFromIncomingChecked: Multiple org headers found in incoming context metadata: %v", orgHeaders)
-		return ctx, false, fmt.Errorf("%w: %w for %q in incoming context metadata", ErrInvalidRequest, errMetadataKeyConflict, org.OrgIDHeader)
-	}
-	if len(orgHeaders) == 1 { // only act if a org header is present in incoming
-		newCtx, orgChanged, err := setOutgoingValueCollisionAware(ctx, org.OrgIDHeader, orgHeaders...)
-		if err != nil {
-			return ctx, false, err
-		}
-		changed = changed || orgChanged
-		ctx = newCtx
-	}
-
-	if changed {
-		// Headers (except for "cookie") are not generally expected to have multiple
-		// values. This can cause issues at target services. Printing a warning
-		// might make odd looking errors easier to root cause.
-		warnIfMultipleOutgoingValues(ctx, authHeaderName, apikeyTokenHeaderName, org.OrgIDHeader)
-	}
-
-	return ctx, changed, nil
-}
-
-func warnIfMultipleOutgoingValues(ctx context.Context, headers ...string) {
-	mdOut, ok := metadata.FromOutgoingContext(ctx)
-	if !ok {
-		return
-	}
-	for _, h := range headers {
-		if vals := mdOut.Get(h); len(vals) > 1 {
-			log.WarningContextf(ctx, "Header %q has %d values in outgoing metadata. Multiple values for this header may cause target services to reject requests with somewhat cryptic errors.", h, len(vals))
-		}
-	}
+	return clientcontext.ToContextFromIncomingChecked(ctx)
 }
 
 func obfuscateString(s string) string {
@@ -731,37 +633,6 @@ func obfuscateString(s string) string {
 		return "***"
 	}
 	return obfuscateRegex.ReplaceAllString(s, `$2***$3`)
-}
-
-func setOutgoingValueCollisionAware(ctx context.Context, key string, vals ...string) (c context.Context, changed bool, err error) {
-	lctx, span := trace.StartSpan(ctx, "identity.setOutgoingValueCollisionAware")
-	defer span.End()
-	span.AddAttributes(trace.StringAttribute("key", key))
-
-	omd, ok := metadata.FromOutgoingContext(ctx)
-	if !ok { // outgoing context is absent
-		omd = metadata.MD{}
-		omd.Set(key, vals...)
-		return metadata.NewOutgoingContext(ctx, omd), true, nil
-	}
-
-	presentValues := omd.Get(key)
-
-	// set the value if it's not present
-	if len(presentValues) == 0 {
-		omd.Set(key, vals...)
-		return metadata.NewOutgoingContext(ctx, omd), true, nil
-	}
-	// return if the values are already present
-	slices.Sort(presentValues)
-	slices.Sort(vals)
-	if slices.Equal(presentValues, vals) {
-		return ctx, false, nil
-	}
-
-	log.WarningContextf(lctx, "Collision detected when setting values on outgoing context metadata for key %q. present outgoing values: %v, values that should get set: %v", key, presentValues, vals)
-	telemetry.SetError(span, trace.StatusCodeInvalidArgument, "setOutgoingValueCollisionAware: Collision detected when setting values on outgoing context metadata", errMetadataKeyConflict)
-	return ctx, false, fmt.Errorf("%w: %w for %q in outgoing context metadata", ErrInvalidRequest, errMetadataKeyConflict, key)
 }
 
 // ClearRequest removes the user and org metadata from the HTTP request.
