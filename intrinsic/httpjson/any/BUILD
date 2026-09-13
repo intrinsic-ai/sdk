@@ -16,6 +16,8 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("//bazel:go_macros.bzl", "go_library", "go_test")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
+package(default_visibility = ["//visibility:public"])
+
 proto_source_code_info_transitive_descriptor_set(
     name = "test_messages_descriptors",
     deps = ["//intrinsic/httpjson/any:test_messages_proto"],

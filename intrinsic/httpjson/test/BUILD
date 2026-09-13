@@ -25,6 +25,8 @@ load(
     "protoc_gen_openapi",
 )
 
+package(default_visibility = ["//visibility:public"])
+
 protoc_gen_openapi(
     name = "inventory_service_openapi",
     protos = [

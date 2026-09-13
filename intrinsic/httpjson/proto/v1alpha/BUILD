@@ -16,6 +16,8 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
+package(default_visibility = ["//visibility:public"])
+
 js_library(
     name = "webpubsub_jspb_proto",
     visibility = ["//intrinsic:public_api_users"],

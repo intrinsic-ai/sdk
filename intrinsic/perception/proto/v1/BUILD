@@ -25,6 +25,8 @@ load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
+package(default_visibility = ["//visibility:public"])
+
 js_library(
     name = "camera_config_jspb_proto",
     visibility = ["//intrinsic:internal_api_users"],

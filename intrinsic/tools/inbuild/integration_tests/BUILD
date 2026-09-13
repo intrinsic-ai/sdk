@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
+load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
@@ -20,13 +23,11 @@ load("//bazel:go_macros.bzl", "go_test")
 load("//bazel:python_oci_image.bzl", "python_oci_image")
 load("//intrinsic/tools/inbuild/integration_tests:inbuild.bzl", "inbuild_data_bundle", "inbuild_service_bundle", "inbuild_skill_bundle", "inbuild_skill_generate_config", "inbuild_skill_generate_entrypoint_cc", "inbuild_skill_generate_entrypoint_py", "inbuild_skill_manifest")
 
+package(default_visibility = ["//visibility:public"])
+
 ###################
 # Python Skill
 ###################
-
-load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
-load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
-load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 
 inbuild_skill_manifest(
     name = "skill_manifest_py",
