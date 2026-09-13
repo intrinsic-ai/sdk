@@ -22,9 +22,18 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 package(default_visibility = ["//intrinsic:public_api_users"])
+
+js_library(
+    name = "symmetry_service_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend/onprem/perception/services:__pkg__",
+        "//intrinsic/frontend/onprem/perception/views:__pkg__",
+    ],
+    deps = ["//intrinsic/perception/proto/v1alpha1:symmetry_service_proto"],
+)
 
 proto_library(
     name = "symmetry_service_proto",
@@ -43,18 +52,11 @@ cc_proto_library(
     deps = [":symmetry_service_proto"],
 )
 
-py_proto_library(
-    name = "symmetry_service_py_pb2",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":symmetry_service_proto"],
-)
-
-py_grpc_library(
-    name = "symmetry_service_py_pb2_grpc",
+cc_grpc_library(
+    name = "symmetry_service_cc_grpc",
     srcs = [":symmetry_service_proto"],
-    grpc_library = requirement("grpcio"),
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":symmetry_service_py_pb2"],
+    grpc_only = True,
+    deps = [":symmetry_service_cc_proto"],
 )
 
 go_proto_library(
@@ -65,9 +67,6 @@ go_proto_library(
     ],
     importpath = "intrinsic/perception/proto/v1alpha1/symmetry_service_go_proto",
     protos = [":symmetry_service_proto"],
-    visibility = [
-        "//intrinsic/frontend/go:__subpackages__",
-    ],
     deps = [
         "//intrinsic/geometry/proto/v1:transformed_geometry_go_proto",
         "//intrinsic/perception/proto/v1:symmetry_go_proto",
@@ -77,18 +76,14 @@ go_proto_library(
     ],
 )
 
-js_library(
-    name = "symmetry_service_jspb_proto",
-    visibility = [
-        "//intrinsic/frontend/onprem/perception/services:__pkg__",
-        "//intrinsic/frontend/onprem/perception/views:__pkg__",
-    ],
+py_proto_library(
+    name = "symmetry_service_py_pb2",
     deps = [":symmetry_service_proto"],
 )
 
-cc_grpc_library(
-    name = "symmetry_service_cc_grpc",
+py_grpc_library(
+    name = "symmetry_service_py_pb2_grpc",
     srcs = [":symmetry_service_proto"],
-    grpc_only = True,
-    deps = [":symmetry_service_cc_proto"],
+    grpc_library = requirement("grpcio"),
+    deps = [":symmetry_service_py_pb2"],
 )

@@ -1,0 +1,111 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.content_addressable_storage.v1;
+
+option go_package = "intrinsic/storage/content_addressable_storage/proto/cas_service_go_proto";
+
+service ContentAddressableStorageService {
+  // Get an object by its ID.
+  rpc Get(GetRequest) returns (stream GetResponse) {}
+
+  // Create an object. After the streaming is finished, the service will return
+  // the object ID for it.
+  //
+  // Notice that we don't support resumable writes!
+  rpc Create(stream CreateRequest) returns (CreateResponse) {}
+
+  // Delete an object.
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+
+  // Get information about an object, returns the NOT FOUND canonical error if
+  // it doesn't exist. Useful for checking if an object already exists. Notice,
+  // however, that Stat and {Create, Delete} are not atomic. If Alice stats an
+  // object which is being uploaded or deleted by Bob, the result will be
+  // obsolete after Bob's operation finishes.
+  rpc Stat(StatRequest) returns (StatResponse) {}
+
+  // Get a byte range of an object starting from read_offset until EOF.
+  // Useful for resuming interrupted downloads.
+  rpc GetRange(GetRangeRequest) returns (stream GetRangeResponse) {}
+}
+
+message ChecksummedData {
+  bytes content = 1;
+  // See https://cloud.google.com/storage/docs/hashes-etags#crc32c.
+  optional fixed32 crc32c = 2;
+}
+
+message GetRequest {
+  string object_id = 1;
+}
+
+message GetResponse {
+  ChecksummedData checksummed_data = 1;
+}
+
+message GetRangeRequest {
+  string object_id = 1;
+
+  // Starting byte offset (0-indexed, inclusive). Must be >= 0 and < size of the
+  // object. Streams all remaining bytes from read_offset to EOF.
+  int64 read_offset = 2;
+}
+
+message GetRangeResponse {
+  ChecksummedData checksummed_data = 1;
+
+  // The starting byte offset of this specific chunk in the underlying object.
+  int64 chunk_offset = 2;
+
+  // Total size of the underlying object in bytes.
+  int64 total_object_size = 3;
+}
+
+message CreateRequest {
+  ChecksummedData checksummed_data = 1;
+}
+
+message CreateResponse {
+  string object_id = 1;
+}
+
+message DeleteRequest {
+  string object_id = 1;
+}
+
+message DeleteResponse {}
+
+message StatRequest {
+  string object_id = 1;
+
+  // Optional. If specified, then up to `peek_bytes` are read from the beginning
+  // of the file and returned in the `StatResponse`. This is useful for e.g.
+  // checking the file headers.
+  //
+  // If this number is outside of the valid range (`0 <= peek_bytes < 128`), an
+  // `INVALID_ARGUMENT` canonical error is returned. If this number is zero,
+  // then reading the file is skipped and no `first_bytes` are returned.
+  int32 peek_bytes = 2;
+}
+
+message StatResponse {
+  // Object size in bytes.
+  int64 size = 1;
+
+  // Optional. Set only if the client requested `peek_bytes`.
+  bytes first_bytes = 2;
+}

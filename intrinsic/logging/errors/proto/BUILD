@@ -19,16 +19,22 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 package(default_visibility = [
     "//visibility:public",
 ])
 
+js_library(
+    name = "error_report_jspb_proto",
+    deps = ["//intrinsic/logging/errors/proto:error_report_proto"],
+)
+
 proto_library(
     name = "error_report_proto",
     srcs = ["error_report.proto"],
     deps = [
+        "//intrinsic/executive/proto:clips_snapshot_proto",
         "@com_google_googleapis//google/rpc:status_proto",
         "@com_google_protobuf//:any_proto",
     ],
@@ -36,11 +42,6 @@ proto_library(
 
 cc_proto_library(
     name = "error_report_cc_proto",
-    deps = [":error_report_proto"],
-)
-
-py_proto_library(
-    name = "error_report_py_pb2",
     deps = [":error_report_proto"],
 )
 
@@ -54,7 +55,7 @@ go_proto_library(
     ],
 )
 
-js_library(
-    name = "error_report_jspb_proto",
+py_proto_library(
+    name = "error_report_py_pb2",
     deps = [":error_report_proto"],
 )

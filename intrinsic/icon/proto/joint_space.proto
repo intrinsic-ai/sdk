@@ -1,0 +1,84 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.icon;
+
+import "google/protobuf/duration.proto";
+import "intrinsic/kinematics/types/dynamic_limits_check_mode.proto";
+import "intrinsic/skills/proto/skill_parameter_metadata.proto";
+
+option go_package = "intrinsic/icon/proto/joint_space_go_proto";
+
+// Joint state.
+// Unused fields are empty.
+message JointState {
+  uint64 timepoint_nsec = 1;  // absolute or relative timestamp.
+  repeated double position = 2
+      [(intrinsic_proto.skills.skill_parameter_metadata).unit =
+           "radians"];  // Position of each joint.
+  repeated double velocity = 3
+      [(intrinsic_proto.skills.skill_parameter_metadata).unit =
+           "radians/second"];  // Velocity of each joint.
+  repeated double acceleration = 4
+      [(intrinsic_proto.skills.skill_parameter_metadata).unit =
+           "radians/second^2"];  // Acceleration of each joint.
+  repeated double torque = 5;    // Torque that a joint is applying
+                                 //  to its subordinate link.
+}
+
+// One double per joint
+message JointVec {
+  repeated double joints = 1
+      [(intrinsic_proto.skills.skill_parameter_metadata).unit = "radians"];
+}
+
+message JointStatePV {
+  repeated double position = 1
+      [(intrinsic_proto.skills.skill_parameter_metadata).unit =
+           "radians"];  // Position of each joint.
+  repeated double velocity = 2
+      [(intrinsic_proto.skills.skill_parameter_metadata).unit =
+           "radians/second"];  // Velocity of each joint.
+}
+
+message JointStatePVA {
+  repeated double position = 1
+      [(intrinsic_proto.skills.skill_parameter_metadata).unit =
+           "radians"];  // Position of each joint.
+  repeated double velocity = 2
+      [(intrinsic_proto.skills.skill_parameter_metadata).unit =
+           "radians/second"];  // Velocity of each joint.
+  repeated double acceleration = 3
+      [(intrinsic_proto.skills.skill_parameter_metadata).unit =
+           "radians/second^2"];  // Acceleration of each joint.
+}
+
+enum JointTrajectoryInterpolationType {
+  INTERPOLATION_TYPE_UNSPECIFIED = 0;
+  INTERPOLATION_TYPE_CUBIC_POLYNOMIAL = 1;
+  INTERPOLATION_TYPE_QUINTIC_POLYNOMIAL = 2;
+}
+
+message JointTrajectoryPVA {
+  repeated JointStatePVA state = 1;
+  repeated google.protobuf.Duration time_since_start = 2;
+  intrinsic_proto.DynamicLimitsCheckMode joint_dynamic_limits_check_mode = 3;
+  JointTrajectoryInterpolationType interpolation_type = 4;
+  // The Cartesian arc length in meters tracked by the specified joint
+  // trajectory. This is optional and can be left empty. If this field is used,
+  // it should be the same length as the time_since_start.
+  repeated double cartesian_arc_length_meters = 5;
+}

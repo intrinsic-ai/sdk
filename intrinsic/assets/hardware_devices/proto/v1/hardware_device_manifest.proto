@@ -1,0 +1,141 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.hardware_devices.v1;
+
+import "intrinsic/assets/data/proto/v1/data_asset.proto";
+import "intrinsic/assets/proto/asset_tag.proto";
+import "intrinsic/assets/proto/documentation.proto";
+import "intrinsic/assets/proto/id.proto";
+import "intrinsic/assets/proto/v1/asset_graph.proto";
+import "intrinsic/assets/proto/v1/reference.proto";
+import "intrinsic/assets/proto/vendor.proto";
+import "intrinsic/assets/scene_objects/proto/scene_object_manifest.proto";
+import "intrinsic/assets/services/proto/service_manifest.proto";
+
+option go_package = "intrinsic/assets/hardware_devices/proto/v1/hardware_device_manifest_go_proto";
+
+message HardwareDeviceManifest {
+  message Asset {
+    oneof variant {
+      intrinsic_proto.assets.v1.CatalogAsset catalog = 1;
+      intrinsic_proto.assets.v1.LocalAsset local = 2;
+    }
+  }
+
+  // Metadata about the HardwareDevice.
+  HardwareDeviceMetadata metadata = 1;
+
+  // A map from Asset IDs to Assets that are used within this
+  // HardwareDevice's definition.
+  //
+  // Assets in this map may be assigned as nodes in the HardwareDevice's graph.
+  // Data Assets in particular, can also be assigned as values in this
+  // HardwareDevice's default configuration.
+  // The `intrinsic_hardware_device` build rule provides an `assets` attribute
+  // that can be used to specify the assets that are used within this
+  // HardwareDevice's definition.
+  //
+  // Any Data Asset provided in this map and also referenced in the default
+  // configuration will be installed if it would not replace any previously
+  // installed Assets.
+  //
+  // Adding Data Assets this way and referencing them in the default
+  // configuration could be useful, for example, to provide a suggestion of a
+  // specific Asset to resolve a `ResolvedDependency` present in the
+  // configuration.
+  //
+  // For example, if a HardwareDevice has a dependency on a particular data
+  // interface defined in its configuration, as:
+  //
+  //   ```proto
+  //   message MyHardwareDeviceConfig {
+  //     ResolvedDependency a_data_asset_dependency = 1
+  //       [(intrinsic_proto.assets.field_metadata).dependency = {
+  //         requires: "data://intrinsic_proto.foo.v1.Bar",
+  //       }];
+  //   }
+  //   ```
+  //
+  // and if the Asset author would like to suggest using the Data Asset with ID
+  // "com.package.bar" to resolve this dependency, they could add the
+  // following to the HardwareDevice's default configuration:
+  //
+  //   ```textproto
+  //   a_data_asset_dependency: {
+  //     name: "com.package.bar"
+  //   }
+  //   ```
+  //
+  // The Data Asset "com.package.bar" could be added as a CatalogAsset or
+  // LocalAsset in the `assets` map, and it would be auto-installed when the
+  // HardwareDevice is installed if that Data Asset: a) provides the
+  // "data://intrinsic_proto.foo.v1.Bar" interface, and b) is not already
+  // installed.
+  map<string, Asset> assets = 2;
+
+  // The graph that defines the composition of the HardwareDevice.
+  //
+  // Constraints on the graph:
+  // - The graph must contain exactly one SceneObject.
+  // - The graph must contain at least one Service.
+  // - The graph may contain Data assets.
+  // - The graph may not contain any other asset type.
+  // - Each edge must specify either a dependency resolution or a suggested
+  //   configuration of an asset.
+  intrinsic_proto.assets.v1.AssetGraph graph = 3;
+}
+
+message ProcessedHardwareDeviceManifest {
+  message ProcessedAsset {
+    oneof variant {
+      intrinsic_proto.assets.v1.CatalogAsset catalog = 1;
+      intrinsic_proto.services.ProcessedServiceManifest service = 2;
+      intrinsic_proto.scene_objects.ProcessedSceneObjectManifest scene_object =
+          3;
+      intrinsic_proto.data.v1.DataAsset data = 4;
+    }
+  }
+
+  // Metadata about the HardwareDevice.
+  HardwareDeviceMetadata metadata = 1;
+
+  // The processed assets that are referenced in the HardwareDevice's graph.
+  //
+  // Keys are asset ID.
+  map<string, ProcessedAsset> assets = 2;
+
+  // The graph that defines the composition of the HardwareDevice (see
+  // HardwareDeviceManifest for constraints).
+  intrinsic_proto.assets.v1.AssetGraph graph = 3;
+}
+
+message HardwareDeviceMetadata {
+  // The HardwareDevice's asset ID.
+  intrinsic_proto.assets.Id id = 1;
+  // The display name of this HardwareDevice to be shown in UIs.
+  string display_name = 2;
+  // Documentation about the HardwareDevice that will be shown to users.
+  intrinsic_proto.assets.Documentation documentation = 3;
+  // The HardwareDevice's vendor.
+  intrinsic_proto.assets.Vendor vendor = 4;
+  // Tags for this HardwareDevice.
+  repeated intrinsic_proto.assets.AssetTag asset_tags = 5;
+}
+
+message HardwareDeviceManifests {
+  repeated HardwareDeviceManifest manifests = 1;
+}

@@ -22,22 +22,11 @@ load("//intrinsic/icon/hal/bzl:resources.bzl", "hardware_module_manifest")
 
 package(default_visibility = ["//visibility:public"])
 
-proto_library(
-    name = "loopback_config_proto",
-    srcs = ["loopback_config.proto"],
-)
-
-cc_proto_library(
-    name = "loopback_config_cc_proto",
-    deps = [":loopback_config_proto"],
-)
-
 cc_library(
     name = "loopback_hardware_module",
     srcs = ["loopback_hardware_module.cc"],
     hdrs = ["loopback_hardware_module.h"],
     deps = [
-        ":loopback_config_cc_proto",
         "//intrinsic/icon/control:realtime_clock_interface",
         "//intrinsic/icon/control/safety:safety_messages_fbs_cc",
         "//intrinsic/icon/control/safety:safety_messages_fbs_utils",
@@ -60,6 +49,7 @@ cc_library(
         "//intrinsic/icon/hal/interfaces:payload_state_fbs_cc",
         "//intrinsic/icon/hal/interfaces:payload_state_utils",
         "//intrinsic/icon/hal/interfaces:robot_payload_utils",
+        "//intrinsic/icon/hardware_modules/loopback:loopback_config_cc_proto",
         "//intrinsic/icon/utils:core_time",
         "//intrinsic/icon/utils:realtime_guard",
         "//intrinsic/icon/utils:realtime_status",
@@ -104,8 +94,18 @@ intrinsic_service(
     images = [":loopback_hardware_module_image.tar"],
     manifest = ":loopback_hal_module_service_manifest",
     deps = [
-        ":loopback_config_proto",
         "//intrinsic/assets/services/proto/v1:service_state_proto",
-        "//intrinsic/icon/hal:hardware_module_config_proto",
+        "//intrinsic/icon/hal/proto:hardware_module_config_proto",
+        "//intrinsic/icon/hardware_modules/loopback:loopback_config_proto",
     ],
+)
+
+proto_library(
+    name = "loopback_config_proto",
+    srcs = ["loopback_config.proto"],
+)
+
+cc_proto_library(
+    name = "loopback_config_cc_proto",
+    deps = [":loopback_config_proto"],
 )

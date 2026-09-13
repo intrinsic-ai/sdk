@@ -1,0 +1,53 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1alpha1;
+
+import "google/longrunning/operations.proto";
+import "google/protobuf/empty.proto";
+import "intrinsic/geometry/proto/v1/transformed_geometry.proto";
+import "intrinsic/perception/proto/v1/symmetry.proto";
+import "intrinsic/scene/proto/v1/scene_object.proto";
+
+option go_package = "intrinsic/perception/proto/v1alpha1/symmetry_service_go_proto";
+
+// Service for detecting symmetries in 3d objects.
+service SymmetryService {
+  // Starts symmetry detection job.
+  rpc CreateSymmetryDetectionJob(CreateSymmetryDetectionJobRequest)
+      returns (google.longrunning.Operation);
+
+  // Gets current state of symmetry detection job.
+  rpc GetSymmetryDetectionJob(google.longrunning.GetOperationRequest)
+      returns (google.longrunning.Operation);
+
+  // Deletes symmetry detection job.
+  rpc DeleteSymmetryDetectionJob(google.longrunning.DeleteOperationRequest)
+      returns (google.protobuf.Empty);
+}
+
+message CreateSymmetryDetectionJobRequest {
+  oneof geometry_type {
+    geometry.v1.TransformedGeometry geometry = 1;
+    scene_object.v1.SceneObject scene_object = 2;
+  }
+}
+
+message SymmetryDetectionJobStatus {}
+
+message SymmetryDetectionResult {
+  repeated v1.Symmetry symmetry = 1;
+}

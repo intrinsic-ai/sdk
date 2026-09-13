@@ -24,118 +24,19 @@ load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
-proto_library(
-    name = "equipment_proto",
-    srcs = ["equipment.proto"],
-    deps = [":footprint_proto"],
-)
-
-cc_proto_library(
-    name = "equipment_cc_proto",
-    deps = [":equipment_proto"],
-)
-
-py_proto_library(
-    name = "equipment_py_pb2",
-    deps = [":equipment_proto"],
-)
-
-go_proto_library(
-    name = "equipment_go_proto",
-    importpath = "intrinsic/skills/proto/equipment_go_proto",
-    protos = [":equipment_proto"],
-    deps = [":footprint_go_proto"],
-)
-
 js_library(
     name = "equipment_jspb_proto",
-    deps = [":equipment_proto"],
-)
-
-proto_library(
-    name = "skills_proto",
-    srcs = ["skills.proto"],
-    deps = [
-        ":equipment_proto",
-        "//intrinsic/resources/proto:resource_handle_proto",
-        "@com_google_protobuf//:any_proto",
-        "@com_google_protobuf//:descriptor_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "skills_cc_proto",
-    deps = [":skills_proto"],
-)
-
-py_proto_library(
-    name = "skills_py_pb2",
-    deps = [":skills_proto"],
-)
-
-go_proto_library(
-    name = "skills_go_proto",
-    importpath = "intrinsic/skills/proto/skills_go_proto",
-    protos = [":skills_proto"],
-    deps = [
-        ":equipment_go_proto",
-        "//intrinsic/resources/proto:resource_handle_go_proto",
-    ],
+    deps = ["//intrinsic/skills/proto:equipment_proto"],
 )
 
 js_library(
     name = "skills_jspb_proto",
-    deps = [":skills_proto"],
-)
-
-proto_library(
-    name = "skill_registry_proto",
-    srcs = ["skill_registry.proto"],
-    deps = [
-        ":skills_proto",
-        "@com_google_protobuf//:empty_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "skill_registry_cc_proto",
-    deps = [":skill_registry_proto"],
-)
-
-cc_grpc_library(
-    name = "skill_registry_cc_grpc_proto",
-    srcs = [":skill_registry_proto"],
-    generate_mocks = True,
-    grpc_only = True,
-    deps = [":skill_registry_cc_proto"],
-)
-
-py_proto_library(
-    name = "skill_registry_py_pb2",
-    deps = [":skill_registry_proto"],
-)
-
-py_grpc_library(
-    name = "skill_registry_py_pb2_grpc",
-    srcs = [":skill_registry_proto"],
-    grpc_library = requirement("grpcio"),
-    deps = [":skill_registry_py_pb2"],
-)
-
-go_proto_library(
-    name = "skill_registry_go_proto",
-    compilers = [
-        "@io_bazel_rules_go//proto:go_grpc_v2",
-        "@io_bazel_rules_go//proto:go_proto",
-    ],
-    importpath = "intrinsic/skills/proto/skill_registry_go_proto",
-    protos = [":skill_registry_proto"],
-    deps = [":skills_go_proto"],
+    deps = ["//intrinsic/skills/proto:skills_proto"],
 )
 
 js_library(
     name = "skill_registry_jspb_proto",
-    deps = [":skill_registry_proto"],
+    deps = ["//intrinsic/skills/proto:skill_registry_proto"],
 )
 
 proto_library(
@@ -182,7 +83,7 @@ go_proto_library(
     protos = [":behavior_tree_registry_proto"],
     deps = [
         ":skill_registry_config_go_proto",
-        ":skills_go_proto",
+        "//intrinsic/skills/proto:skills_go_proto",
     ],
 )
 
@@ -195,11 +96,11 @@ proto_library(
     name = "skill_service_proto",
     srcs = ["skill_service.proto"],
     deps = [
-        ":error_proto",
-        ":footprint_proto",
         ":prediction_proto",
-        ":skills_proto",
         "//intrinsic/logging/proto:context_proto",
+        "//intrinsic/skills/proto:error_proto",
+        "//intrinsic/skills/proto:footprint_proto",
+        "//intrinsic/skills/proto:skills_proto",
         "//intrinsic/util/status:extended_status_proto",
         "@com_google_googleapis//google/longrunning:operations_proto",
         "@com_google_protobuf//:any_proto",
@@ -242,43 +143,13 @@ go_proto_library(
     importpath = "intrinsic/skills/proto/skill_service_go_proto",
     protos = [":skill_service_proto"],
     deps = [
-        ":error_go_proto",
-        ":footprint_go_proto",
         ":prediction_go_proto",
-        ":skills_go_proto",
         "//intrinsic/logging/proto:context_go_proto",
+        "//intrinsic/skills/proto:error_go_proto",
+        "//intrinsic/skills/proto:footprint_go_proto",
+        "//intrinsic/skills/proto:skills_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-    ],
-)
-
-proto_library(
-    name = "skill_service_config_proto",
-    srcs = ["skill_service_config.proto"],
-    deps = [
-        ":skills_proto",
-        "//intrinsic/assets/proto:status_spec_proto",
-        "@com_google_protobuf//:duration_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "skill_service_config_cc_proto",
-    deps = [":skill_service_config_proto"],
-)
-
-py_proto_library(
-    name = "skill_service_config_py_pb2",
-    deps = [":skill_service_config_proto"],
-)
-
-go_proto_library(
-    name = "skill_service_config_go_proto",
-    importpath = "intrinsic/skills/proto/skill_service_config_go_proto",
-    protos = [":skill_service_config_proto"],
-    deps = [
-        ":skills_go_proto",
-        "//intrinsic/assets/proto:status_spec_go_proto",
     ],
 )
 
@@ -286,8 +157,8 @@ proto_library(
     name = "skill_registry_config_proto",
     srcs = ["skill_registry_config.proto"],
     deps = [
-        ":skills_proto",
         "//intrinsic/executive/proto:behavior_tree_proto",
+        "//intrinsic/skills/proto:skills_proto",
     ],
 )
 
@@ -306,45 +177,14 @@ go_proto_library(
     importpath = "intrinsic/skills/proto/skill_registry_config_go_proto",
     protos = [":skill_registry_config_proto"],
     deps = [
-        ":skills_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
+        "//intrinsic/skills/proto:skills_go_proto",
     ],
 )
 
 js_library(
     name = "skill_registry_config_jspb_proto",
     deps = [":skill_registry_config_proto"],
-)
-
-proto_library(
-    name = "footprint_proto",
-    srcs = ["footprint.proto"],
-    deps = [
-        "//intrinsic/geometry/proto:transformed_geometry_storage_refs_proto",
-        "//intrinsic/geometry/proto/v1:transformed_geometry_proto",
-        "//intrinsic/world/proto:object_world_refs_proto",
-    ],
-)
-
-py_proto_library(
-    name = "footprint_py_pb2",
-    deps = [":footprint_proto"],
-)
-
-cc_proto_library(
-    name = "footprint_cc_proto",
-    deps = [":footprint_proto"],
-)
-
-go_proto_library(
-    name = "footprint_go_proto",
-    importpath = "intrinsic/skills/proto/footprint_go_proto",
-    protos = [":footprint_proto"],
-    deps = [
-        "//intrinsic/geometry/proto:transformed_geometry_storage_refs_go_proto",
-        "//intrinsic/geometry/proto/v1:transformed_geometry_go_proto",
-        "//intrinsic/world/proto:object_world_refs_go_proto",
-    ],
 )
 
 proto_library(
@@ -377,23 +217,90 @@ cc_proto_library(
     deps = [":prediction_proto"],
 )
 
+js_library(
+    name = "processed_skill_manifest_jspb_proto",
+    deps = ["//intrinsic/skills/proto:processed_skill_manifest_proto"],
+)
+
+js_library(
+    name = "skill_parameter_metadata_jspb_proto",
+    deps = ["//intrinsic/skills/proto:skill_parameter_metadata_proto"],
+)
+
 proto_library(
-    name = "motion_targets_proto",
-    srcs = ["motion_targets.proto"],
+    name = "skills_all_protos",
     deps = [
-        "//intrinsic/math/proto:pose_proto",
-        "//intrinsic/world/proto:entity_search_proto",
+        ":skill_registry_config_proto",
+        ":skill_service_proto",
+        "//intrinsic/resources/proto:resource_handle_proto",
+        "//intrinsic/skills/proto:equipment_proto",
+        "//intrinsic/skills/proto:error_proto",
+        "//intrinsic/skills/proto:footprint_proto",
+        "//intrinsic/skills/proto:motion_targets_proto",
+        "//intrinsic/skills/proto:skill_registry_proto",
+        "//intrinsic/skills/proto:skill_service_config_proto",
+        "//intrinsic/skills/proto:skills_proto",
     ],
+)
+
+proto_library(
+    name = "footprint_proto",
+    srcs = ["footprint.proto"],
+    deps = [
+        "//intrinsic/geometry/proto:transformed_geometry_storage_refs_proto",
+        "//intrinsic/geometry/proto/v1:transformed_geometry_proto",
+        "//intrinsic/world/proto:entity_search_proto",
+        "//intrinsic/world/proto:object_world_refs_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "footprint_cc_proto",
+    deps = [":footprint_proto"],
+)
+
+go_proto_library(
+    name = "footprint_go_proto",
+    importpath = "intrinsic/skills/proto/footprint_go_proto",
+    protos = [":footprint_proto"],
+    deps = [
+        "//intrinsic/geometry/proto:transformed_geometry_storage_refs_go_proto",
+        "//intrinsic/geometry/proto/v1:transformed_geometry_go_proto",
+        "//intrinsic/world/proto:object_world_refs_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "footprint_py_pb2",
+    deps = [":footprint_proto"],
+)
+
+proto_library(
+    name = "equipment_proto",
+    srcs = ["equipment.proto"],
+    deps = [":footprint_proto"],
+)
+
+cc_proto_library(
+    name = "equipment_cc_proto",
+    deps = [":equipment_proto"],
+)
+
+go_proto_library(
+    name = "equipment_go_proto",
+    importpath = "intrinsic/skills/proto/equipment_go_proto",
+    protos = [":equipment_proto"],
+    deps = [":footprint_go_proto"],
+)
+
+py_proto_library(
+    name = "equipment_py_pb2",
+    deps = [":equipment_proto"],
 )
 
 proto_library(
     name = "error_proto",
     srcs = ["error.proto"],
-)
-
-py_proto_library(
-    name = "error_py_pb2",
-    deps = [":error_proto"],
 )
 
 cc_proto_library(
@@ -405,6 +312,25 @@ go_proto_library(
     name = "error_go_proto",
     importpath = "intrinsic/skills/proto/error_go_proto",
     protos = [":error_proto"],
+)
+
+py_proto_library(
+    name = "error_py_pb2",
+    deps = [":error_proto"],
+)
+
+proto_library(
+    name = "motion_targets_proto",
+    srcs = ["motion_targets.proto"],
+    deps = [
+        "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/world/proto:entity_search_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "motion_targets_cc_proto",
+    deps = [":motion_targets_proto"],
 )
 
 py_proto_library(
@@ -479,35 +405,9 @@ go_proto_library(
     ],
 )
 
-js_library(
-    name = "processed_skill_manifest_jspb_proto",
-    deps = [":processed_skill_manifest_proto"],
-)
-
 py_proto_library(
     name = "processed_skill_manifest_py_pb2",
     deps = [":processed_skill_manifest_proto"],
-)
-
-js_library(
-    name = "skill_parameter_metadata_jspb_proto",
-    deps = ["//intrinsic/skills/proto:skill_parameter_metadata_proto"],
-)
-
-proto_library(
-    name = "skills_all_protos",
-    deps = [
-        ":equipment_proto",
-        ":error_proto",
-        ":footprint_proto",
-        ":motion_targets_proto",
-        ":skill_registry_config_proto",
-        ":skill_registry_proto",
-        ":skill_service_config_proto",
-        ":skill_service_proto",
-        ":skills_proto",
-        "//intrinsic/resources/proto:resource_handle_proto",
-    ],
 )
 
 proto_library(
@@ -530,4 +430,110 @@ go_proto_library(
 py_proto_library(
     name = "skill_parameter_metadata_py_pb2",
     deps = [":skill_parameter_metadata_proto"],
+)
+
+proto_library(
+    name = "skills_proto",
+    srcs = ["skills.proto"],
+    deps = [
+        ":equipment_proto",
+        "//intrinsic/resources/proto:resource_handle_proto",
+        "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:descriptor_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "skills_cc_proto",
+    deps = [":skills_proto"],
+)
+
+go_proto_library(
+    name = "skills_go_proto",
+    importpath = "intrinsic/skills/proto/skills_go_proto",
+    protos = [":skills_proto"],
+    deps = [
+        ":equipment_go_proto",
+        "//intrinsic/resources/proto:resource_handle_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "skills_py_pb2",
+    deps = [":skills_proto"],
+)
+
+proto_library(
+    name = "skill_registry_proto",
+    srcs = ["skill_registry.proto"],
+    deps = [
+        ":skills_proto",
+        "@com_google_protobuf//:empty_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "skill_registry_cc_proto",
+    deps = [":skill_registry_proto"],
+)
+
+cc_grpc_library(
+    name = "skill_registry_cc_grpc_proto",
+    srcs = [":skill_registry_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":skill_registry_cc_proto"],
+)
+
+go_proto_library(
+    name = "skill_registry_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
+    importpath = "intrinsic/skills/proto/skill_registry_go_proto",
+    protos = [":skill_registry_proto"],
+    deps = [":skills_go_proto"],
+)
+
+py_proto_library(
+    name = "skill_registry_py_pb2",
+    deps = [":skill_registry_proto"],
+)
+
+py_grpc_library(
+    name = "skill_registry_py_pb2_grpc",
+    srcs = [":skill_registry_proto"],
+    grpc_library = requirement("grpcio"),
+    deps = [":skill_registry_py_pb2"],
+)
+
+proto_library(
+    name = "skill_service_config_proto",
+    srcs = ["skill_service_config.proto"],
+    deps = [
+        ":skills_proto",
+        "//intrinsic/assets/proto:status_spec_proto",
+        "@com_google_protobuf//:duration_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "skill_service_config_cc_proto",
+    deps = [":skill_service_config_proto"],
+)
+
+go_proto_library(
+    name = "skill_service_config_go_proto",
+    importpath = "intrinsic/skills/proto/skill_service_config_go_proto",
+    protos = [":skill_service_config_proto"],
+    deps = [
+        ":skills_go_proto",
+        "//intrinsic/assets/proto:status_spec_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "skill_service_config_py_pb2",
+    deps = [":skill_service_config_proto"],
 )

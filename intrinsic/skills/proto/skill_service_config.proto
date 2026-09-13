@@ -1,0 +1,57 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.skills;
+
+import "google/protobuf/duration.proto";
+import "intrinsic/assets/proto/status_spec.proto";
+import "intrinsic/skills/proto/skills.proto";
+
+option go_package = "intrinsic/skills/proto/skill_service_config_go_proto";
+
+message PythonSkillServiceConfig {
+  // The list of module names that need to be imported to run this skill
+  // service.
+  repeated string module_names = 1;
+}
+
+message ExecutionServiceOptions {
+  // The amount of time a skill has to prepare for cancellation.
+  google.protobuf.Duration cancellation_ready_timeout = 2;
+
+  // A custom execution timeout for the skill.
+  optional google.protobuf.Duration execution_timeout = 3;
+}
+
+message SkillServiceConfig {
+  // Language-specific configuration options.
+  oneof language_specific_options {
+    PythonSkillServiceConfig python_config = 10;
+  }
+
+  Skill skill_description = 6;
+
+  ExecutionServiceOptions execution_service_options = 7;
+
+  // List of status codes which the specific skill may return. Codes are
+  // specific to the skill's ID (<package>.<name>), i.e., different skills can
+  // have the same numeric ID representing different errors.
+  repeated intrinsic_proto.assets.StatusSpec status_info = 11;
+
+  reserved 2, 1, 3, 4, 5;
+  reserved "image_name", "skill_name", "parameter_descriptor_filename",
+      "return_value_descriptor_filename", "pub_topic_descriptor_filename";
+}

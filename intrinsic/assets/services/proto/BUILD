@@ -15,11 +15,80 @@
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 package(default_visibility = [
     "//visibility:public",
 ])
+
+js_library(
+    name = "service_manifest_jspb_proto",
+    deps = ["//intrinsic/assets/services/proto:service_manifest_proto"],
+)
+
+proto_library(
+    name = "env_var_proto",
+    srcs = ["env_var.proto"],
+)
+
+go_proto_library(
+    name = "env_var_go_proto",
+    importpath = "intrinsic/assets/services/proto/env_var_go_proto",
+    protos = [":env_var_proto"],
+)
+
+py_proto_library(
+    name = "env_var_py_pb2",
+    deps = [":env_var_proto"],
+)
+
+proto_library(
+    name = "service_http_config_proto",
+    srcs = ["service_http_config.proto"],
+)
+
+go_proto_library(
+    name = "service_http_config_go_proto",
+    importpath = "intrinsic/assets/services/proto/service_http_config_go_proto",
+    protos = [":service_http_config_proto"],
+)
+
+py_proto_library(
+    name = "service_http_config_py_pb2",
+    deps = [":service_http_config_proto"],
+)
+
+proto_library(
+    name = "service_permissions_proto",
+    srcs = ["service_permissions.proto"],
+)
+
+go_proto_library(
+    name = "service_permissions_go_proto",
+    importpath = "intrinsic/assets/services/proto/service_permissions_go_proto",
+    protos = [":service_permissions_proto"],
+)
+
+py_proto_library(
+    name = "service_permissions_py_pb2",
+    deps = [":service_permissions_proto"],
+)
+
+proto_library(
+    name = "service_volume_proto",
+    srcs = ["service_volume.proto"],
+)
+
+go_proto_library(
+    name = "service_volume_go_proto",
+    importpath = "intrinsic/assets/services/proto/service_volume_go_proto",
+    protos = [":service_volume_proto"],
+)
+
+py_proto_library(
+    name = "service_volume_py_pb2",
+    deps = [":service_volume_proto"],
+)
 
 proto_library(
     name = "service_manifest_proto",
@@ -69,73 +138,4 @@ go_proto_library(
 py_proto_library(
     name = "service_manifest_py_pb2",
     deps = [":service_manifest_proto"],
-)
-
-js_library(
-    name = "service_manifest_jspb_proto",
-    deps = [":service_manifest_proto"],
-)
-
-proto_library(
-    name = "env_var_proto",
-    srcs = ["env_var.proto"],
-)
-
-go_proto_library(
-    name = "env_var_go_proto",
-    importpath = "intrinsic/assets/services/proto/env_var_go_proto",
-    protos = [":env_var_proto"],
-)
-
-py_proto_library(
-    name = "env_var_py_pb2",
-    deps = [":env_var_proto"],
-)
-
-proto_library(
-    name = "service_http_config_proto",
-    srcs = ["service_http_config.proto"],
-)
-
-go_proto_library(
-    name = "service_http_config_go_proto",
-    importpath = "intrinsic/assets/services/proto/service_http_config_go_proto",
-    protos = [":service_http_config_proto"],
-)
-
-py_proto_library(
-    name = "service_http_config_py_pb2",
-    deps = [":service_http_config_proto"],
-)
-
-proto_library(
-    name = "service_volume_proto",
-    srcs = ["service_volume.proto"],
-)
-
-go_proto_library(
-    name = "service_volume_go_proto",
-    importpath = "intrinsic/assets/services/proto/service_volume_go_proto",
-    protos = [":service_volume_proto"],
-)
-
-py_proto_library(
-    name = "service_volume_py_pb2",
-    deps = [":service_volume_proto"],
-)
-
-proto_library(
-    name = "service_permissions_proto",
-    srcs = ["service_permissions.proto"],
-)
-
-go_proto_library(
-    name = "service_permissions_go_proto",
-    importpath = "intrinsic/assets/services/proto/service_permissions_go_proto",
-    protos = [":service_permissions_proto"],
-)
-
-py_proto_library(
-    name = "service_permissions_py_pb2",
-    deps = [":service_permissions_proto"],
 )

@@ -148,18 +148,6 @@ cc_library(
     ],
 )
 
-proto_library(
-    name = "sine_wave_action_proto",
-    srcs = ["sine_wave_action.proto"],
-)
-
-cc_proto_library(
-    name = "sine_wave_action_cc_proto",
-    deps = [
-        ":sine_wave_action_proto",
-    ],
-)
-
 cc_library(
     name = "sine_wave_plugin_action",
     srcs = ["sine_wave_plugin_action.cc"],
@@ -171,13 +159,13 @@ cc_library(
         ":icon_realtime_signal_access",
         ":icon_realtime_slot_map",
         ":icon_streaming_io_access",
-        ":sine_wave_action_cc_proto",
         "//intrinsic/eigenmath",
         "//intrinsic/icon/actions:action_utils",
         "//intrinsic/icon/cc_client:condition",
         "//intrinsic/icon/control:joint_position_command",
         "//intrinsic/icon/control:slot_types",
         "//intrinsic/icon/control:streaming_io_types",
+        "//intrinsic/icon/control/c_api/external_action_api:sine_wave_action_cc_proto",
         "//intrinsic/icon/proto:generic_part_config_cc_proto",
         "//intrinsic/icon/proto/v1:types_cc_proto",
         "//intrinsic/icon/utils:realtime_status",
@@ -226,11 +214,11 @@ cc_binary(
     name = "move_sine_wave",
     srcs = ["move_sine_wave.cc"],
     deps = [
-        ":sine_wave_action_cc_proto",
         ":sine_wave_plugin_action",
         "//intrinsic/icon/cc_client:condition",
         "//intrinsic/icon/cc_client:session",
         "//intrinsic/icon/common:id_types",
+        "//intrinsic/icon/control/c_api/external_action_api:sine_wave_action_cc_proto",
         "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/util/grpc:channel",
         "//intrinsic/util/grpc:connection_params",
@@ -240,5 +228,17 @@ cc_binary(
         "@abseil-cpp//absl/log:check",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/strings",
+    ],
+)
+
+proto_library(
+    name = "sine_wave_action_proto",
+    srcs = ["sine_wave_action.proto"],
+)
+
+cc_proto_library(
+    name = "sine_wave_action_cc_proto",
+    deps = [
+        ":sine_wave_action_proto",
     ],
 )

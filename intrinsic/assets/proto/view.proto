@@ -1,0 +1,65 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.catalog;
+
+option go_package = "intrinsic/assets/proto/view_go_proto";
+
+// Specifies a view of asset information with a particular level of detail.
+enum AssetViewType {
+  // The default/unset value (depends on the RPC being called).
+  ASSET_VIEW_TYPE_UNSPECIFIED = 0;
+
+  // Provides minimal, basic metadata about the asset.
+  //
+  // Includes the following metadata fields:
+  // * asset_type
+  // * id_version
+  ASSET_VIEW_TYPE_BASIC = 1;
+
+  // Provides detailed metadata about the asset.
+  //
+  // Includes the following metadata fields:
+  // * asset_tag
+  // * asset_type
+  // * display_name
+  // * documentation
+  // * id_version
+  // * provides
+  // * vendor
+  //
+  // Also includes any asset-specific metadata.
+  ASSET_VIEW_TYPE_DETAIL = 2;
+
+  // Provides metadata that distinguish versions of the asset.
+  //
+  // Includes the following metadata fields:
+  // * asset_type
+  // * id_version
+  // * release_notes
+  // * update_time
+  // * vendor
+  //
+  // Also includes release metadata.
+  ASSET_VIEW_TYPE_VERSIONS = 3;
+
+  // Provides all metadata fields.
+  ASSET_VIEW_TYPE_ALL_METADATA = 4;
+
+  // Provides all metadata fields and all available deployment data.
+  ASSET_VIEW_TYPE_FULL = 6;
+
+}

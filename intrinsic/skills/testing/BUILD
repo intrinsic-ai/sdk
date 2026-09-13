@@ -18,72 +18,15 @@ load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
-load("//bazel:go_macros.bzl", "go_library", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_library")
 load("//intrinsic/skills/build_defs:skill.bzl", "py_skill", "skill_manifest")
-load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 package(
     default_testonly = True,
-)
-
-proto_library(
-    name = "skill_proto_utils_test_proto",
-    srcs = ["skill_proto_utils_test.proto"],
-    visibility = ["//intrinsic/skills/internal:__pkg__"],
-    deps = [
-        "//intrinsic/assets/proto:field_metadata_proto",
-        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
-    ],
-)
-
-py_proto_library(
-    name = "skill_proto_utils_test_py_pb2",
-    visibility = [
-        "//intrinsic/skills:__pkg__",
-        "//intrinsic/skills/internal:__pkg__",
-    ],
-    deps = [":skill_proto_utils_test_proto"],
-)
-
-cc_proto_library(
-    name = "skill_proto_utils_test_cc_proto",
-    visibility = [
-        "//intrinsic/skills:__pkg__",
-        "//intrinsic/skills/internal:__pkg__",
-    ],
-    deps = [":skill_proto_utils_test_proto"],
-)
-
-proto_source_code_info_transitive_descriptor_set(
-    name = "skill_proto_utils_test_proto_descriptors",
-    deps = [":skill_proto_utils_test_proto"],
-)
-
-proto_library(
-    name = "echo_skill_proto",
-    srcs = ["echo_skill.proto"],
-)
-
-cc_proto_library(
-    name = "echo_skill_cc_proto",
-    visibility = [
-        "//intrinsic/executive/engine:__pkg__",
-        "//intrinsic/skills/cc:__pkg__",
-        "//intrinsic/skills/internal:__pkg__",
-    ],
-    deps = [":echo_skill_proto"],
-)
-
-py_proto_library(
-    name = "echo_skill_py_pb2",
-    visibility = [
-        "//intrinsic/skills/internal:__pkg__",
-        "//intrinsic/skills/python:__pkg__",
-    ],
-    deps = [":echo_skill_proto"],
 )
 
 py_library(
@@ -91,9 +34,9 @@ py_library(
     srcs = ["echo_skill.py"],
     visibility = ["//intrinsic/skills/internal:__pkg__"],
     deps = [
-        ":echo_skill_py_pb2",
         "//intrinsic/skills/python:skill_interface",
         "//intrinsic/skills/python:skill_interface_utils",
+        "//intrinsic/skills/testing:echo_skill_py_pb2",
         "//intrinsic/util:decorators",
     ],
 )
@@ -104,8 +47,8 @@ py_test(
     data = [":echo_skill_py_manifest"],
     deps = [
         ":echo_skill_py",
-        ":echo_skill_py_pb2",
         ":skill_test_utils",
+        "//intrinsic/skills/testing:echo_skill_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
         "@rules_python//python/runfiles",
     ],
@@ -117,11 +60,11 @@ cc_library(
     hdrs = ["echo_skill.h"],
     visibility = ["//intrinsic/skills/internal:__pkg__"],
     deps = [
-        ":echo_skill_cc_proto",
         "//intrinsic/skills/cc:skill_interface",
         "//intrinsic/skills/cc:skill_interface_utils",
         "//intrinsic/skills/proto:equipment_cc_proto",
         "//intrinsic/skills/proto:skill_service_cc_proto",
+        "//intrinsic/skills/testing:echo_skill_cc_proto",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/status:statusor",
         "@com_google_protobuf//:protobuf",
@@ -136,7 +79,7 @@ skill_manifest(
         "//intrinsic/skills/generator:__pkg__",
         "//intrinsic/skills/internal:__pkg__",
     ],
-    deps = [":echo_skill_proto"],
+    deps = ["//intrinsic/skills/testing:echo_skill_proto"],
 )
 
 py_skill(
@@ -144,46 +87,7 @@ py_skill(
     manifest = ":echo_skill_py_manifest",
     deps = [
         ":echo_skill_py",
-        ":echo_skill_py_pb2",
-    ],
-)
-
-proto_library(
-    name = "no_op_skill_proto",
-    testonly = False,
-    srcs = ["no_op_skill.proto"],
-    visibility = [
-        "//intrinsic/skills:__pkg__",
-        "//intrinsic/skills/build_defs/tests:__pkg__",
-    ],
-)
-
-cc_proto_library(
-    name = "no_op_skill_cc_proto",
-    testonly = False,
-    visibility = [
-        "//intrinsic/executive/engine:__pkg__",
-        "//intrinsic/skills/build_defs/tests:__pkg__",
-        "//intrinsic/skills/internal:__pkg__",
-    ],
-    deps = [":no_op_skill_proto"],
-)
-
-py_proto_library(
-    name = "no_op_skill_py_pb2",
-    visibility = [
-        "//intrinsic/skills/build_defs/tests:__pkg__",
-        "//intrinsic/skills/internal:__pkg__",
-    ],
-    deps = [":no_op_skill_proto"],
-)
-
-go_proto_library(
-    name = "no_op_skill_go_proto",
-    importpath = "intrinsic/skills/testing/no_op_skill_go_proto",
-    protos = [":no_op_skill_proto"],
-    visibility = [
-        "//intrinsic/skills/build_defs:__pkg__",
+        "//intrinsic/skills/testing:echo_skill_py_pb2",
     ],
 )
 
@@ -195,10 +99,10 @@ py_library(
         "//intrinsic/skills/internal:__pkg__",
     ],
     deps = [
-        ":no_op_skill_py_pb2",
         "//intrinsic/skills/proto:footprint_py_pb2",
         "//intrinsic/skills/python:skill_interface",
         "//intrinsic/skills/python:skill_interface_utils",
+        "//intrinsic/skills/testing:no_op_skill_py_pb2",
         "//intrinsic/util:decorators",
     ],
 )
@@ -213,11 +117,11 @@ cc_library(
         "//intrinsic/skills/internal:__pkg__",
     ],
     deps = [
-        ":no_op_skill_cc_proto",
         "//intrinsic/skills/cc:skill_interface",
         "//intrinsic/skills/cc:skill_interface_utils",
         "//intrinsic/skills/proto:equipment_cc_proto",
         "//intrinsic/skills/proto:skill_service_cc_proto",
+        "//intrinsic/skills/testing:no_op_skill_cc_proto",
         "@abseil-cpp//absl/status:statusor",
         "@com_google_protobuf//:protobuf",
     ],
@@ -276,7 +180,6 @@ py_test(
     ],
     main = "skill_test_utils_test.py",
     deps = [
-        ":echo_skill_py_pb2",
         ":skill_test_utils",
         "//intrinsic/assets:id_utils_py",
         "//intrinsic/assets/services/examples/calcserver:calc_server_py",
@@ -285,6 +188,7 @@ py_test(
         "//intrinsic/logging/proto:log_item_py_pb2",
         "//intrinsic/skills/proto:skill_manifest_py_pb2",
         "//intrinsic/skills/python:skill_logging_context",
+        "//intrinsic/skills/testing:echo_skill_py_pb2",
         "//intrinsic/solutions/testing:compare",
         requirement("grpcio"),
         "@com_google_absl_py//absl/testing:absltest",
@@ -335,7 +239,6 @@ cc_test(
     srcs = ["skill_test_utils_test.cc"],
     deps = [
         ":echo_skill",
-        ":echo_skill_cc_proto",
         ":skill_test_utils_cc",
         "//intrinsic/assets:id_utils",
         "//intrinsic/logging/proto:context_cc_proto",
@@ -347,6 +250,7 @@ cc_test(
         "//intrinsic/skills/cc:skill_interface",
         "//intrinsic/skills/cc:skill_logging_context",
         "//intrinsic/skills/proto:skill_manifest_cc_proto",
+        "//intrinsic/skills/testing:echo_skill_cc_proto",
         "//intrinsic/world/objects:object_world_client",
         "//intrinsic/world/proto:object_world_service_cc_grpc_proto",
         "@abseil-cpp//absl/log:check",
@@ -385,4 +289,49 @@ go_library(
         "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
         "@org_golang_google_protobuf//types/known/anypb",
     ],
+)
+
+proto_library(
+    name = "echo_skill_proto",
+    srcs = ["echo_skill.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "echo_skill_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":echo_skill_proto"],
+)
+
+py_proto_library(
+    name = "echo_skill_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":echo_skill_proto"],
+)
+
+proto_library(
+    name = "no_op_skill_proto",
+    testonly = False,
+    srcs = ["no_op_skill.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "no_op_skill_cc_proto",
+    testonly = False,
+    visibility = ["//visibility:public"],
+    deps = [":no_op_skill_proto"],
+)
+
+go_proto_library(
+    name = "no_op_skill_go_proto",
+    importpath = "intrinsic/skills/testing/no_op_skill_go_proto",
+    protos = [":no_op_skill_proto"],
+    visibility = ["//visibility:public"],
+)
+
+py_proto_library(
+    name = "no_op_skill_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":no_op_skill_proto"],
 )

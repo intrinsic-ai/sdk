@@ -1,0 +1,104 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.perception.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "intrinsic/assets/proto/id.proto";
+import "intrinsic/logging/proto/context.proto";
+import "intrinsic/perception/proto/v1/capture_data.proto";
+import "intrinsic/perception/proto/v1/capture_result.proto";
+import "intrinsic/perception/proto/v1/pose_estimate.proto";
+import "intrinsic/perception/proto/v1/pose_priors.proto";
+
+option go_package = "intrinsic/perception/proto/v1/pose_estimation_service_go_proto";
+
+service PoseEstimationService {
+  rpc RunPoseEstimation(RunPoseEstimationRequest)
+      returns (RunPoseEstimationResponse);
+
+  rpc DeletePoseEstimation(DeletePoseEstimationRequest)
+      returns (google.protobuf.Empty);
+}
+
+message CaptureDataList {
+  repeated intrinsic_proto.perception.v1.CaptureData capture_data = 1;
+}
+
+message RunPoseEstimationRequest {
+  oneof source_type {
+    // Directly provide multiple images as part of CaptureResult. Images from
+    // multiple cameras could be assembled in the CaptureResult message such
+    // that capture_result.sensor_images[i].sensor_config.camera_t_sensor for
+    // all images i must describe the pose of the sensor in the frame of
+    // reference shared by all sensors. The poses will be returned in this frame
+    // of reference, which could be virtual (not align to any physical sensor).
+    CaptureResult capture_result = 1;
+    // Provide capture data containing kv_store storage locations to read images
+    // from.
+    CaptureDataList capture_data_list = 2;
+  }
+
+  // Asset id of the pose estimator.
+  intrinsic_proto.assets.Id asset_id = 3;
+
+  PoseEstimationRunConfig pose_estimation_run_config = 4;
+}
+
+message RunPoseEstimationResponse {
+  repeated PoseEstimate pose_estimates = 1;
+}
+
+message DeletePoseEstimationRequest {
+  intrinsic_proto.assets.Id asset_id = 1;
+}
+
+message PoseEstimationRunConfig {
+  // Pose estimator-specific inference options.
+  google.protobuf.Any inference_parameters = 1;
+
+  // Pose priors to constrain the search space. Optional.
+  // Note: Not all pose estimators support pose priors. Please refer to the pose
+  // estimator's documentation to check if it supports pose priors.
+  PosePriors pose_priors = 2;
+
+  // Note: Currently only implemented for the client.
+  // OPTIONAL: If no detection is found during the 'timeout' duration, the 'Run'
+  // call returns an error. If this field is not set, a default timeout will be
+  // chosen.
+  google.protobuf.Duration timeout = 3;
+
+  // Context from which this detection run was called, containing the IDs of
+  // skills and plans.
+  intrinsic_proto.data_logger.Context logging_context = 4;
+
+  // Deactivate logging for this call.
+  bool suppress_logging = 5;
+
+  // Logs the full pose estimation request (including image data).
+  bool log_full_request = 6;
+
+  // Publish annotated image to stream "/perception/annotated_frame".
+  bool publish_annotated_image = 7;
+
+  // If set to true or unset, the detector will check that the camera's focal
+  // length, principle point, and image shape matches the detector's intrinsic
+  // parameters. If set to false, the detector will not check the camera's focal
+  // length and principle point.
+  optional bool check_camera_focal_length_and_principle_point = 8;
+}

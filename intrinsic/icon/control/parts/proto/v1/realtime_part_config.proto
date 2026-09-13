@@ -1,0 +1,54 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.v1;
+
+import "google/protobuf/any.proto";
+
+option go_package = "intrinsic/icon/control/parts/proto/v1/realtime_part_config_go_proto";
+
+message SafetyConfig {
+  // Name of the safety device that provides the safety-related flatbuffers for
+  // a particular part.
+  string safety_device_name = 1;
+
+  reserved 2;
+}
+
+message RealtimePartConfig {
+  // Part type. Must match a part type that has been registered with
+  // `GetGlobalRealtimePartFromProtoFactoryRegistry().RegisterTyped<ConfigProtoT>(...)`.
+  // Where ConfigProtoT matches the expected type of `config`.
+  string part_type_name = 1;
+  // Part-specific configuration. This is passed as-is to the part's registered
+  // factory function.
+  google.protobuf.Any config = 3;
+  // Default safety action while the part is enabled, but either
+  // * A safety reaction is requested by the safety controller
+  // * No user-invoked action is controlling the part
+  //
+  // Must match an action type that has been registered with
+  // `GetGlobalRealtimeActionFactoryRegistry().Register(...)`.
+  string safety_action_type_name = 4;
+  // Deprecated
+  optional SafetyConfig safety_config = 5 [deprecated = true];
+
+  // If present, this is the name of the resource that this part connects to.
+  // Parts can use this to look up kinematics models etc.
+  // If omitted, ICON falls back to its own resource name.
+  string hardware_resource_name = 6;
+  reserved 2;
+}

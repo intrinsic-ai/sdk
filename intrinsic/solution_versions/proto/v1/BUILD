@@ -17,30 +17,10 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
-proto_library(
-    name = "snapshot_proto",
-    srcs = ["snapshot.proto"],
-    visibility = [
-        "//intrinsic/modified_solution/proto/v1:__pkg__",
-    ],
-    deps = [
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-go_proto_library(
-    name = "snapshot_go_proto",
-    importpath = "intrinsic/solution_versions/proto/v1/snapshot_go_proto",
-    protos = [":snapshot_proto"],
-    visibility = [
-        "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
-        "//intrinsic/solution_copy:__subpackages__",
-        "//intrinsic/solution_versions:__subpackages__",
-        "//intrinsic/tools/inctl/cmd:__subpackages__",
-    ],
-)
+package(default_visibility = ["//visibility:public"])
 
 js_library(
     name = "solution_version_service_jspb_proto",
@@ -51,45 +31,13 @@ js_library(
     deps = [":solution_version_service_proto"],
 )
 
-py_proto_library(
-    name = "snapshot_py_pb2",
-    visibility = ["//visibility:public"],
-    deps = [":snapshot_proto"],
-)
-
 js_library(
     name = "snapshot_jspb_proto",
     visibility = [
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
     ],
-    deps = [":snapshot_proto"],
-)
-
-proto_library(
-    name = "snapshot_source_proto",
-    srcs = ["snapshot_source.proto"],
-    visibility = [
-        "//intrinsic/modified_solution/proto/v1:__pkg__",
-    ],
-)
-
-go_proto_library(
-    name = "snapshot_source_go_proto",
-    importpath = "intrinsic/solution_versions/proto/v1/snapshot_source_go_proto",
-    protos = [":snapshot_source_proto"],
-    visibility = [
-        "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
-        "//intrinsic/solution_copy:__subpackages__",
-        "//intrinsic/solution_versions:__subpackages__",
-        "//intrinsic/tools/inctl/cmd:__subpackages__",
-    ],
-)
-
-py_proto_library(
-    name = "snapshot_source_py_pb2",
-    visibility = ["//visibility:public"],
-    deps = [":snapshot_source_proto"],
+    deps = ["//intrinsic/solution_versions/proto/v1:snapshot_proto"],
 )
 
 js_library(
@@ -98,41 +46,7 @@ js_library(
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
     ],
-    deps = [":snapshot_source_proto"],
-)
-
-proto_library(
-    name = "branch_proto",
-    srcs = ["branch.proto"],
-    visibility = [
-        "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
-    ],
-    deps = [
-        "//intrinsic/config/proto:operation_mode_proto",
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-go_proto_library(
-    name = "branch_go_proto",
-    importpath = "intrinsic/solution_versions/proto/v1/branch_go_proto",
-    protos = [":branch_proto"],
-    visibility = [
-        "//intrinsic/frontend/cloud:__subpackages__",
-        "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
-        "//intrinsic/kubernetes/data_store/http_endpoints:__pkg__",
-        "//intrinsic/performance/inctl:__subpackages__",
-        "//intrinsic/solution_copy:__subpackages__",
-        "//intrinsic/solution_versions:__subpackages__",
-        "//intrinsic/tools/inctl/cmd:__subpackages__",
-    ],
-    deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
-)
-
-py_proto_library(
-    name = "branch_py_pb2",
-    visibility = ["//visibility:public"],
-    deps = [":branch_proto"],
+    deps = ["//intrinsic/solution_versions/proto/v1:snapshot_source_proto"],
 )
 
 js_library(
@@ -140,7 +54,7 @@ js_library(
     visibility = [
         "//intrinsic/frontend:__subpackages__",
     ],
-    deps = [":branch_proto"],
+    deps = ["//intrinsic/solution_versions/proto/v1:branch_proto"],
 )
 
 proto_library(
@@ -149,12 +63,12 @@ proto_library(
     visibility = [
     ],
     deps = [
-        ":branch_proto",
-        ":conflict_proto",
-        ":conflict_resolution_proto",
-        ":snapshot_proto",
-        ":snapshot_source_proto",
-        ":warning_proto",
+        "//intrinsic/solution_versions/proto/v1:branch_proto",
+        "//intrinsic/solution_versions/proto/v1:conflict_proto",
+        "//intrinsic/solution_versions/proto/v1:conflict_resolution_proto",
+        "//intrinsic/solution_versions/proto/v1:snapshot_proto",
+        "//intrinsic/solution_versions/proto/v1:snapshot_source_proto",
+        "//intrinsic/solution_versions/proto/v1:warning_proto",
         "@com_google_googleapis//google/rpc:status_proto",
         "@com_google_protobuf//:descriptor_proto",
         "@com_google_protobuf//:field_mask_proto",
@@ -196,37 +110,16 @@ go_proto_library(
         "//intrinsic/tools/inctl/cmd:__subpackages__",
     ],
     deps = [
-        ":branch_go_proto",
-        ":conflict_go_proto",
-        ":conflict_resolution_go_proto",
-        ":snapshot_go_proto",
-        ":snapshot_source_go_proto",
-        ":warning_go_proto",
+        "//intrinsic/solution_versions/proto/v1:branch_go_proto",
+        "//intrinsic/solution_versions/proto/v1:conflict_go_proto",
+        "//intrinsic/solution_versions/proto/v1:conflict_resolution_go_proto",
+        "//intrinsic/solution_versions/proto/v1:snapshot_go_proto",
+        "//intrinsic/solution_versions/proto/v1:snapshot_source_go_proto",
+        "//intrinsic/solution_versions/proto/v1:warning_go_proto",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@io_bazel_rules_go//proto/wkt:field_mask_go_proto",
         "@org_golang_google_genproto_googleapis_rpc//status",
     ],
-)
-
-proto_library(
-    name = "diff_mask_proto",
-    srcs = ["diff_mask.proto"],
-)
-
-go_proto_library(
-    name = "diff_mask_go_proto",
-    importpath = "intrinsic/solution_versions/proto/v1/diff_mask_go_proto",
-    protos = [":diff_mask_proto"],
-    visibility = [
-        "//intrinsic/solution_versions:__subpackages__",
-        "//intrinsic/tools/inctl/cmd:__subpackages__",
-    ],
-)
-
-py_proto_library(
-    name = "diff_mask_py_pb2",
-    visibility = ["//visibility:public"],
-    deps = [":diff_mask_proto"],
 )
 
 js_library(
@@ -235,31 +128,7 @@ js_library(
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
     ],
-    deps = [":diff_mask_proto"],
-)
-
-proto_library(
-    name = "conflict_proto",
-    srcs = ["conflict.proto"],
-    visibility = [
-        "//intrinsic/portal/protos/solutions/v1:__pkg__",
-    ],
-)
-
-go_proto_library(
-    name = "conflict_go_proto",
-    importpath = "intrinsic/solution_versions/proto/v1/conflict_go_proto",
-    protos = [":conflict_proto"],
-    visibility = [
-        "//intrinsic/portal/protos/solutions/v1:__pkg__",
-        "//intrinsic/solution_versions:__subpackages__",
-    ],
-)
-
-py_proto_library(
-    name = "conflict_py_pb2",
-    visibility = ["//visibility:public"],
-    deps = [":conflict_proto"],
+    deps = ["//intrinsic/solution_versions/proto/v1:diff_mask_proto"],
 )
 
 js_library(
@@ -268,31 +137,7 @@ js_library(
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
     ],
-    deps = [":conflict_proto"],
-)
-
-proto_library(
-    name = "conflict_resolution_proto",
-    srcs = ["conflict_resolution.proto"],
-    visibility = [
-        "//intrinsic/portal/protos/solutions/v1:__pkg__",
-    ],
-)
-
-go_proto_library(
-    name = "conflict_resolution_go_proto",
-    importpath = "intrinsic/solution_versions/proto/v1/conflict_resolution_go_proto",
-    protos = [":conflict_resolution_proto"],
-    visibility = [
-        "//intrinsic/portal/protos/solutions/v1:__pkg__",
-        "//intrinsic/solution_versions:__subpackages__",
-    ],
-)
-
-py_proto_library(
-    name = "conflict_resolution_py_pb2",
-    visibility = ["//visibility:public"],
-    deps = [":conflict_resolution_proto"],
+    deps = ["//intrinsic/solution_versions/proto/v1:conflict_proto"],
 )
 
 js_library(
@@ -301,37 +146,7 @@ js_library(
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
     ],
-    deps = [":conflict_resolution_proto"],
-)
-
-proto_library(
-    name = "warning_proto",
-    srcs = ["warning.proto"],
-    visibility = [
-        "//intrinsic/portal/protos/solutions/v1:__pkg__",
-    ],
-    deps = [
-        "//intrinsic/assets/proto:id_proto",
-    ],
-)
-
-go_proto_library(
-    name = "warning_go_proto",
-    importpath = "intrinsic/solution_versions/proto/v1/warning_go_proto",
-    protos = [":warning_proto"],
-    visibility = [
-        "//intrinsic/portal/protos/solutions/v1:__pkg__",
-        "//intrinsic/solution_versions:__subpackages__",
-    ],
-    deps = [
-        "//intrinsic/assets/proto:id_go_proto",
-    ],
-)
-
-py_proto_library(
-    name = "warning_py_pb2",
-    visibility = ["//visibility:public"],
-    deps = [":warning_proto"],
+    deps = ["//intrinsic/solution_versions/proto/v1:conflict_resolution_proto"],
 )
 
 js_library(
@@ -340,7 +155,7 @@ js_library(
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
     ],
-    deps = [":warning_proto"],
+    deps = ["//intrinsic/solution_versions/proto/v1:warning_proto"],
 )
 
 proto_library(
@@ -349,7 +164,7 @@ proto_library(
     visibility = [
     ],
     deps = [
-        ":diff_mask_proto",
+        "//intrinsic/solution_versions/proto/v1:diff_mask_proto",
     ],
 )
 
@@ -363,7 +178,7 @@ go_proto_library(
         "//intrinsic/tools/inctl/cmd/solution_version:__pkg__",
     ],
     deps = [
-        ":diff_mask_go_proto",
+        "//intrinsic/solution_versions/proto/v1:diff_mask_go_proto",
     ],
 )
 
@@ -380,4 +195,126 @@ js_library(
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
     ],
     deps = [":solution_diff_proto"],
+)
+
+proto_library(
+    name = "branch_proto",
+    srcs = ["branch.proto"],
+    deps = [
+        "//intrinsic/config/proto:operation_mode_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "branch_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/branch_go_proto",
+    protos = [":branch_proto"],
+    deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
+)
+
+py_proto_library(
+    name = "branch_py_pb2",
+    deps = [":branch_proto"],
+)
+
+proto_library(
+    name = "conflict_proto",
+    srcs = ["conflict.proto"],
+)
+
+go_proto_library(
+    name = "conflict_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/conflict_go_proto",
+    protos = [":conflict_proto"],
+)
+
+py_proto_library(
+    name = "conflict_py_pb2",
+    deps = [":conflict_proto"],
+)
+
+proto_library(
+    name = "conflict_resolution_proto",
+    srcs = ["conflict_resolution.proto"],
+)
+
+go_proto_library(
+    name = "conflict_resolution_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/conflict_resolution_go_proto",
+    protos = [":conflict_resolution_proto"],
+)
+
+py_proto_library(
+    name = "conflict_resolution_py_pb2",
+    deps = [":conflict_resolution_proto"],
+)
+
+proto_library(
+    name = "diff_mask_proto",
+    srcs = ["diff_mask.proto"],
+)
+
+go_proto_library(
+    name = "diff_mask_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/diff_mask_go_proto",
+    protos = [":diff_mask_proto"],
+)
+
+py_proto_library(
+    name = "diff_mask_py_pb2",
+    deps = [":diff_mask_proto"],
+)
+
+proto_library(
+    name = "snapshot_proto",
+    srcs = ["snapshot.proto"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+go_proto_library(
+    name = "snapshot_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/snapshot_go_proto",
+    protos = [":snapshot_proto"],
+)
+
+py_proto_library(
+    name = "snapshot_py_pb2",
+    deps = [":snapshot_proto"],
+)
+
+proto_library(
+    name = "snapshot_source_proto",
+    srcs = ["snapshot_source.proto"],
+)
+
+go_proto_library(
+    name = "snapshot_source_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/snapshot_source_go_proto",
+    protos = [":snapshot_source_proto"],
+)
+
+py_proto_library(
+    name = "snapshot_source_py_pb2",
+    deps = [":snapshot_source_proto"],
+)
+
+proto_library(
+    name = "warning_proto",
+    srcs = ["warning.proto"],
+    deps = ["//intrinsic/assets/proto:id_proto"],
+)
+
+go_proto_library(
+    name = "warning_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/warning_go_proto",
+    protos = [":warning_proto"],
+    deps = [
+        "//intrinsic/assets/proto:id_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "warning_py_pb2",
+    deps = [":warning_proto"],
 )

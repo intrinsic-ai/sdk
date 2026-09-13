@@ -16,8 +16,10 @@
 
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 package(
     default_visibility = [
@@ -32,6 +34,22 @@ proto_library(
     deps = [
         "//intrinsic/geometry/proto:triangle_mesh_proto",
         "//intrinsic/manipulation/grasping:schmalz_multi_axis_grasp_proto",
+    ],
+)
+
+# Multi axis auto annotator service definition.
+cc_proto_library(
+    name = "multi_axis_auto_annotator_service_cc_proto",
+    deps = [":multi_axis_auto_annotator_service_proto"],
+)
+
+go_proto_library(
+    name = "multi_axis_auto_annotator_service_go_proto",
+    importpath = "intrinsic/manipulation/service/multi_axis_auto_annotator_service_go_proto",
+    protos = [":multi_axis_auto_annotator_service_proto"],
+    deps = [
+        "//intrinsic/geometry/proto:triangle_mesh_go_proto",
+        "//intrinsic/manipulation/grasping:schmalz_multi_axis_grasp_go_proto",
     ],
 )
 

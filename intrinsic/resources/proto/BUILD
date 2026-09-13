@@ -19,11 +19,44 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = [
     "//visibility:public",
 ])
+
+js_library(
+    name = "resource_registry_jspb_proto",
+    deps = ["//intrinsic/resources/proto:resource_registry_proto"],
+)
+
+js_library(
+    name = "resource_handle_jspb_proto",
+    deps = ["//intrinsic/resources/proto:resource_handle_proto"],
+)
+
+proto_library(
+    name = "resource_handle_proto",
+    srcs = ["resource_handle.proto"],
+    deps = ["@com_google_protobuf//:any_proto"],
+)
+
+cc_proto_library(
+    name = "resource_handle_cc_proto",
+    deps = [":resource_handle_proto"],
+)
+
+go_proto_library(
+    name = "resource_handle_go_proto",
+    importpath = "intrinsic/resources/proto/resource_handle_go_proto",
+    protos = [":resource_handle_proto"],
+)
+
+py_proto_library(
+    name = "resource_handle_py_pb2",
+    deps = [":resource_handle_proto"],
+)
 
 proto_library(
     name = "resource_registry_proto",
@@ -35,6 +68,19 @@ proto_library(
     ],
 )
 
+cc_proto_library(
+    name = "resource_registry_cc_proto",
+    deps = [":resource_registry_proto"],
+)
+
+cc_grpc_library(
+    name = "resource_registry_cc_grpc",
+    srcs = [":resource_registry_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":resource_registry_cc_proto"],
+)
+
 go_proto_library(
     name = "resource_registry_go_proto",
     compilers = [
@@ -44,9 +90,9 @@ go_proto_library(
     importpath = "intrinsic/resources/proto/resource_registry_go_proto",
     protos = [":resource_registry_proto"],
     deps = [
+        ":resource_handle_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
         "//intrinsic/assets/proto:view_go_proto",
-        "//intrinsic/resources/proto:resource_handle_go_proto",
         "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
         "@org_golang_google_protobuf//types/known/anypb",
     ],
@@ -64,53 +110,6 @@ py_grpc_library(
     deps = [":resource_registry_py_pb2"],
 )
 
-cc_proto_library(
-    name = "resource_registry_cc_proto",
-    deps = [":resource_registry_proto"],
-)
-
-cc_grpc_library(
-    name = "resource_registry_cc_grpc",
-    srcs = [":resource_registry_proto"],
-    generate_mocks = True,
-    grpc_only = True,
-    deps = [":resource_registry_cc_proto"],
-)
-
-js_library(
-    name = "resource_registry_jspb_proto",
-    deps = [":resource_registry_proto"],
-)
-
-proto_library(
-    name = "resource_handle_proto",
-    srcs = ["resource_handle.proto"],
-    deps = [
-        "@com_google_protobuf//:any_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "resource_handle_cc_proto",
-    deps = [":resource_handle_proto"],
-)
-
-py_proto_library(
-    name = "resource_handle_py_pb2",
-    deps = [":resource_handle_proto"],
-)
-
-go_proto_library(
-    name = "resource_handle_go_proto",
-    importpath = "intrinsic/resources/proto/resource_handle_go_proto",
-    protos = [":resource_handle_proto"],
-)
-
-js_library(
-    name = "resource_handle_jspb_proto",
-    deps = [":resource_handle_proto"],
-)
-
 proto_library(
     name = "runtime_context_proto",
     srcs = ["runtime_context.proto"],
@@ -119,8 +118,8 @@ proto_library(
     ],
 )
 
-py_proto_library(
-    name = "runtime_context_py_pb2",
+cc_proto_library(
+    name = "runtime_context_cc_proto",
     deps = [":runtime_context_proto"],
 )
 
@@ -130,7 +129,7 @@ go_proto_library(
     protos = [":runtime_context_proto"],
 )
 
-cc_proto_library(
-    name = "runtime_context_cc_proto",
+py_proto_library(
+    name = "runtime_context_py_pb2",
     deps = [":runtime_context_proto"],
 )

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
-load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
@@ -24,26 +23,15 @@ package(default_visibility = [
     "//visibility:public",
 ])
 
-proto_library(
-    name = "hardware_module_config_proto",
-    srcs = ["proto/hardware_module_config.proto"],
-    deps = [
-        "//intrinsic/assets/proto:field_metadata_proto",
-        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
-        "//intrinsic/icon/hardware_modules/sim_bus:sim_bus_hardware_module_proto",
-        "@com_google_protobuf//:any_proto",
-    ],
-)
-
 cc_proto_library(
     name = "hardware_module_config_cc_proto",
-    deps = [":hardware_module_config_proto"],
+    deps = ["//intrinsic/icon/hal/proto:hardware_module_config_proto"],
 )
 
 go_proto_library(
     name = "hardware_module_config_go_proto",
     importpath = "intrinsic/icon/hal/hardware_module_config_go_proto",
-    protos = [":hardware_module_config_proto"],
+    protos = ["//intrinsic/icon/hal/proto:hardware_module_config_proto"],
     deps = [
         "//intrinsic/assets/proto:field_metadata_go_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
@@ -51,36 +39,21 @@ go_proto_library(
     ],
 )
 
-proto_library(
-    name = "hardware_module_inspection_proto",
-    srcs = ["proto/hardware_module_inspection.proto"],
-    deps = [
-        "@com_google_protobuf//:any_proto",
-        "@com_google_protobuf//:timestamp_proto",
-        # This dep is not directly needed by this proto, but is needed for 3p users (e.g. an HMI)
-        # to be able to parse the service inspection proto.
-        # Therefore, we add the dependency here so that hardware module authors do not need
-        # to be aware of this.
-        "//intrinsic/assets/services/proto/v1:service_inspection_proto",  # buildcleaner: keep
-        "//intrinsic/icon/proto:safety_status_proto",
-    ],
-)
-
 js_library(
     name = "hardware_module_inspection_jspb_proto",
     visibility = ["//intrinsic/frontend/onprem/proto_custom_fields:__subpackages__"],
-    deps = [":hardware_module_inspection_proto"],
+    deps = ["//intrinsic/icon/hal/proto:hardware_module_inspection_proto"],
 )
 
 cc_proto_library(
     name = "hardware_module_inspection_cc_proto",
-    deps = [":hardware_module_inspection_proto"],
+    deps = ["//intrinsic/icon/hal/proto:hardware_module_inspection_proto"],
 )
 
 go_proto_library(
     name = "hardware_module_inspection_go_proto",
     importpath = "intrinsic/icon/hal/hardware_module_inspection_go_proto",
-    protos = [":hardware_module_inspection_proto"],
+    protos = ["//intrinsic/icon/hal/proto:hardware_module_inspection_proto"],
     deps = [
         "//intrinsic/icon/proto:safety_status_go_proto",
     ],

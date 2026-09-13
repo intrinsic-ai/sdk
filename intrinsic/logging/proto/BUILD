@@ -24,109 +24,19 @@ load("//bazel:go_macros.bzl", "go_library", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
-proto_library(
-    name = "bag_metadata_proto",
-    srcs = ["bag_metadata.proto"],
-    deps = [
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "bag_metadata_cc_proto",
-    deps = [":bag_metadata_proto"],
-)
-
-go_proto_library(
-    name = "bag_metadata_go_proto",
-    importpath = "intrinsic/logging/proto/bag_metadata_go_proto",
-    protos = [":bag_metadata_proto"],
-)
-
 js_library(
     name = "bag_metadata_jspb_proto",
-    deps = [":bag_metadata_proto"],
-)
-
-py_proto_library(
-    name = "bag_metadata_py_pb2",
-    deps = [":bag_metadata_proto"],
-)
-
-proto_library(
-    name = "bag_packager_service",
-    srcs = ["bag_packager_service.proto"],
-    deps = [
-        ":bag_metadata_proto",
-        "@com_google_protobuf//:empty_proto",
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "bag_packager_service_cc_proto",
-    deps = [":bag_packager_service"],
-)
-
-cc_grpc_library(
-    name = "bag_packager_service_cc_grpc",
-    srcs = [":bag_packager_service"],
-    grpc_only = True,
-    deps = [":bag_packager_service_cc_proto"],
-)
-
-go_proto_library(
-    name = "bag_packager_service_go_proto",
-    compilers = [
-        "@io_bazel_rules_go//proto:go_grpc_v2",
-        "@io_bazel_rules_go//proto:go_proto",
-    ],
-    importpath = "intrinsic/logging/proto/bag_packager_service_go_proto",
-    protos = [":bag_packager_service"],
-    deps = [":bag_metadata_go_proto"],
-)
-
-py_proto_library(
-    name = "bag_packager_service_py_pb2",
-    deps = [":bag_packager_service"],
-)
-
-py_grpc_library(
-    name = "bag_packager_service_py_pb2_grpc",
-    srcs = [":bag_packager_service"],
-    grpc_library = requirement("grpcio"),
-    deps = [":bag_packager_service_py_pb2"],
+    deps = ["//intrinsic/logging/proto:bag_metadata_proto"],
 )
 
 js_library(
     name = "bag_packager_service_jspb_proto",
-    deps = [":bag_packager_service"],
-)
-
-proto_library(
-    name = "blob_proto",
-    srcs = ["blob.proto"],
-)
-
-cc_proto_library(
-    name = "blob_cc_proto",
-    deps = [":blob_proto"],
-)
-
-go_proto_library(
-    name = "blob_go_proto",
-    importpath = "intrinsic/logging/proto/blob_go_proto",
-    protos = [":blob_proto"],
+    deps = ["//intrinsic/logging/proto:bag_packager_service"],
 )
 
 js_library(
     name = "blob_jspb_proto",
-    deps = [":blob_proto"],
-)
-
-py_proto_library(
-    name = "blob_py_pb2",
-    deps = [":blob_proto"],
+    deps = ["//intrinsic/logging/proto:blob_proto"],
 )
 
 js_library(
@@ -134,92 +44,23 @@ js_library(
     deps = ["//intrinsic/logging/proto:context_proto"],
 )
 
-proto_library(
-    name = "critical_event_log",
-    srcs = ["critical_event_log.proto"],
-    deps = ["@com_google_protobuf//:timestamp_proto"],
-)
-
-cc_proto_library(
-    name = "critical_event_log_cc_proto",
-    deps = [":critical_event_log"],
-)
-
-go_proto_library(
-    name = "critical_event_log_go_proto",
-    importpath = "intrinsic/logging/proto/critical_event_log_go_proto",
-    protos = [":critical_event_log"],
-)
-
-py_proto_library(
-    name = "critical_event_log_py_pb2",
-    deps = [":critical_event_log"],
-)
-
-proto_library(
-    name = "downsampler_proto",
-    srcs = ["downsampler.proto"],
-    deps = [
-        "@com_google_protobuf//:duration_proto",
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "downsampler_cc_proto",
-    deps = [":downsampler_proto"],
-)
-
-go_proto_library(
-    name = "downsampler_go_proto",
-    importpath = "intrinsic/logging/proto/downsampler_go_proto",
-    protos = [":downsampler_proto"],
-)
-
 js_library(
     name = "downsampler_jspb_proto",
-    deps = [":downsampler_proto"],
-)
-
-py_proto_library(
-    name = "downsampler_py_pb2",
-    deps = [":downsampler_proto"],
-)
-
-proto_library(
-    name = "flowstate_event",
-    srcs = ["flowstate_event.proto"],
-    visibility = ["//visibility:private"],
-)
-
-cc_proto_library(
-    name = "flowstate_event_cc_proto",
-    deps = [":flowstate_event"],
-)
-
-go_proto_library(
-    name = "flowstate_event_go_proto",
-    importpath = "intrinsic/logging/proto/flowstate_event_go_proto",
-    protos = [":flowstate_event"],
+    deps = ["//intrinsic/logging/proto:downsampler_proto"],
 )
 
 js_library(
     name = "flowstate_event_jspb_proto",
-    deps = [":flowstate_event"],
-)
-
-py_proto_library(
-    name = "flowstate_event_py_pb2",
-    deps = [":flowstate_event"],
+    deps = ["//intrinsic/logging/proto:flowstate_event"],
 )
 
 proto_library(
     name = "log_dispatcher_service",
     srcs = ["log_dispatcher_service.proto"],
     deps = [
-        ":blob_proto",
-        ":downsampler_proto",
         ":log_item_proto",
+        "//intrinsic/logging/proto:blob_proto",
+        "//intrinsic/logging/proto:downsampler_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
@@ -246,10 +87,10 @@ go_proto_library(
     importpath = "intrinsic/logging/proto/log_dispatcher_service_go_proto",
     protos = [":log_dispatcher_service"],
     deps = [
-        ":bag_metadata_go_proto",
-        ":blob_go_proto",
-        ":downsampler_go_proto",
         ":log_item_go_proto",
+        "//intrinsic/logging/proto:bag_metadata_go_proto",
+        "//intrinsic/logging/proto:blob_go_proto",
+        "//intrinsic/logging/proto:downsampler_go_proto",
     ],
 )
 
@@ -269,15 +110,15 @@ proto_library(
     name = "log_item_proto",
     srcs = ["log_item.proto"],
     deps = [
-        ":blob_proto",
-        ":critical_event_log",
-        ":flowstate_event",
         "//intrinsic/executive/proto:log_items_proto",
         "//intrinsic/icon/proto:cart_space_proto",
         "//intrinsic/icon/proto:joint_space_proto",
         "//intrinsic/icon/proto:part_status_proto",
         "//intrinsic/logging/errors/proto:error_report_proto",
+        "//intrinsic/logging/proto:blob_proto",
         "//intrinsic/logging/proto:context_proto",
+        "//intrinsic/logging/proto:critical_event_log",
+        "//intrinsic/logging/proto:flowstate_event",
         "//intrinsic/skills/proto:skill_service_proto",
         "//intrinsic/util/status:extended_status_proto",
         "//third_party/ros2/ros_interfaces/jazzy/visualization_msgs/msg:marker_array_proto",
@@ -297,10 +138,6 @@ go_proto_library(
     importpath = "intrinsic/logging/proto/log_item_go_proto",
     protos = [":log_item_proto"],
     deps = [
-        ":bag_metadata_go_proto",
-        ":blob_go_proto",
-        ":critical_event_log_go_proto",
-        ":flowstate_event_go_proto",
         ":visualization_context_go_proto",
         "//intrinsic/executive/proto:log_items_go_proto",
         "//intrinsic/hardware/gpio/v1:signal_go_proto",
@@ -319,7 +156,11 @@ go_proto_library(
         "//intrinsic/kinematics/types:dynamic_limits_check_mode_go_proto",
         "//intrinsic/kinematics/types:joint_limits_go_proto",
         "//intrinsic/logging/errors/proto:error_report_go_proto",
+        "//intrinsic/logging/proto:bag_metadata_go_proto",
+        "//intrinsic/logging/proto:blob_go_proto",
         "//intrinsic/logging/proto:context_go_proto",
+        "//intrinsic/logging/proto:critical_event_log_go_proto",
+        "//intrinsic/logging/proto:flowstate_event_go_proto",
         "//intrinsic/math/proto:affine_go_proto",
         "//intrinsic/math/proto:array_go_proto",
         "//intrinsic/math/proto:matrix_go_proto",
@@ -366,9 +207,9 @@ proto_library(
     name = "logger_service",
     srcs = ["logger_service.proto"],
     deps = [
-        ":bag_metadata_proto",
-        ":downsampler_proto",
         ":log_item_proto",
+        "//intrinsic/logging/proto:bag_metadata_proto",
+        "//intrinsic/logging/proto:downsampler_proto",
         "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:duration_proto",
         "@com_google_protobuf//:empty_proto",
@@ -398,9 +239,9 @@ go_proto_library(
     importpath = "intrinsic/logging/proto/logger_service_go_proto",
     protos = [":logger_service"],
     deps = [
-        ":bag_metadata_go_proto",
-        ":downsampler_go_proto",
         ":log_item_go_proto",
+        "//intrinsic/logging/proto:bag_metadata_go_proto",
+        "//intrinsic/logging/proto:downsampler_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
     ],
 )
@@ -422,59 +263,9 @@ py_grpc_library(
     deps = [":logger_service_py_pb2"],
 )
 
-proto_library(
-    name = "pubsub_listener_service",
-    srcs = ["pubsub_listener_service.proto"],
-)
-
-cc_proto_library(
-    name = "pubsub_listener_service_cc_proto",
-    deps = [":pubsub_listener_service"],
-)
-
-cc_grpc_library(
-    name = "pubsub_listener_service_cc_grpc",
-    srcs = [":pubsub_listener_service"],
-    grpc_only = True,
-    deps = [":pubsub_listener_service_cc_proto"],
-)
-
-py_proto_library(
-    name = "pubsub_listener_service_py_pb2",
-    deps = [":pubsub_listener_service"],
-)
-
-py_grpc_library(
-    name = "pubsub_listener_service_py_pb2_grpc",
-    srcs = [":pubsub_listener_service"],
-    grpc_library = requirement("grpcio"),
-    deps = [":pubsub_listener_service_py_pb2"],
-)
-
-proto_library(
-    name = "recording_data_categories_proto",
-    srcs = ["recording_data_categories.proto"],
-)
-
-cc_proto_library(
-    name = "recording_data_categories_cc_proto",
-    deps = [":recording_data_categories_proto"],
-)
-
-go_proto_library(
-    name = "recording_data_categories_go_proto",
-    importpath = "intrinsic/logging/proto/recording_data_categories_go_proto",
-    protos = [":recording_data_categories_proto"],
-)
-
 js_library(
     name = "recording_data_categories_jspb_proto",
-    deps = [":recording_data_categories_proto"],
-)
-
-py_proto_library(
-    name = "recording_data_categories_py_pb2",
-    deps = [":recording_data_categories_proto"],
+    deps = ["//intrinsic/logging/proto:recording_data_categories_proto"],
 )
 
 go_library(
@@ -484,7 +275,7 @@ go_library(
     importpath = "intrinsic/logging/proto",
     visibility = ["//visibility:public"],
     deps = [
-        ":recording_data_categories_go_proto",
+        "//intrinsic/logging/proto:recording_data_categories_go_proto",
         "@org_golang_google_protobuf//encoding/prototext",
     ],
 )
@@ -495,97 +286,23 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-proto_library(
-    name = "replay_service",
-    srcs = ["replay_service.proto"],
-    deps = [
-        ":replay_service_options",
-        "@com_google_googleapis//google/api:annotations_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "replay_service_cc_proto",
-    deps = [":replay_service"],
-)
-
-cc_grpc_library(
-    name = "replay_service_cc_grpc",
-    srcs = [":replay_service"],
-    generate_mocks = True,
-    grpc_only = True,
-    deps = [":replay_service_cc_proto"],
-)
-
-go_proto_library(
-    name = "replay_service_go_proto",
-    compilers = [
-        "@io_bazel_rules_go//proto:go_grpc_v2",
-        "@io_bazel_rules_go//proto:go_proto",
-        "//bazel:go_gen_grpc_gateway",
-    ],
-    importpath = "intrinsic/logging/proto/replay_service_go_proto",
-    protos = [":replay_service"],
-    deps = [
-        ":replay_service_options_go_proto",
-        "@org_golang_google_genproto_googleapis_api//annotations",
-    ],
-)
-
 js_library(
     name = "replay_service_jspb_proto",
-    deps = [":replay_service"],
-)
-
-py_proto_library(
-    name = "replay_service_py_pb2",
-    deps = [":replay_service"],
-)
-
-py_grpc_library(
-    name = "replay_service_py_pb2_grpc",
-    srcs = [":replay_service"],
-    grpc_library = requirement("grpcio"),
-    deps = [":replay_service_py_pb2"],
-)
-
-proto_library(
-    name = "replay_service_options",
-    srcs = ["replay_service_options.proto"],
-    deps = [
-        "@com_google_protobuf//:duration_proto",
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "replay_service_options_cc_proto",
-    deps = [":replay_service_options"],
-)
-
-go_proto_library(
-    name = "replay_service_options_go_proto",
-    importpath = "intrinsic/logging/proto/replay_service_options_go_proto",
-    protos = [":replay_service_options"],
+    deps = ["//intrinsic/logging/proto:replay_service"],
 )
 
 js_library(
     name = "replay_service_options_jspb_proto",
-    deps = [":replay_service_options"],
-)
-
-py_proto_library(
-    name = "replay_service_options_py_pb2",
-    deps = [":replay_service_options"],
+    deps = ["//intrinsic/logging/proto:replay_service_options"],
 )
 
 proto_library(
     name = "visualization_context_proto",
     srcs = ["visualization_context.proto"],
     deps = [
-        ":blob_proto",
         "//intrinsic/geometry/proto:renderable_proto",
         "//intrinsic/geometry/proto/v1:renderable_proto",
+        "//intrinsic/logging/proto:blob_proto",
         "//intrinsic/world/proto:geometry_component_proto",
     ],
 )
@@ -600,9 +317,9 @@ go_proto_library(
     importpath = "intrinsic/logging/proto/visualization_context_go_proto",
     protos = [":visualization_context_proto"],
     deps = [
-        ":blob_go_proto",
         "//intrinsic/geometry/proto:renderable_go_proto",
         "//intrinsic/geometry/proto/v1:renderable_go_proto",
+        "//intrinsic/logging/proto:blob_go_proto",
         "//intrinsic/world/proto:geometry_component_go_proto",
     ],
 )
@@ -615,6 +332,94 @@ js_library(
 py_proto_library(
     name = "visualization_context_py_pb2",
     deps = [":visualization_context_proto"],
+)
+
+proto_library(
+    name = "bag_metadata_proto",
+    srcs = ["bag_metadata.proto"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+cc_proto_library(
+    name = "bag_metadata_cc_proto",
+    deps = [":bag_metadata_proto"],
+)
+
+go_proto_library(
+    name = "bag_metadata_go_proto",
+    importpath = "intrinsic/logging/proto/bag_metadata_go_proto",
+    protos = [":bag_metadata_proto"],
+)
+
+py_proto_library(
+    name = "bag_metadata_py_pb2",
+    deps = [":bag_metadata_proto"],
+)
+
+proto_library(
+    name = "bag_packager_service",
+    srcs = ["bag_packager_service.proto"],
+    deps = [
+        ":bag_metadata_proto",
+        "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "bag_packager_service_cc_proto",
+    deps = [":bag_packager_service"],
+)
+
+go_proto_library(
+    name = "bag_packager_service_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
+    importpath = "intrinsic/logging/proto/bag_packager_service_go_proto",
+    protos = [":bag_packager_service"],
+    deps = [":bag_metadata_go_proto"],
+)
+
+py_proto_library(
+    name = "bag_packager_service_py_pb2",
+    deps = [":bag_packager_service"],
+)
+
+py_grpc_library(
+    name = "bag_packager_service_py_pb2_grpc",
+    srcs = [":bag_packager_service"],
+    grpc_library = requirement("grpcio"),
+    deps = [":bag_packager_service_py_pb2"],
+)
+
+cc_grpc_library(
+    name = "bag_packager_service_cc_grpc",
+    srcs = [":bag_packager_service"],
+    grpc_only = True,
+    deps = [":bag_packager_service_cc_proto"],
+)
+
+proto_library(
+    name = "blob_proto",
+    srcs = ["blob.proto"],
+)
+
+cc_proto_library(
+    name = "blob_cc_proto",
+    deps = [":blob_proto"],
+)
+
+go_proto_library(
+    name = "blob_go_proto",
+    importpath = "intrinsic/logging/proto/blob_go_proto",
+    protos = [":blob_proto"],
+)
+
+py_proto_library(
+    name = "blob_py_pb2",
+    deps = [":blob_proto"],
 )
 
 proto_library(
@@ -640,4 +445,196 @@ py_proto_library(
     name = "context_py_pb2",
     visibility = ["//visibility:public"],
     deps = [":context_proto"],
+)
+
+proto_library(
+    name = "critical_event_log",
+    srcs = ["critical_event_log.proto"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+cc_proto_library(
+    name = "critical_event_log_cc_proto",
+    deps = [":critical_event_log"],
+)
+
+go_proto_library(
+    name = "critical_event_log_go_proto",
+    importpath = "intrinsic/logging/proto/critical_event_log_go_proto",
+    protos = [":critical_event_log"],
+)
+
+py_proto_library(
+    name = "critical_event_log_py_pb2",
+    deps = [":critical_event_log"],
+)
+
+proto_library(
+    name = "downsampler_proto",
+    srcs = ["downsampler.proto"],
+    deps = [
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "downsampler_cc_proto",
+    deps = [":downsampler_proto"],
+)
+
+go_proto_library(
+    name = "downsampler_go_proto",
+    importpath = "intrinsic/logging/proto/downsampler_go_proto",
+    protos = [":downsampler_proto"],
+)
+
+py_proto_library(
+    name = "downsampler_py_pb2",
+    deps = [":downsampler_proto"],
+)
+
+proto_library(
+    name = "flowstate_event",
+    srcs = ["flowstate_event.proto"],
+)
+
+cc_proto_library(
+    name = "flowstate_event_cc_proto",
+    deps = [":flowstate_event"],
+)
+
+go_proto_library(
+    name = "flowstate_event_go_proto",
+    importpath = "intrinsic/logging/proto/flowstate_event_go_proto",
+    protos = [":flowstate_event"],
+)
+
+py_proto_library(
+    name = "flowstate_event_py_pb2",
+    deps = [":flowstate_event"],
+)
+
+proto_library(
+    name = "pubsub_listener_service",
+    srcs = ["pubsub_listener_service.proto"],
+)
+
+cc_proto_library(
+    name = "pubsub_listener_service_cc_proto",
+    deps = [":pubsub_listener_service"],
+)
+
+py_proto_library(
+    name = "pubsub_listener_service_py_pb2",
+    deps = [":pubsub_listener_service"],
+)
+
+py_grpc_library(
+    name = "pubsub_listener_service_py_pb2_grpc",
+    srcs = [":pubsub_listener_service"],
+    grpc_library = requirement("grpcio"),
+    deps = [":pubsub_listener_service_py_pb2"],
+)
+
+cc_grpc_library(
+    name = "pubsub_listener_service_cc_grpc",
+    srcs = [":pubsub_listener_service"],
+    grpc_only = True,
+    deps = [":pubsub_listener_service_cc_proto"],
+)
+
+proto_library(
+    name = "recording_data_categories_proto",
+    srcs = ["recording_data_categories.proto"],
+)
+
+cc_proto_library(
+    name = "recording_data_categories_cc_proto",
+    deps = [":recording_data_categories_proto"],
+)
+
+go_proto_library(
+    name = "recording_data_categories_go_proto",
+    importpath = "intrinsic/logging/proto/recording_data_categories_go_proto",
+    protos = [":recording_data_categories_proto"],
+)
+
+py_proto_library(
+    name = "recording_data_categories_py_pb2",
+    deps = [":recording_data_categories_proto"],
+)
+
+proto_library(
+    name = "replay_service",
+    srcs = ["replay_service.proto"],
+    deps = [
+        ":replay_service_options",
+        "@com_google_googleapis//google/api:annotations_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "replay_service_cc_proto",
+    deps = [":replay_service"],
+)
+
+go_proto_library(
+    name = "replay_service_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway:go_gen_grpc_gateway",
+    ],
+    importpath = "intrinsic/logging/proto/replay_service_go_proto",
+    protos = [":replay_service"],
+    deps = [
+        ":replay_service_options_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
+)
+
+py_proto_library(
+    name = "replay_service_py_pb2",
+    deps = [":replay_service"],
+)
+
+py_grpc_library(
+    name = "replay_service_py_pb2_grpc",
+    srcs = [":replay_service"],
+    grpc_library = requirement("grpcio"),
+    deps = [":replay_service_py_pb2"],
+)
+
+cc_grpc_library(
+    name = "replay_service_cc_grpc",
+    srcs = [":replay_service"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":replay_service_cc_proto"],
+)
+
+proto_library(
+    name = "replay_service_options",
+    srcs = ["replay_service_options.proto"],
+    deps = [
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "replay_service_options_cc_proto",
+    deps = [":replay_service_options"],
+)
+
+go_proto_library(
+    name = "replay_service_options_go_proto",
+    importpath = "intrinsic/logging/proto/replay_service_options_go_proto",
+    protos = [":replay_service_options"],
+)
+
+py_proto_library(
+    name = "replay_service_options_py_pb2",
+    deps = [":replay_service_options"],
 )

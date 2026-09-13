@@ -1,0 +1,128 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.data_logger;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "intrinsic/logging/proto/bag_metadata.proto";
+
+option go_package = "intrinsic/logging/proto/bag_packager_service_go_proto";
+
+// Full record for a single bag stored on the cloud.
+message BagRecord {
+  google.protobuf.Timestamp initialization_time = 1;
+  intrinsic_proto.data_logger.BagMetadata bag_metadata = 2;
+  optional intrinsic_proto.data_logger.BagFileReference bag_file = 3;
+}
+
+// Request to register a new bag generation workflow or update a previously
+// registered bag.
+//
+// Should ONLY be called by the cloud service or on-prem.
+message RegisterBagRequest {
+  intrinsic_proto.data_logger.BagMetadata bag_metadata = 1;
+}
+
+// Request to trigger packaging of a new bag.
+message GenerateBagRequest {
+  message CloudLogItemsReference {
+    // Requested time range.
+    google.protobuf.Timestamp start_time = 1;
+    google.protobuf.Timestamp end_time = 2;
+
+    string workcell_name = 3;
+    repeated intrinsic_proto.data_logger.EventSourceWithTypeHints
+        event_sources = 4;
+  }
+
+  oneof query {
+    string bag_id = 1;                           // Pre-existing registered bag.
+    CloudLogItemsReference cloud_log_items = 2;  // Cloud logs.
+  }
+
+  string organization_id = 3;
+}
+
+message GenerateBagResponse {
+  BagRecord bag = 1;
+}
+
+// Request to list all registered bags.
+message ListBagsRequest {
+  string organization_id = 1;
+  string workcell_name = 2 [deprecated = true];
+  // Requested time range.
+  google.protobuf.Timestamp start_time = 3 [deprecated = true];
+  google.protobuf.Timestamp end_time = 4 [deprecated = true];
+
+  // Limits for the number of results per page.
+  optional uint32 max_num_results = 5;  // Defaults to 1000.
+
+  message Query {
+    string workcell_name = 1;
+    google.protobuf.Timestamp start_time = 2;
+    google.protobuf.Timestamp end_time = 3;
+  }
+
+  oneof query {
+    Query list_query = 6;
+    bytes cursor = 7;
+  }
+}
+
+message ListBagsResponse {
+  repeated BagRecord bags = 1;
+  // Opaque cursor to the next page of results.
+  // If empty, no next page exists.
+  optional bytes next_page_cursor = 2;
+}
+
+// Request to get the metadata of a registered bag.
+message GetBagRequest {
+  string bag_id = 1;
+
+  // If true, generates a signed url to download the bag with.
+  bool with_signed_url = 2;
+}
+
+// Response includes registered and actual metadata, and
+// a link to download the bag (if the bag status is not terminal).
+message GetBagResponse {
+  BagRecord bag = 1;
+
+  // Signed url to download the bag with, if available.
+  // https://cloud.google.com/storage/docs/access-control/signed-urls
+  optional string signed_url = 2;
+
+  // When the signed url is valid until.
+  optional google.protobuf.Timestamp signed_url_expiry_time = 3;
+}
+
+service BagPackager {
+  // Register a new bag generation or update a previously
+  // registered bag.
+  rpc RegisterBag(RegisterBagRequest) returns (google.protobuf.Empty) {}
+
+  // Trigger conversion and packaging of a new bag.
+  rpc GenerateBag(GenerateBagRequest) returns (GenerateBagResponse) {}
+
+  // List all registered bags, regardless of their status.
+  rpc ListBags(ListBagsRequest) returns (ListBagsResponse) {}
+
+  // Get the metadata (and download link) for a registered bag.
+  rpc GetBag(GetBagRequest) returns (GetBagResponse) {}
+}

@@ -1,0 +1,78 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.grasping;
+
+import "intrinsic/math/proto/pose.proto";
+
+option go_package = "intrinsic/manipulation/grasping/schmalz_multi_axis_grasp_go_proto";
+
+// Catesian-pose based grasp annotation for Schmalz multi-axis grippers
+// that specifies the plate poses and suction cups to activate.
+// This gripper has 6 linear axis motors driving 4 plates, where each plate
+// has 36 cups (total of 144). And each cups can be manually actuated.
+// See
+// https://docs.google.com/document/d/1caMlP20Ia8-a2r-beM5nnug-1SJEOSPyoctiyNvT2vg
+// for more details.
+message SchmalzMultiAxisGraspAnnotation {
+  message PlateConfig {
+    // The plate pose in the geometry origin frame.
+    intrinsic_proto.Pose from_geometry_origin_to_plate_frame = 1;
+
+    // Indices of the suction cups to activate.
+    repeated uint32 suction_cups_to_activate = 2;
+  }
+
+  // List of plate configs for the four gripper plates,
+  // in the ordering of numbers in schmalz_multi_axis_gripper.sdf
+  // (e.g., the plate with `tool_frame_0` corresponds to the first config).
+  repeated PlateConfig plate_configs = 1;
+
+  // Score of this grasp annotation that reflects the preference among
+  // different grasps. This is because certain grasps are more likely to succeed
+  // than others. Default value: 1.0.
+  optional double score = 2;
+}
+
+// Grasp command for a Schmalz multi-axis gripper. Includes information for
+// target joint positions, the suction cups to activate, as
+// well as the target suction feedback for determining grasp success.
+// This is different from the `SchmalzMultiAxisGraspAnnotation` proto in that
+// this uses joint values instead of Cartesian poses.
+message SchmalzMultiAxisGraspCommand {
+  // The product part name of the geometry. Call it `geometry_id` to be
+  // consistent with the Metal Morph project.
+  string geometry_id = 1;
+
+  // Name of the gripper object in the world. Call it `gripper_id` to be
+  // consistent with the Metal Morph project.
+  string gripper_id = 2;
+
+  // The pose of the gripper TCP in the geometry's (i.e., the object's) origin
+  // frame.
+  intrinsic_proto.Pose from_geometry_origin_to_gripper_tcp = 3;
+
+  // Target positions of the 6 linear joints.
+  repeated double joint_values = 4;
+
+  // Indices of the suction cups to activate. Value has to be in the range of
+  // [0, 143].
+  repeated uint32 suction_cups_to_activate = 5;
+
+  // Grasp success threshold (e.g., percentage of suction cups that feels
+  // suction among those to activate). Default value: 1.0.
+  optional float grasp_success_threshold = 6;
+}

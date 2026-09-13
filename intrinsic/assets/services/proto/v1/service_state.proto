@@ -1,0 +1,87 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.services.v1;
+
+import "intrinsic/util/status/extended_status.proto";
+
+option go_package = "intrinsic/assets/services/proto/v1/service_state_go_proto";
+
+// Supports querying and modifying the state of a Service instance.
+service ServiceState {
+  // Returns the current state of the Service instance.
+  rpc GetState(GetStateRequest) returns (SelfState) {}
+
+  // Enables the running Service instance. If the state was previously in
+  // STATE_CODE_ERROR, it is expected for the Enable routine to perform the
+  // necessary steps to resolve the error before enabling.
+  // Enabling an already enabled Service should have no effect.
+  rpc Enable(EnableRequest) returns (EnableResponse) {}
+
+  // Disables the running Service instance. Disabling a Service that is already
+  // disabled or in an error state should have no effect since the Service
+  // should not be operating and should not be servicing requests.
+  rpc Disable(DisableRequest) returns (DisableResponse) {}
+}
+
+// Contains details about the state of a Service.
+message SelfState {
+  enum StateCode {
+    // Indicates the Service instance is in an unspecified state.
+    STATE_CODE_UNSPECIFIED = 0;
+    // Indicates the Service instance is in an error state.
+    // When a state is in STATE_CODE_ERROR, the Service must not allow
+    // interaction with the services that it provides.
+    STATE_CODE_ERROR = 1;
+    // When a Service is disabled, it must not allow interaction with the
+    // services that it provides.
+    STATE_CODE_DISABLED = 2;
+    // When a Service is enabled, it allows interactions with the services that
+    // it provides.
+    STATE_CODE_ENABLED = 3;
+  }
+
+  // Current state code of the running Service instance.
+  StateCode state_code = 1;
+
+  // Optional explanation for the current Service's state, unless the Service
+  // is in STATE_CODE_ERROR. When in STATE_CODE_ERROR, it is expected that
+  // extended_status includes information on what and/or why the Service
+  // failed and how to resolve the failure state.
+  optional intrinsic_proto.status.ExtendedStatus extended_status = 2;
+}
+
+message GetStateRequest {}
+
+message DisableRequest {}
+message DisableResponse {}
+
+message EnableRequest {}
+message EnableResponse {}
+
+// Configuration for the service state interfaces provided to the Intrinsic
+// platform.
+message ServiceStateConfig {
+  enum ServiceVersion {
+    UNSPECIFIED = 0;
+    // The service implements intrinsic_proto.services.v1.ServiceState.
+    INTRINSIC_PROTO_SERVICES_V1_SERVICE_STATE = 1;
+  }
+  // The list of service state services provided to the platform.
+  // Authors might choose to implement multiple versions to increase
+  // compatibility across a wider range of platform versions.
+  repeated ServiceVersion service_versions = 1;
+}

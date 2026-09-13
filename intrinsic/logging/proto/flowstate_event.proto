@@ -1,0 +1,47 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.flowstate_event;
+
+option go_package = "intrinsic/logging/proto/flowstate_event_go_proto";
+
+// FlowstateEvent are representation of events to be recorded by flowstate
+// workcell applications. These events are piped into a BigQuery table which
+// acts as the base of dashboards and other analysis.
+//
+// See go/intrinsic-event-schema#bookmark=id.u8ad3dvlrnid for examples of how to
+// use the schema
+message FlowstateEvent {
+  // event_type is an identifier for an event. (e.g., SOLUTION,
+  // HUMAN_USER_ACTION, ROBOT_METADATA)
+  string event_type = 1;
+  // resource ID is the identifier of the resource that was modified (e.g.,
+  // solution that was created or run, robot id that was registered)
+  string resource_id = 2;
+  // subject identifies the user id or other such identifier of the actor who
+  // committed the event/action.
+  string subject = 3;
+  // action is a verb that signifies the nature of the event (created, run,
+  // deleted, modified).
+  string action = 4;
+  // result signifies the result of the committed action, e.g., success/failure
+  // of a BT run.
+  string result = 5;
+  // labels contain additional key value pairs to label the data with.
+  map<string, string> labels = 6;
+  // organization_id is the Intrinsic organization identifier
+  optional string organization_id = 7;
+}

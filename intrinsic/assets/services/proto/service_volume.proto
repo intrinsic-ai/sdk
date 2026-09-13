@@ -1,0 +1,86 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.services;
+
+option go_package = "intrinsic/assets/services/proto/service_volume_go_proto";
+
+// VolumeMount specifies how a Volume is mounted in the Service.
+// Its name must match a specified volume.
+// See: https://kubernetes.io/docs/concepts/storage/volumes/
+//
+// Available mount paths and whether those paths are writeable depend on the
+// Service's container image. For instance, for Services that use
+// `@distroless_base` as a base image, likely only mount paths under `/tmp` will
+// be writeable.
+message VolumeMount {
+  string name = 1;
+  string mount_path = 2;
+  bool read_only = 3;
+}
+
+// Volume represents a named volume in the pod that may be accessed by the
+// Service through a VolumeMount.
+// See: https://kubernetes.io/docs/concepts/storage/volumes/
+message Volume {
+  string name = 1;
+  oneof source {
+    HostPathVolumeSource host_path = 2;
+    EmptyDirVolumeSource empty_dir = 3;
+  }
+}
+
+// HostPathVolumeSource describes a path on the host machine that should be made
+// accessible to the Service.
+//
+// Recommended host paths to use are:
+// - /tmp/service_volumes/<vendor> (for ephemeral data)
+// - /var/lib/file-storage/service_volumes/<vendor> (for long-term persistence)
+//
+// NOTE that data written to a host path volume can be read and modified by any
+// other Service that requests the same host path. These paths should therefore
+// not be used for sensitive data.
+//
+// HostPath volume source type determines the type of host path volume.
+enum HostPathVolumeSourceType {
+  // Unspecified host path type (default Kubernetes behavior).
+  HOST_PATH_VOLUME_SOURCE_TYPE_UNSPECIFIED = 0;
+  // A character device path (e.g. /dev/EtherCAT0).
+  HOST_PATH_VOLUME_SOURCE_TYPE_CHAR_DEVICE = 2;
+}
+
+message HostPathVolumeSource {
+  // The path on the host to make available.
+  string path = 1;
+  // The type of file to be mounted.
+  optional HostPathVolumeSourceType type = 2;
+}
+
+// Empty dir medium determines where the empty dir volume is stored.
+// See: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
+enum EmptyDirMedium {
+  // Unspecified uses the host system's default.
+  EMPTY_DIR_MEDIUM_UNSPECIFIED = 0;
+  EMPTY_DIR_MEDIUM_MEMORY = 1;
+}
+
+// EmptyDirVolumeSource describes a volume created for use by the Service.
+// See: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
+message EmptyDirVolumeSource {
+  // The medium used to store the volume. If unspecified, the host system's
+  // default is used.
+  EmptyDirMedium medium = 1;
+}

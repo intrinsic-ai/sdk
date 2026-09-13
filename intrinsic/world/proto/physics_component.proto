@@ -1,0 +1,94 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.world;
+
+import "intrinsic/math/proto/matrix.proto";
+import "intrinsic/math/proto/point.proto";
+import "intrinsic/math/proto/pose.proto";
+
+option go_package = "intrinsic/world/proto/physics_component_go_proto";
+
+// Component indicating the owning Entity has physics properties releveant to
+// our modeling.
+// Next tag: 11
+message PhysicsComponent {
+  // Mass of the owning Entity in kilograms.
+  double mass_kg = 1;
+
+  // Pose of the center of mass in the owning Entity's space.
+  intrinsic_proto.Pose this_t_center_of_mass = 9;
+
+  // Inertia matrix.
+  intrinsic_proto.Matrixd inertia = 10;
+
+  // Surface friction parameters.
+  Friction friction = 5;
+
+  // Torsional friction parameters.
+  Torsional torsional = 6;
+
+  // Dynamically "stiffness"-equivalent coefficient for contact joints.
+  optional double contact_kp = 7;
+
+  // Dynamically "damping"-equivalent coefficient for contact joints.
+  optional double contact_kd = 8;
+
+  reserved 2, 3, 4;
+  reserved "this_t_center_of_mass_old", "inertia_old", "is_static";
+}
+
+// Friction parameters.
+// This is based on what is supported by Gazebo.
+// Next ID: 7
+message Friction {
+  // Coefficient of friction in first friction pyramid direction. Unitless.
+  double mu = 1;
+  // Coefficient of friction in second friction pyramid direction. Unitless.
+  double mu2 = 2;
+  // Force dependent slip in first friction pyramid direction. Unit: m/s/N.
+  double slip1 = 3;
+  // Force dependent slip in second friction pyramid direction. Unit: m/s/N.
+  double slip2 = 4;
+
+  // Unit vector specifying first friction pyramid direction in collision-fixed
+  // reference frame.
+  intrinsic_proto.Point fdir1 = 6;
+
+  reserved 5;
+  reserved "fdir1_old";
+}
+
+// Torsional friction parameters.
+// This is based on what is supported by classic Gazebo.
+// Next ID: 6
+message Torsional {
+  // Torsional friction coefficient, unitless.
+  double coefficient = 1;
+
+  bool use_patch_radius = 2;
+
+  // Radius of contact patch surface. Used when "use_patch_radius" is true.
+  double patch_radius = 3;
+
+  // Surface radius on the point of contact. Used when "use_patch_radius" is
+  // false.
+  double surface_radius = 4;
+
+  // Force dependent slip for torsional friction. Physics engines other than ODE
+  // might ignore it.
+  double ode_slip = 5;
+}

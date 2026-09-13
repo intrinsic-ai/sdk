@@ -39,31 +39,12 @@ cc_library(
     ],
 )
 
-proto_library(
-    name = "point_to_point_move_proto",
-    srcs = ["point_to_point_move.proto"],
-    deps = [
-        "//intrinsic/icon/proto:joint_space_proto",
-        "//intrinsic/kinematics/types:joint_limits_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "point_to_point_move_cc_proto",
-    deps = [":point_to_point_move_proto"],
-)
-
-py_proto_library(
-    name = "point_to_point_move_py_pb2",
-    deps = [":point_to_point_move_proto"],
-)
-
 cc_library(
     name = "point_to_point_move_info",
     srcs = ["point_to_point_move_info.cc"],
     hdrs = ["point_to_point_move_info.h"],
     deps = [
-        ":point_to_point_move_cc_proto",
+        "//intrinsic/icon/actions:point_to_point_move_cc_proto",
         "//intrinsic/icon/proto:joint_space_cc_proto",
         "//intrinsic/kinematics/types:joint_limits",
         "@abseil-cpp//absl/types:optional",
@@ -77,37 +58,16 @@ cc_library(
     deps = ["//intrinsic/icon/actions:tare_force_torque_sensor_cc_proto"],
 )
 
-proto_library(
-    name = "cartesian_jogging_proto",
-    srcs = ["cartesian_jogging.proto"],
-    deps = [
-        "//intrinsic/icon/proto:cart_space_proto",
-        "//intrinsic/kinematics/types:joint_limits_proto",
-        "//intrinsic/math/proto:pose_proto",
-        "//intrinsic/math/proto:quaternion_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "cartesian_jogging_cc_proto",
-    deps = [":cartesian_jogging_proto"],
-)
-
-py_proto_library(
-    name = "cartesian_jogging_py_pb2",
-    deps = [":cartesian_jogging_proto"],
-)
-
 js_library(
     name = "cartesian_jogging_jspb_proto",
-    deps = [":cartesian_jogging_proto"],
+    deps = ["//intrinsic/icon/actions:cartesian_jogging_proto"],
 )
 
 cc_library(
     name = "cartesian_jogging_info",
     hdrs = ["cartesian_jogging_info.h"],
     deps = [
-        ":cartesian_jogging_cc_proto",
+        "//intrinsic/icon/actions:cartesian_jogging_cc_proto",
     ],
 )
 
@@ -136,26 +96,10 @@ cc_library(
     ],
 )
 
-proto_library(
-    name = "trajectory_tracking_action_proto",
-    srcs = ["trajectory_tracking_action.proto"],
-    deps = ["//intrinsic/icon/proto:joint_space_proto"],
-)
-
-cc_proto_library(
-    name = "trajectory_tracking_action_cc_proto",
-    deps = [":trajectory_tracking_action_proto"],
-)
-
-py_proto_library(
-    name = "trajectory_tracking_action_py_pb2",
-    deps = [":trajectory_tracking_action_proto"],
-)
-
 cc_library(
     name = "trajectory_tracking_action_info",
     hdrs = ["trajectory_tracking_action_info.h"],
-    deps = [":trajectory_tracking_action_cc_proto"],
+    deps = ["//intrinsic/icon/actions:trajectory_tracking_action_cc_proto"],
 )
 
 cc_library(
@@ -169,7 +113,7 @@ py_library(
     srcs = ["trajectory_tracking_action_utils.py"],
     visibility = ["//intrinsic/icon/python:__subpackages__"],
     deps = [
-        ":trajectory_tracking_action_py_pb2",
+        "//intrinsic/icon/actions:trajectory_tracking_action_py_pb2",
         "//intrinsic/icon/proto:joint_space_py_pb2",
         "//intrinsic/icon/python:icon",
     ],
@@ -190,7 +134,7 @@ py_library(
     srcs = ["point_to_point_move_utils.py"],
     visibility = ["//intrinsic/icon/python:__subpackages__"],
     deps = [
-        ":point_to_point_move_py_pb2",
+        "//intrinsic/icon/actions:point_to_point_move_py_pb2",
         "//intrinsic/icon/proto:joint_space_py_pb2",
         "//intrinsic/icon/python:icon",
         "//intrinsic/kinematics/types:joint_limits_py_pb2",
@@ -247,8 +191,8 @@ py_test(
     name = "point_to_point_move_utils_test",
     srcs = ["point_to_point_move_utils_test.py"],
     deps = [
-        ":point_to_point_move_py_pb2",
         ":point_to_point_move_utils",
+        "//intrinsic/icon/actions:point_to_point_move_py_pb2",
         "//intrinsic/kinematics/types:joint_limits_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
     ],
@@ -258,8 +202,8 @@ py_test(
     name = "trajectory_tracking_action_utils_test",
     srcs = ["trajectory_tracking_action_utils_test.py"],
     deps = [
-        ":trajectory_tracking_action_py_pb2",
         ":trajectory_tracking_action_utils",
+        "//intrinsic/icon/actions:trajectory_tracking_action_py_pb2",
         "//intrinsic/icon/proto:joint_space_py_pb2",
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_protobuf//:protobuf_python",
@@ -327,6 +271,68 @@ py_proto_library(
 )
 
 proto_library(
+    name = "cartesian_jogging_proto",
+    srcs = ["cartesian_jogging.proto"],
+    deps = [
+        "//intrinsic/icon/proto:cart_space_proto",
+        "//intrinsic/kinematics/types:joint_limits_proto",
+        "//intrinsic/math/proto:pose_proto",
+        "//intrinsic/math/proto:quaternion_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "cartesian_jogging_cc_proto",
+    deps = [":cartesian_jogging_proto"],
+)
+
+go_proto_library(
+    name = "cartesian_jogging_go_proto",
+    importpath = "intrinsic/icon/actions/cartesian_jogging_go_proto",
+    protos = [":cartesian_jogging_proto"],
+    deps = [
+        "//intrinsic/icon/proto:cart_space_go_proto",
+        "//intrinsic/kinematics/types:joint_limits_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
+        "//intrinsic/math/proto:quaternion_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "cartesian_jogging_py_pb2",
+    deps = [":cartesian_jogging_proto"],
+)
+
+proto_library(
+    name = "point_to_point_move_proto",
+    srcs = ["point_to_point_move.proto"],
+    deps = [
+        "//intrinsic/icon/proto:joint_space_proto",
+        "//intrinsic/kinematics/types:joint_limits_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "point_to_point_move_cc_proto",
+    deps = [":point_to_point_move_proto"],
+)
+
+go_proto_library(
+    name = "point_to_point_move_go_proto",
+    importpath = "intrinsic/icon/actions/point_to_point_move_go_proto",
+    protos = [":point_to_point_move_proto"],
+    deps = [
+        "//intrinsic/icon/proto:joint_space_go_proto",
+        "//intrinsic/kinematics/types:joint_limits_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "point_to_point_move_py_pb2",
+    deps = [":point_to_point_move_proto"],
+)
+
+proto_library(
     name = "simple_gripper_proto",
     srcs = ["simple_gripper.proto"],
     visibility = ["//visibility:public"],
@@ -360,6 +366,22 @@ py_proto_library(
     name = "tare_force_torque_sensor_py_pb2",
     visibility = ["//visibility:public"],
     deps = [":tare_force_torque_sensor_proto"],
+)
+
+proto_library(
+    name = "trajectory_tracking_action_proto",
+    srcs = ["trajectory_tracking_action.proto"],
+    deps = ["//intrinsic/icon/proto:joint_space_proto"],
+)
+
+cc_proto_library(
+    name = "trajectory_tracking_action_cc_proto",
+    deps = [":trajectory_tracking_action_proto"],
+)
+
+py_proto_library(
+    name = "trajectory_tracking_action_py_pb2",
+    deps = [":trajectory_tracking_action_proto"],
 )
 
 proto_library(

@@ -19,7 +19,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("//intrinsic/httpjson:intrinsic_http_image.bzl", "intrinsic_http_image")
 load("//intrinsic/httpjson/openapi:protoc_gen_openapi.bzl", "protoc_gen_openapi")
 
@@ -29,27 +29,19 @@ package(
     ],
 )
 
-go_proto_library(
-    name = "grasp_annotator_service_go_proto",
-    compilers = [
-        "//bazel:go_gen_grpc_gateway",
-        "@io_bazel_rules_go//proto:go_grpc_v2",
-        "@io_bazel_rules_go//proto:go_proto",
-    ],
-    importpath = "intrinsic/manipulation/service/grasp_annotator_service/v1/grasp_annotator_service_go_proto",
-    protos = [":grasp_annotator_service_proto"],
-    deps = [
-        "//intrinsic/logging/proto:context_go_proto",
-        "//intrinsic/manipulation/grasping:grasp_annotations_go_proto",
-        "//intrinsic/manipulation/grasping:grasp_annotator_go_proto",
-        "@org_golang_google_genproto_googleapis_api//annotations",
-        "@org_golang_google_genproto_googleapis_rpc//status",
+protoc_gen_openapi(
+    name = "grasp_annotator_service_openapi",
+    protos = [
+        "//intrinsic/manipulation/service/grasp_annotator_service/v1:grasp_annotator_service_proto",
     ],
 )
 
-cc_proto_library(
-    name = "grasp_annotator_service_cc_proto",
-    deps = [":grasp_annotator_service_proto"],
+intrinsic_http_image(
+    name = "grasp_annotator_service_httpjson_bridge",
+    openapi_yaml = ":grasp_annotator_service_openapi",
+    services = {
+        "//intrinsic/manipulation/service/grasp_annotator_service/v1:grasp_annotator_service_go_proto": "intrinsic_proto.grasping.service.grasp_annotator_service.v1.GraspAnnotator",
+    },
 )
 
 proto_library(
@@ -64,6 +56,29 @@ proto_library(
     ],
 )
 
+cc_proto_library(
+    name = "grasp_annotator_service_cc_proto",
+    deps = [":grasp_annotator_service_proto"],
+)
+
+go_proto_library(
+    name = "grasp_annotator_service_go_proto",
+    compilers = [
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway:go_gen_grpc_gateway",
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
+    importpath = "intrinsic/manipulation/service/grasp_annotator_service/v1/grasp_annotator_service_go_proto",
+    protos = [":grasp_annotator_service_proto"],
+    deps = [
+        "//intrinsic/logging/proto:context_go_proto",
+        "//intrinsic/manipulation/grasping:grasp_annotations_go_proto",
+        "//intrinsic/manipulation/grasping:grasp_annotator_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+        "@org_golang_google_genproto_googleapis_rpc//status",
+    ],
+)
+
 py_proto_library(
     name = "grasp_annotator_service_py_pb2",
     deps = [":grasp_annotator_service_proto"],
@@ -74,19 +89,4 @@ py_grpc_library(
     srcs = [":grasp_annotator_service_proto"],
     grpc_library = requirement("grpcio"),
     deps = [":grasp_annotator_service_py_pb2"],
-)
-
-protoc_gen_openapi(
-    name = "grasp_annotator_service_openapi",
-    protos = [
-        ":grasp_annotator_service_proto",
-    ],
-)
-
-intrinsic_http_image(
-    name = "grasp_annotator_service_httpjson_bridge",
-    openapi_yaml = ":grasp_annotator_service_openapi",
-    services = {
-        ":grasp_annotator_service_go_proto": "intrinsic_proto.grasping.service.grasp_annotator_service.v1.GraspAnnotator",
-    },
 )

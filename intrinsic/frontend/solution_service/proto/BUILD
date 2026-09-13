@@ -19,6 +19,7 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
@@ -29,8 +30,8 @@ proto_library(
     srcs = ["solution_service.proto"],
     deps = [
         ":sequence_list_proto",
-        ":status_proto",
         "//intrinsic/executive/proto:behavior_tree_proto",
+        "//intrinsic/frontend/solution_service/proto:status_proto",
         "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:timestamp_proto",
@@ -78,33 +79,12 @@ go_proto_library(
     protos = [":solution_service_proto"],
     deps = [
         ":sequence_list_go_proto",
-        ":status_go_proto",
         "//intrinsic/executive/proto:behavior_tree_go_proto",
+        "//intrinsic/frontend/solution_service/proto:status_go_proto",
         "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_protobuf//types/known/emptypb",
         "@org_golang_google_protobuf//types/known/timestamppb",
     ],
-)
-
-proto_library(
-    name = "status_proto",
-    srcs = ["status.proto"],
-)
-
-cc_proto_library(
-    name = "status_cc_proto",
-    deps = [":status_proto"],
-)
-
-py_proto_library(
-    name = "status_py_pb2",
-    deps = [":status_proto"],
-)
-
-go_proto_library(
-    name = "status_go_proto",
-    importpath = "intrinsic/frontend/solution_service/proto/status_go_proto",
-    protos = [":status_proto"],
 )
 
 js_library(
@@ -113,7 +93,7 @@ js_library(
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/frontend/sdk:__subpackages__",
     ],
-    deps = [":status_proto"],
+    deps = ["//intrinsic/frontend/solution_service/proto:status_proto"],
 )
 
 proto_library(
@@ -161,4 +141,25 @@ js_library(
         "//intrinsic/frontend/sdk:__subpackages__",
     ],
     deps = [":solution_service_proto"],
+)
+
+proto_library(
+    name = "status_proto",
+    srcs = ["status.proto"],
+)
+
+cc_proto_library(
+    name = "status_cc_proto",
+    deps = [":status_proto"],
+)
+
+go_proto_library(
+    name = "status_go_proto",
+    importpath = "intrinsic/frontend/solution_service/proto/status_go_proto",
+    protos = [":status_proto"],
+)
+
+py_proto_library(
+    name = "status_py_pb2",
+    deps = [":status_proto"],
 )

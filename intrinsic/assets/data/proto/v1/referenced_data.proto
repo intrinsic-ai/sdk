@@ -1,0 +1,56 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.data.v1;
+
+option go_package = "intrinsic/assets/data/proto/v1/referenced_data_go_proto";
+
+// Data that may be stored either inline or elsewhere and only referenced here.
+message ReferencedData {
+  oneof data {
+    // A reference to data stored elsewhere (e.g., as a file or in
+    // content-addressable storage [CAS]).
+    //
+    // The value is a URI to the referenced data. Can be one of the following:
+    //   - a CAS ID of the form "intcas://...";
+    //   - a file path of the form "file://...";
+    //   - a file path without protocol prefix, either absolute or relative.
+    //
+    // If a relative file path is provided, then its base path must be
+    // unambiguous in the context in which this proto is used.
+    string reference = 1;
+
+    // The inlined data.
+    bytes inlined = 3;
+  }
+
+  // An optional digest of the referenced data, prefixed with the hashing
+  // algorithm (e.g., "sha256:<hash>").
+  //
+  // Can be used to ensure that the referenced data have not changed.
+  string digest = 4;
+
+  // If the ReferencedData references CAS data in an ambiguous context (e.g.,
+  // releasing to the catalog a Data asset that references existing CAS data),
+  // then this field can be used to specify the target project for the
+  // reference.
+  //
+  // The consumer of this reference must have access to the source project.
+  //
+  // Not providing this value may be an error in contexts in which the target
+  // project is needed and not known otherwise.
+  optional string source_project = 5;
+}

@@ -14,29 +14,13 @@
 
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_python//python:defs.bzl", "py_binary")
-load("//bazel:go_macros.bzl", "go_proto_library")
 load("//bazel:python_oci_image.bzl", "python_oci_image")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 package(
     default_visibility = ["//intrinsic/tools/inbuild:__subpackages__"],
-)
-
-proto_library(
-    name = "example_skill_proto",
-    srcs = ["example_skill.proto"],
-)
-
-py_proto_library(
-    name = "example_skill_py_pb2",
-    deps = [":example_skill_proto"],
-)
-
-go_proto_library(
-    name = "example_skill_go_proto",
-    importpath = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_go_proto",
-    proto = ":example_skill_proto",
 )
 
 py_binary(
@@ -59,10 +43,10 @@ python_oci_image(
 filegroup(
     name = "example_skill_files",
     srcs = [
-        "example_skill.proto",
         "example_skill_cc.manifest.pbtxt",
         "example_skill_main.py",
         "example_skill_py.manifest.pbtxt",
+        "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill.proto",
     ],
 )
 
@@ -70,7 +54,23 @@ proto_source_code_info_transitive_descriptor_set(
     name = "example_skill_augmented_test_descriptors",
     testonly = True,
     deps = [
-        ":example_skill_proto",
         "//intrinsic/skills/proto:skill_service_proto",
+        "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_proto",
     ],
+)
+
+proto_library(
+    name = "example_skill_proto",
+    srcs = ["example_skill.proto"],
+)
+
+go_proto_library(
+    name = "example_skill_go_proto",
+    importpath = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_go_proto",
+    proto = ":example_skill_proto",
+)
+
+py_proto_library(
+    name = "example_skill_py_pb2",
+    deps = [":example_skill_proto"],
 )

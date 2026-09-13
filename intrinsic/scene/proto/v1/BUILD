@@ -19,12 +19,129 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(
     default_visibility = [
         "//visibility:public",
     ],
+)
+
+js_library(
+    name = "collision_rules_jspb_proto",
+    deps = ["//intrinsic/scene/proto/v1:collision_rules_proto"],
+)
+
+js_library(
+    name = "entity_jspb_proto",
+    deps = ["//intrinsic/scene/proto/v1:entity_proto"],
+)
+
+js_library(
+    name = "object_properties_jspb_proto",
+    deps = ["//intrinsic/scene/proto/v1:object_properties_proto"],
+)
+
+js_library(
+    name = "geometry_stats_jspb_proto",
+    deps = ["//intrinsic/scene/proto/v1:geometry_stats_proto"],
+)
+
+js_library(
+    name = "scene_object_jspb_proto",
+    deps = ["//intrinsic/scene/proto/v1:scene_object_proto"],
+)
+
+proto_library(
+    name = "scene_object_import_proto",
+    srcs = ["scene_object_import.proto"],
+    deps = [
+        "//intrinsic/geometry/proto/v1:material_proto",
+        "//intrinsic/math/proto:quaternion_proto",
+        "//intrinsic/math/proto:vector3_proto",
+        "//intrinsic/scene/proto/v1:geometry_stats_proto",
+        "//intrinsic/scene/proto/v1:scene_object_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/longrunning:operations_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "scene_object_import_cc_proto",
+    deps = [":scene_object_import_proto"],
+)
+
+go_proto_library(
+    name = "scene_object_import_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
+    ],
+    importpath = "intrinsic/scene/proto/v1/scene_object_import_go_proto",
+    protos = [":scene_object_import_proto"],
+    deps = [
+        "//intrinsic/geometry/proto/v1:material_go_proto",
+        "//intrinsic/math/proto:quaternion_go_proto",
+        "//intrinsic/math/proto:vector3_go_proto",
+        "//intrinsic/scene/proto/v1:geometry_stats_go_proto",
+        "//intrinsic/scene/proto/v1:scene_object_go_proto",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+        "@org_golang_google_protobuf//types/known/anypb",
+    ],
+)
+
+py_proto_library(
+    name = "scene_object_import_py_pb2",
+    deps = [":scene_object_import_proto"],
+)
+
+cc_grpc_library(
+    name = "scene_object_import_cc_grpc_proto",
+    srcs = [":scene_object_import_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":scene_object_import_cc_proto"],
+)
+
+py_grpc_library(
+    name = "scene_object_import_py_pb2_grpc",
+    srcs = [":scene_object_import_proto"],
+    grpc_library = requirement("grpcio"),
+    deps = [":scene_object_import_py_pb2"],
+)
+
+js_library(
+    name = "scene_object_import_jspb_proto",
+    deps = [":scene_object_import_proto"],
+)
+
+js_library(
+    name = "export_jspb_proto",
+    deps = ["//intrinsic/scene/proto/v1:export_proto"],
+)
+
+js_library(
+    name = "scene_object_export_jspb_proto",
+    deps = ["//intrinsic/scene/proto/v1:scene_object_export_proto"],
+)
+
+js_library(
+    name = "scene_object_updates_jspb_proto",
+    deps = ["//intrinsic/scene/proto/v1:scene_object_updates_proto"],
+)
+
+js_library(
+    name = "simulation_spec_jspb_proto",
+    deps = ["//intrinsic/scene/proto/v1:simulation_spec_proto"],
+)
+
+js_library(
+    name = "scene_object_config_jspb_proto",
+    deps = ["//intrinsic/scene/proto/v1:scene_object_config_proto"],
 )
 
 proto_library(
@@ -43,16 +160,8 @@ go_proto_library(
     protos = [":collision_rules_proto"],
 )
 
-js_library(
-    name = "collision_rules_jspb_proto",
-    deps = [":collision_rules_proto"],
-)
-
 py_proto_library(
     name = "collision_rules_py_pb2",
-    visibility = [
-        "//visibility:public",
-    ],
     deps = [":collision_rules_proto"],
 )
 
@@ -88,16 +197,8 @@ go_proto_library(
     ],
 )
 
-js_library(
-    name = "entity_jspb_proto",
-    deps = [":entity_proto"],
-)
-
 py_proto_library(
     name = "entity_py_pb2",
-    visibility = [
-        "//visibility:public",
-    ],
     deps = [":entity_proto"],
 )
 
@@ -117,51 +218,25 @@ go_proto_library(
     protos = [":object_properties_proto"],
 )
 
-js_library(
-    name = "object_properties_jspb_proto",
-    deps = [":object_properties_proto"],
-)
-
 py_proto_library(
     name = "object_properties_py_pb2",
-    visibility = [
-        "//visibility:public",
-    ],
     deps = [":object_properties_proto"],
 )
 
 proto_library(
-    name = "geometry_stats_proto",
-    srcs = ["geometry_stats.proto"],
-    deps = [
-        "//intrinsic/math/proto:point_proto",
-        "//intrinsic/math/proto:vector3_proto",
-    ],
+    name = "simulation_spec_proto",
+    srcs = ["simulation_spec.proto"],
 )
 
 cc_proto_library(
-    name = "geometry_stats_cc_proto",
-    deps = [":geometry_stats_proto"],
-)
-
-py_proto_library(
-    name = "geometry_stats_py_pb2",
-    deps = [":geometry_stats_proto"],
+    name = "simulation_spec_cc_proto",
+    deps = [":simulation_spec_proto"],
 )
 
 go_proto_library(
-    name = "geometry_stats_go_proto",
-    importpath = "intrinsic/scene/proto/v1/geometry_stats_go_proto",
-    protos = [":geometry_stats_proto"],
-    deps = [
-        "//intrinsic/math/proto:point_go_proto",
-        "//intrinsic/math/proto:vector3_go_proto",
-    ],
-)
-
-js_library(
-    name = "geometry_stats_jspb_proto",
-    deps = [":geometry_stats_proto"],
+    name = "simulation_spec_go_proto",
+    importpath = "intrinsic/scene/proto/v1/simulation_spec_go_proto",
+    protos = [":simulation_spec_proto"],
 )
 
 proto_library(
@@ -194,83 +269,9 @@ go_proto_library(
     ],
 )
 
-js_library(
-    name = "scene_object_jspb_proto",
-    deps = [":scene_object_proto"],
-)
-
 py_proto_library(
     name = "scene_object_py_pb2",
-    visibility = [
-        "//visibility:public",
-    ],
     deps = [":scene_object_proto"],
-)
-
-proto_library(
-    name = "scene_object_import_proto",
-    srcs = ["scene_object_import.proto"],
-    deps = [
-        ":geometry_stats_proto",
-        ":scene_object_proto",
-        "//intrinsic/geometry/proto/v1:material_proto",
-        "//intrinsic/math/proto:quaternion_proto",
-        "//intrinsic/math/proto:vector3_proto",
-        "@com_google_googleapis//google/api:annotations_proto",
-        "@com_google_googleapis//google/longrunning:operations_proto",
-        "@com_google_protobuf//:any_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "scene_object_import_cc_proto",
-    deps = [":scene_object_import_proto"],
-)
-
-go_proto_library(
-    name = "scene_object_import_go_proto",
-    compilers = [
-        "@io_bazel_rules_go//proto:go_grpc_v2",
-        "@io_bazel_rules_go//proto:go_proto",
-        "//bazel:go_gen_grpc_gateway",
-    ],
-    importpath = "intrinsic/scene/proto/v1/scene_object_import_go_proto",
-    protos = [":scene_object_import_proto"],
-    deps = [
-        ":geometry_stats_go_proto",
-        ":scene_object_go_proto",
-        "//intrinsic/geometry/proto/v1:material_go_proto",
-        "//intrinsic/math/proto:quaternion_go_proto",
-        "//intrinsic/math/proto:vector3_go_proto",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "@org_golang_google_genproto_googleapis_api//annotations",
-        "@org_golang_google_protobuf//types/known/anypb",
-    ],
-)
-
-py_proto_library(
-    name = "scene_object_import_py_pb2",
-    deps = [":scene_object_import_proto"],
-)
-
-cc_grpc_library(
-    name = "scene_object_import_cc_grpc_proto",
-    srcs = [":scene_object_import_proto"],
-    generate_mocks = True,
-    grpc_only = True,
-    deps = [":scene_object_import_cc_proto"],
-)
-
-py_grpc_library(
-    name = "scene_object_import_py_pb2_grpc",
-    srcs = [":scene_object_import_proto"],
-    grpc_library = requirement("grpcio"),
-    deps = [":scene_object_import_py_pb2"],
-)
-
-js_library(
-    name = "scene_object_import_jspb_proto",
-    deps = [":scene_object_import_proto"],
 )
 
 proto_library(
@@ -297,68 +298,38 @@ go_proto_library(
     ],
 )
 
-js_library(
-    name = "export_jspb_proto",
-    deps = [":export_proto"],
-)
-
 py_proto_library(
     name = "export_py_pb2",
     deps = [":export_proto"],
 )
 
 proto_library(
-    name = "scene_object_export_proto",
-    srcs = ["scene_object_export.proto"],
+    name = "geometry_stats_proto",
+    srcs = ["geometry_stats.proto"],
     deps = [
-        ":export_proto",
-        "@com_google_googleapis//google/api:annotations_proto",
+        "//intrinsic/math/proto:point_proto",
+        "//intrinsic/math/proto:vector3_proto",
     ],
 )
 
 cc_proto_library(
-    name = "scene_object_export_cc_proto",
-    deps = [":scene_object_export_proto"],
+    name = "geometry_stats_cc_proto",
+    deps = [":geometry_stats_proto"],
 )
 
 go_proto_library(
-    name = "scene_object_export_go_proto",
-    compilers = [
-        "@io_bazel_rules_go//proto:go_grpc_v2",
-        "@io_bazel_rules_go//proto:go_proto",
-        "//bazel:go_gen_grpc_gateway",
-    ],
-    importpath = "intrinsic/scene/proto/v1/scene_object_export_go_proto",
-    protos = [":scene_object_export_proto"],
+    name = "geometry_stats_go_proto",
+    importpath = "intrinsic/scene/proto/v1/geometry_stats_go_proto",
+    protos = [":geometry_stats_proto"],
     deps = [
-        ":export_go_proto",
-        "@org_golang_google_genproto_googleapis_api//annotations",
+        "//intrinsic/math/proto:point_go_proto",
+        "//intrinsic/math/proto:vector3_go_proto",
     ],
 )
 
 py_proto_library(
-    name = "scene_object_export_py_pb2",
-    deps = [":scene_object_export_proto"],
-)
-
-cc_grpc_library(
-    name = "scene_object_export_cc_grpc_proto",
-    srcs = [":scene_object_export_proto"],
-    generate_mocks = True,
-    grpc_only = True,
-    deps = [":scene_object_export_cc_proto"],
-)
-
-py_grpc_library(
-    name = "scene_object_export_py_pb2_grpc",
-    srcs = [":scene_object_export_proto"],
-    grpc_library = requirement("grpcio"),
-    deps = [":scene_object_export_py_pb2"],
-)
-
-js_library(
-    name = "scene_object_export_jspb_proto",
-    deps = [":scene_object_export_proto"],
+    name = "geometry_stats_py_pb2",
+    deps = [":geometry_stats_proto"],
 )
 
 proto_library(
@@ -398,38 +369,9 @@ go_proto_library(
     ],
 )
 
-js_library(
-    name = "scene_object_updates_jspb_proto",
-    deps = [":scene_object_updates_proto"],
-)
-
 py_proto_library(
     name = "scene_object_updates_py_pb2",
-    visibility = [
-        "//visibility:public",
-    ],
     deps = [":scene_object_updates_proto"],
-)
-
-proto_library(
-    name = "simulation_spec_proto",
-    srcs = ["simulation_spec.proto"],
-)
-
-cc_proto_library(
-    name = "simulation_spec_cc_proto",
-    deps = [":simulation_spec_proto"],
-)
-
-go_proto_library(
-    name = "simulation_spec_go_proto",
-    importpath = "intrinsic/scene/proto/v1/simulation_spec_go_proto",
-    protos = [":simulation_spec_proto"],
-)
-
-js_library(
-    name = "simulation_spec_jspb_proto",
-    deps = [":simulation_spec_proto"],
 )
 
 proto_library(
@@ -457,15 +399,56 @@ go_proto_library(
     ],
 )
 
-js_library(
-    name = "scene_object_config_jspb_proto",
+py_proto_library(
+    name = "scene_object_config_py_pb2",
     deps = [":scene_object_config_proto"],
 )
 
-py_proto_library(
-    name = "scene_object_config_py_pb2",
-    visibility = [
-        "//visibility:public",
+proto_library(
+    name = "scene_object_export_proto",
+    srcs = ["scene_object_export.proto"],
+    deps = [
+        ":export_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
     ],
-    deps = [":scene_object_config_proto"],
+)
+
+cc_proto_library(
+    name = "scene_object_export_cc_proto",
+    deps = [":scene_object_export_proto"],
+)
+
+cc_grpc_library(
+    name = "scene_object_export_cc_grpc_proto",
+    srcs = [":scene_object_export_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":scene_object_export_cc_proto"],
+)
+
+go_proto_library(
+    name = "scene_object_export_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway:go_gen_grpc_gateway",
+    ],
+    importpath = "intrinsic/scene/proto/v1/scene_object_export_go_proto",
+    protos = [":scene_object_export_proto"],
+    deps = [
+        ":export_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
+)
+
+py_proto_library(
+    name = "scene_object_export_py_pb2",
+    deps = [":scene_object_export_proto"],
+)
+
+py_grpc_library(
+    name = "scene_object_export_py_pb2_grpc",
+    srcs = [":scene_object_export_proto"],
+    grpc_library = requirement("grpcio"),
+    deps = [":scene_object_export_py_pb2"],
 )

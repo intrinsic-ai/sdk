@@ -72,7 +72,7 @@ cc_library(
     srcs = ["status_conversion_proto.cc"],
     hdrs = ["status_conversion_proto.h"],
     deps = [
-        ":status_cc_proto",
+        "//intrinsic/util/status:status_cc_proto",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/strings:cord",
         "@abseil-cpp//absl/strings:string_view",
@@ -391,22 +391,6 @@ cc_test(
     ],
 )
 
-proto_library(
-    name = "status_proto",
-    srcs = ["status.proto"],
-)
-
-cc_proto_library(
-    name = "status_cc_proto",
-    deps = [":status_proto"],
-)
-
-go_proto_library(
-    name = "status_go_proto",
-    importpath = "intrinsic/util/status/status_go_proto",
-    protos = [":status_proto"],
-)
-
 js_library(
     name = "extended_status_jspb_proto",
     deps = ["//intrinsic/util/status:extended_status_proto"],
@@ -624,4 +608,20 @@ py_proto_library(
     name = "extended_status_py_pb2",
     visibility = ["//visibility:public"],
     deps = [":extended_status_proto"],
+)
+
+proto_library(
+    name = "status_proto",
+    srcs = ["status.proto"],
+)
+
+cc_proto_library(
+    name = "status_cc_proto",
+    deps = [":status_proto"],
+)
+
+go_proto_library(
+    name = "status_go_proto",
+    importpath = "intrinsic/util/status/status_go_proto",
+    protos = [":status_proto"],
 )

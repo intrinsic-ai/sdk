@@ -1,0 +1,440 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+// This file defines message types used in the ICON Application Layer.
+
+package intrinsic_proto.icon.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/descriptor.proto";
+import "intrinsic/icon/proto/generic_part_config.proto";
+import "intrinsic/icon/proto/v1/condition_types.proto";
+
+option go_package = "intrinsic/icon/proto/v1/types_go_proto";
+
+// Describes a state machine consisting of a list of `action_instances` acting
+// as nodes and a list of `reactions` describing the edges.
+message ActionsAndReactions {
+  // The nodes to build into the action state machine.
+  repeated ActionInstance action_instances = 1;
+  // The reactions to build into the action state machine.
+  repeated Reaction reactions = 2;
+}
+
+// Lists the ids of actions and reactions in an action state machine
+message ActionAndReactionIds {
+  // The ids of action instances in the state machine.
+  repeated int64 action_instance_ids = 1;
+  // The ids of reactions in the state machine.
+  repeated int64 reaction_ids = 2;
+}
+
+// ActionInstanceDetails describes an action instance.
+message ActionInstance {
+  oneof slot_data {
+    // The SlotPartMap to apply to this Action instance.
+    SlotPartMap slot_part_map = 5;
+    // The name of a Part to execute this Action on. A SlotPartMap will be
+    // inferred if and only if the Action type for this instance uses a single
+    // Slot.
+    string part_name = 6;
+  }
+  // The type of action, corresponding to the type of an available
+  // ActionSignature (e.g. "xfa.joint_move").
+  string action_type_name = 2;
+  // The client-assigned ID of this action instance. The ID of each
+  // ActionInstance must be unique for duration of the session.
+  int64 action_instance_id = 3;
+  // Action-specific fixed parameters.
+  google.protobuf.Any fixed_parameters = 4;
+
+  reserved 1;
+}
+
+// ActionSignature describes a type of real-time action that can be
+// instantiated.
+message ActionSignature {
+  // ParameterInfo describes a fixed parameter, streaming input, or streaming
+  // output.
+  message ParameterInfo {
+    // Name of this parameter.
+    string parameter_name = 1;
+
+    // Text description of this parameter, for human consumption.
+    string text_description = 2;
+
+    // Name of the value message type. Must be found in `value_descriptor_set`.
+    string value_message_type = 3;
+
+    // Descriptors of the value type for this parameter (including descriptors
+    // of all transitive dependencies).
+    google.protobuf.FileDescriptorSet value_descriptor_set = 4;
+  }
+
+  // StateVariableInfo describes the type of an action's state variable.
+  message StateVariableInfo {
+    enum Type {
+      // Match FieldDescriptorProto Type enum values, just for kicks.
+      UNKNOWN = 0;
+      TYPE_DOUBLE = 1;
+      TYPE_INT64 = 3;
+      TYPE_BOOL = 8;
+    }
+
+    // Name of this parameter.
+    string state_variable_name = 1;
+
+    // Text description of this parameter, for human consumption.
+    string text_description = 2;
+
+    // Value type of this state variable.
+    Type type = 3;
+  }
+
+  // Describes a part slot for an ICON action. To be compatible with a slot, a
+  // concrete part must supply at least `required_feature_interfaces`, and _may_
+  // support `optional_feature_interfaces`.
+  //
+  // If `required_feature_interfaces` is empty, the slot itself is optional.
+  // That is, a SlotPartMap may omit the slot completely.
+  message PartSlotInfo {
+    string description = 2;
+    repeated FeatureInterfaceTypes required_feature_interfaces = 3;
+    repeated FeatureInterfaceTypes optional_feature_interfaces = 4;
+
+    reserved 1;
+  }
+
+  // RealtimeSignalInfo describes the type of an action's realtime signal.
+  // Realtime signals can trigger a change in behavior of a running action.
+  message RealtimeSignalInfo {
+    string signal_name = 1;
+
+    // Text description of this signal, for human consumption. Describe what
+    // your action does if it receives this signal.
+    string text_description = 2;
+  }
+
+  // BehaviorOverrideInfo describes how an action handles a specific
+  // BehaviorOverrideRequest.
+  message BehaviorOverrideInfo {
+    // The behavior override type supported by this action.
+    BehaviorOverrideRequest override_request = 1;
+
+    // Description of how the action handles this override request.
+    string text_description = 2;
+  }
+
+  // Unique name of the action type, e.g. "xfa.joint_move".
+  string action_type_name = 1;
+
+  // Text description of this action type, for human consumption.
+  string text_description = 2;
+
+  // Name of the fixed parameters message type, or empty if the action takes no
+  // fixed parameters. If set, the name must be found in
+  // `fixed_parameters_descriptor_set`.
+  string fixed_parameters_message_type = 3;
+
+  // Descriptors of the fixed parameters type (including descriptors of all
+  // transitive dependencies).
+  google.protobuf.FileDescriptorSet fixed_parameters_descriptor_set = 4;
+
+  // Action-specific streaming input parameter descriptions.
+  repeated ParameterInfo streaming_input_infos = 5;
+
+  // An Action may define an Action-specific streaming output parameter. Note
+  // that, while this has a name, it can be accessed implicitly, since there is
+  // only (at most) one streaming output.
+  optional ParameterInfo streaming_output_info = 8;
+
+  // Action-specific state variable metadata, keyed by state variable name.
+  repeated StateVariableInfo state_variable_infos = 7;
+
+  // List of Slot names the Action expects.
+  map<string, PartSlotInfo> part_slot_infos = 9;
+
+  // List of realtime signals that the Action expects. Users may trigger each
+  // one via realtime reactions.
+  repeated RealtimeSignalInfo realtime_signal_infos = 10;
+
+  // List of `BehaviorOverride`s that can be sent to the action to trigger
+  // special behavior.
+  repeated BehaviorOverrideInfo behavior_override_infos = 12;
+
+  reserved 6, 11;
+}
+
+// Server-wide configuration values.
+message ServerConfig {
+  // The server name shows up in logs and determines the names of DDS topics,
+  // among other things.
+  string name = 1;
+  // The global control frequency, in Hz. ICON updates Actions/Reactions and
+  // sends commands to hardware at this rate.
+  double frequency_hz = 2;
+}
+
+// Configuration for a part. Contains both generic and (optionally)
+// part-specific configuration data.
+message PartConfig {
+  // String identifier for the part.
+  string name = 1;
+
+  // String identifier for the part's type.
+  string part_type_name = 6;
+
+  // Generic Part configuration. No matter what the specific Part type is, this
+  // contains the sub-messages corresponding to the Feature Interfaces that the
+  // Part supports (see above).
+  GenericPartConfig generic_config = 9;
+
+  // Name of the part's config message type. Must be found in
+  // `config_descriptor_set`. An empty string signifies that the part has no
+  // configuration info.
+  string config_message_type = 7;
+
+  // Descriptors of the config type for this part (including descriptors
+  // of all transitive dependencies).
+  google.protobuf.FileDescriptorSet config_descriptor_set = 8;
+
+  // Part-specific configuration that does not fit into the format of
+  // GenericPartConfig. The message type matches `config_message_type` in the
+  // part's PartSignature. May be empty if `config_message_type` is the empty
+  // string.
+  //
+  // Note that even Parts that populate this must also provide a
+  // GenericPartConfig.
+  google.protobuf.Any config = 4;
+
+  string hardware_resource_name = 10;
+
+  // The Feature Interfaces that this Part supports.
+  repeated FeatureInterfaceTypes feature_interfaces = 5;
+
+  reserved 2, 3;
+}
+
+// PartGroup describes a group of part that can be controlled together with
+// real-time synchronization.
+message PartGroup {
+  repeated string parts = 1;
+}
+
+// A SlotPartMap maps the slot names used by an Action to global Part names.
+message SlotPartMap {
+  map<string, string> slot_name_to_part_name = 1;
+}
+
+// A list of parts
+message PartList {
+  repeated string part = 1;
+}
+
+// PartSignature describes metadata about a part, including descriptors of the
+// part's config and status messages.
+message PartSignature {
+  // String identifier for the part.
+  string name = 1;
+
+  // String identifier for the part's type.
+  string part_type_name = 6;
+
+  // Name of the part's config message type. Must be found in
+  // `config_descriptor_set`. An empty string signifies that the part has no
+  // configuration info.
+  string config_message_type = 2;
+
+  // Descriptors of the config type for this part (including descriptors
+  // of all transitive dependencies).
+  google.protobuf.FileDescriptorSet config_descriptor_set = 3;
+
+  // Name of the part's status message type. Must be found in
+  // `status_descriptor_set`. An empty string signifies that the part has no
+  // status info.
+  // DEPRECATED
+  string status_message_type = 4;
+
+  // Descriptors of the status type for this part (including descriptors
+  // of all transitive dependencies).
+  // DEPRECATED
+  google.protobuf.FileDescriptorSet status_descriptor_set = 5;
+}
+
+// Response describes a real-time response. This is part of a realtime Reaction.
+message Response {
+  // Start another action.
+  int64 start_action_instance_id = 1;
+}
+
+// Reaction describes a realtime condition and a response to take when the
+// condition is satisfied.
+// Next ID: 7
+message Reaction {
+  // The client-assigned ID of this reaction. The ID of each Reaction must be
+  // unique for duration of the session.
+  int64 reaction_instance_id = 1;
+
+  message ActionAssociation {
+    // Action instance that this reaction is associated with.
+    int64 action_instance_id = 1;
+    // If true, stops the currently active action that is associated with this
+    // reaction in `action_instance_id`.
+    //
+    // If false, the currently active, associated action keeps running and the
+    // action (if any) specified in `response` will be started in parallel.
+    bool stop_associated_action = 2;
+
+    // If present this is the name of the signal (associated with
+    // action_instance_id) which will be triggered and switched to true, if not
+    // already triggered.
+    optional string triggered_signal_name = 3;
+  }
+
+  // Associates the reaction with an action instance. The reaction can only
+  // trigger if the associated action is active. If not set, the reaction is
+  // free-standing.
+  optional ActionAssociation action_association = 6;
+
+  // Condition which is evaluated by the control layer every control cycle.
+  Condition condition = 3;
+
+  // Response which should occur when the Condition is satisfied.
+  // All reactions, even those without an explicit Response, will generate
+  // client events observable with the StreamEvents() rpc method. The response
+  // field describes additional realtime side-effects that should occur.
+  optional Response response = 4;
+
+  // If true, the reaction will only trigger once as long as the
+  // associated action is active. It can trigger again if the action is executed
+  // again. If the reaction is free-standing (no `action_instance_id` is set),
+  // it will only trigger once.
+  //
+  // If false, the reaction will trigger on every rising edge again.
+  //
+  // This does not effect real-time signal responses. Since signals remain true
+  // after the first rising edge, subsequent triggerings have no effect.
+  bool fire_once = 5;
+
+  reserved 2;
+}
+
+message ReactionEvent {
+  // The `previous_action_instance_id` of the action this reaction is bound to.
+  // If it is not set, the reaction is a free-standing reaction.
+  optional int64 previous_action_instance_id = 1;
+  // The `action_instance_id` of the action transitioned to. If not set, the
+  // reaction does not trigger an action change.
+  optional int64 current_action_instance_id = 2;
+  // The reaction that was triggered.
+  int64 reaction_id = 3;
+}
+
+// The summarized state of all or a group of hardware (such as cell control
+// hardware modules) or the real-time control service.
+enum OperationalState {
+  UNKNOWN = 0;
+  // Indicates that this group of hardware (or the server) is not ready for
+  // active control and that no sessions can be started that need to control
+  // these parts.
+  // This is possible when:
+  // - The skill "disable_realtime_control" or `Client::Disable()` were called.
+  // - The server or hardware is starting up.
+  // - Faults are being cleared.
+  // Read-only sessions are possible for all parts.
+  // Part status is being published.
+  // `icon_client.Enable()` can be called to enable full control for all parts.
+  DISABLED = 1;
+  // Indicates that at least one part, possibly the entire real-time control
+  // service, is faulted. `icon_client.ClearFaults()` is needed to re-enable
+  // control.
+  // Depending on the fault, real-time control may or may not be running the
+  // safety actions.
+  // An example for a single part fault is a robot hardware module reporting
+  // an emergency stop but still being connected.
+  // An example for a global fault that cannot be cleared is a mistake in the
+  // hardware module names in the config.
+  // An example for a global fault that can be cleared is a timeout in a
+  // simulation reset.
+  // If a part is not faulted, read-only sessions reading from them can
+  // continue, and part status may still be published.
+  FAULTED = 2;
+  // Indicates that the server is ready for a session to begin and all parts are
+  // enabled.
+  // Part status is being published.
+  ENABLED = 3;
+}
+
+// OperationalStatus describes the server's operational status.
+message OperationalStatus {
+  // Current operational state of the parts.
+  OperationalState state = 1;
+
+  // A human-readable description of what caused the FAULTED state. When not in
+  // the FAULTED state, this is empty.
+  string fault_reason = 2;
+}
+
+// Keep in sync with
+// intrinsic/icon/control/parts/feature_interfaces.h
+enum FeatureInterfaceTypes {
+  FEATURE_INTERFACE_INVALID = 0;
+  FEATURE_INTERFACE_JOINT_POSITION = 1;
+  FEATURE_INTERFACE_JOINT_VELOCITY = 2;
+  FEATURE_INTERFACE_JOINT_ACCELERATION = 27;
+  FEATURE_INTERFACE_JOINT_POSITION_SENSOR = 3;
+  FEATURE_INTERFACE_JOINT_VELOCITY_ESTIMATOR = 4;
+  FEATURE_INTERFACE_JOINT_ACCELERATION_ESTIMATOR = 5;
+  FEATURE_INTERFACE_JOINT_LIMITS = 6;
+  FEATURE_INTERFACE_CARTESIAN_LIMITS = 7;
+  FEATURE_INTERFACE_SIMPLE_GRIPPER = 8;
+  FEATURE_INTERFACE_ADIO = 9;
+  FEATURE_INTERFACE_RANGE_FINDER = 10;
+  FEATURE_INTERFACE_MANIPULATOR_KINEMATICS = 11;
+  FEATURE_INTERFACE_JOINT_TORQUE = 12;
+  FEATURE_INTERFACE_JOINT_TORQUE_SENSOR = 13;
+  FEATURE_INTERFACE_DYNAMICS = 14;
+  FEATURE_INTERFACE_FORCE_TORQUE_SENSOR = 15;
+  FEATURE_INTERFACE_LINEAR_GRIPPER = 16;
+  FEATURE_INTERFACE_HAND_GUIDING = 17;
+  FEATURE_INTERFACE_CONTROL_MODE_EXPORTER = 18;
+  FEATURE_INTERFACE_MOVE_OK = 19;
+  FEATURE_INTERFACE_IMU = 20;
+  FEATURE_INTERFACE_STANDALONE_FORCE_TORQUE_SENSOR = 21;
+  FEATURE_INTERFACE_PROCESS_WRENCH_AT_ENDEFFECTOR = 22;
+  FEATURE_INTERFACE_PAYLOAD = 23;
+  FEATURE_INTERFACE_PAYLOAD_STATE = 24;
+  FEATURE_INTERFACE_CARTESIAN_POSITION_STATE = 25;
+  FEATURE_INTERFACE_HOMING = 26;
+}
+
+// Behavior overrides as desigend in go/intrinsic-icon-safety-scanner-support.
+// The supported behavior overrides declared using the ActionSignature are used
+// by RTCL to temporarily request special behavior by an action.
+// RTCL takes care to only request supported behaviors and stops the action if
+// no acceptable behavior is supported.
+// The enum is used for both, the override request and for registering supported
+// override behaviors.
+//
+// Enum values need to stay consecutive, because they are used as indices.
+enum BehaviorOverrideRequest {
+  // Indicates that no special behavior is requested.
+  // Can also indicate that the action did not register any capabilities.
+  // Is the default for proto access.
+  BEHAVIOR_OVERRIDE_REQUEST_UNKNOWN = 0;
+  // Indicates that the action supports Pausing and Resuming.
+  BEHAVIOR_OVERRIDE_REQUEST_PAUSE = 1;
+}

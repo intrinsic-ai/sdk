@@ -16,9 +16,9 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -42,8 +42,8 @@ cc_library(
     hdrs = ["equipment_utils.h"],
     deps = [
         ":channel_factory",
-        ":icon_equipment_cc_proto",
         "//intrinsic/connect/cc/grpc:channel",
+        "//intrinsic/icon/equipment:icon_equipment_cc_proto",
         "//intrinsic/skills/cc:equipment_pack",
         "//intrinsic/skills/cc:skill_utils",
         "//intrinsic/skills/proto:equipment_cc_proto",
@@ -54,6 +54,54 @@ cc_library(
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/time",
     ],
+)
+
+js_library(
+    name = "icon_equipment_jspb_proto",
+    deps = ["//intrinsic/icon/equipment:icon_equipment_proto"],
+)
+
+js_library(
+    name = "force_control_settings_jspb_proto",
+    deps = ["//intrinsic/icon/equipment:force_control_settings_proto"],
+)
+
+py_library(
+    name = "equipment_utils_py",
+    srcs = ["equipment_utils.py"],
+    deps = [
+        "//intrinsic/icon/equipment:icon_equipment_py_pb2",
+        "//intrinsic/icon/python:icon",
+        "//intrinsic/resources/proto:resource_handle_py_pb2",
+        "//intrinsic/skills/proto:equipment_py_pb2",
+        "//intrinsic/util/grpc:connection",
+        "@com_google_absl_py//absl/logging",
+    ],
+)
+
+proto_library(
+    name = "force_control_settings_proto",
+    srcs = ["force_control_settings.proto"],
+    deps = ["//intrinsic/icon/proto:cart_space_proto"],
+)
+
+cc_proto_library(
+    name = "force_control_settings_cc_proto",
+    deps = [":force_control_settings_proto"],
+)
+
+go_proto_library(
+    name = "force_control_settings_go_proto",
+    importpath = "intrinsic/icon/equipment/force_control_settings_go_proto",
+    protos = [":force_control_settings_proto"],
+    deps = [
+        "//intrinsic/icon/proto:cart_space_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "force_control_settings_py_pb2",
+    deps = [":force_control_settings_proto"],
 )
 
 proto_library(
@@ -70,55 +118,17 @@ cc_proto_library(
     deps = [":icon_equipment_proto"],
 )
 
-js_library(
-    name = "icon_equipment_jspb_proto",
-    deps = [":icon_equipment_proto"],
+go_proto_library(
+    name = "icon_equipment_go_proto",
+    importpath = "intrinsic/icon/equipment/icon_equipment_go_proto",
+    protos = [":icon_equipment_proto"],
+    deps = [
+        ":force_control_settings_go_proto",
+        "//intrinsic/hardware/gpio:gpio_service_equipment_go_proto",
+    ],
 )
 
 py_proto_library(
     name = "icon_equipment_py_pb2",
     deps = [":icon_equipment_proto"],
-)
-
-proto_library(
-    name = "force_control_settings_proto",
-    srcs = ["force_control_settings.proto"],
-    deps = ["//intrinsic/icon/proto:cart_space_proto"],
-)
-
-js_library(
-    name = "force_control_settings_jspb_proto",
-    deps = [":force_control_settings_proto"],
-)
-
-go_proto_library(
-    name = "force_control_settings_go_proto",
-    importpath = "intrinsic/icon/equipment/force_control_settings_go_proto",
-    protos = [":force_control_settings_proto"],
-    deps = [
-        "//intrinsic/icon/proto:cart_space_go_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "force_control_settings_cc_proto",
-    deps = [":force_control_settings_proto"],
-)
-
-py_proto_library(
-    name = "force_control_settings_py_pb2",
-    deps = [":force_control_settings_proto"],
-)
-
-py_library(
-    name = "equipment_utils_py",
-    srcs = ["equipment_utils.py"],
-    deps = [
-        ":icon_equipment_py_pb2",
-        "//intrinsic/icon/python:icon",
-        "//intrinsic/resources/proto:resource_handle_py_pb2",
-        "//intrinsic/skills/proto:equipment_py_pb2",
-        "//intrinsic/util/grpc:connection",
-        "@com_google_absl_py//absl/logging",
-    ],
 )

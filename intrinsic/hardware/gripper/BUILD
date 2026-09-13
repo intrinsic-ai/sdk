@@ -18,8 +18,15 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
+
+js_library(
+    name = "gripper_jspb_proto",
+    deps = ["//intrinsic/hardware/gripper:gripper_proto"],
+)
 
 proto_library(
     name = "gripper_proto",
@@ -27,17 +34,21 @@ proto_library(
     deps = ["//intrinsic/perception/proto/v1:settings_proto"],
 )
 
-py_proto_library(
-    name = "gripper_py_pb2",
-    deps = [":gripper_proto"],
-)
-
 cc_proto_library(
     name = "gripper_cc_proto",
     deps = [":gripper_proto"],
 )
 
-js_library(
-    name = "gripper_jspb_proto",
+go_proto_library(
+    name = "gripper_go_proto",
+    importpath = "intrinsic/hardware/gripper/gripper_go_proto",
+    protos = [":gripper_proto"],
+    deps = [
+        "//intrinsic/perception/proto/v1:settings_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "gripper_py_pb2",
     deps = [":gripper_proto"],
 )

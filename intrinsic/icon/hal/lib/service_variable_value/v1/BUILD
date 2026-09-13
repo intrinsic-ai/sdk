@@ -14,7 +14,7 @@
 
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 package(
     default_visibility = [
@@ -56,4 +56,11 @@ proto_library(
 cc_proto_library(
     name = "service_variable_export_cc_proto",
     deps = [":service_variable_export_proto"],
+)
+
+go_proto_library(
+    name = "service_variable_export_go_proto",
+    importpath = "intrinsic/icon/hal/lib/service_variable_value/v1/service_variable_export_go_proto",
+    protos = [":service_variable_export_proto"],
+    deps = [":service_variable_config_go_proto"],
 )

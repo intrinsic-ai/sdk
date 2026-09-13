@@ -18,6 +18,7 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
@@ -40,49 +41,15 @@ exports_files(
     ],
 )
 
-proto_library(
-    name = "calc_server_proto",
-    srcs = ["calc_server.proto"],
-    deps = [
-        "//intrinsic/assets/proto:field_metadata_proto",
-        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
-    ],
-)
-
-cc_proto_library(
-    name = "calc_server_cc_proto",
-    deps = [":calc_server_proto"],
-)
-
-cc_grpc_library(
-    name = "calc_server_cc_grpc_proto",
-    srcs = [":calc_server_proto"],
-    generate_mocks = True,
-    grpc_only = True,
-    deps = [":calc_server_cc_proto"],
-)
-
-py_proto_library(
-    name = "calc_server_py_pb2",
-    deps = [":calc_server_proto"],
-)
-
-py_grpc_library(
-    name = "calc_server_py_pb2_grpc",
-    srcs = [":calc_server_proto"],
-    grpc_library = requirement("grpcio"),
-    deps = [":calc_server_py_pb2"],
-)
-
 cc_library(
     name = "calc_server",
     srcs = ["calc_server.cc"],
     hdrs = ["calc_server.h"],
     deps = [
-        ":calc_server_cc_grpc_proto",
-        ":calc_server_cc_proto",
         "//intrinsic/assets/dependencies:utils_cc",
         "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_cc_grpc_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_cc_proto",
         "//intrinsic/resources/proto:runtime_context_cc_proto",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros_grpc",
@@ -96,7 +63,7 @@ cc_binary(
     srcs = ["calc_server_main.cc"],
     deps = [
         ":calc_server",
-        ":calc_server_cc_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_cc_proto",
         "//intrinsic/icon/release:file_helpers",
         "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/resources/proto:runtime_context_cc_proto",
@@ -128,41 +95,17 @@ intrinsic_service(
     ],
     manifest = ":calc_manifest.textproto",
     deps = [
-        ":calc_server_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_proto",
     ],
-)
-
-proto_library(
-    name = "approximate_function_proto",
-    srcs = ["approximate_function.proto"],
-    deps = [
-        "//intrinsic/assets/proto:field_metadata_proto",
-        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
-    ],
-)
-
-py_proto_library(
-    name = "approximate_function_py_pb2",
-    deps = [":approximate_function_proto"],
-)
-
-proto_library(
-    name = "two_dimensional_function_data_proto",
-    srcs = ["two_dimensional_function_data.proto"],
-)
-
-py_proto_library(
-    name = "two_dimensional_function_data_py_pb2",
-    deps = [":two_dimensional_function_data_proto"],
 )
 
 py_library(
     name = "approximate_function",
     srcs = ["approximate_function.py"],
     deps = [
-        ":calc_server_py_pb2",
-        ":calc_server_py_pb2_grpc",
-        ":two_dimensional_function_data_py_pb2",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_py_pb2",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_py_pb2_grpc",
+        "//intrinsic/assets/services/examples/calcserver:two_dimensional_function_data_py_pb2",
         "@ai_intrinsic_sdks_pip_deps//numpy",
         requirement("grpcio"),
         "@com_google_absl_py//absl/logging",
@@ -175,10 +118,10 @@ py_test(
     data = [":inverted_pyramid_function_data.textproto"],
     deps = [
         ":approximate_function",
-        ":calc_server_py_pb2",
-        ":calc_server_py_pb2_grpc",
-        ":two_dimensional_function_data_py_pb2",
         "//intrinsic/assets/data/proto/v1:data_manifest_py_pb2",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_py_pb2",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_py_pb2_grpc",
+        "//intrinsic/assets/services/examples/calcserver:two_dimensional_function_data_py_pb2",
         "@ai_intrinsic_sdks_pip_deps//numpy",
         requirement("grpcio"),
         "@com_google_absl_py//absl/testing:absltest",
@@ -194,10 +137,10 @@ py_binary(
     main = "approximate_function_main.py",
     deps = [
         ":approximate_function",
-        ":approximate_function_py_pb2",
-        ":calc_server_py_pb2_grpc",
-        ":two_dimensional_function_data_py_pb2",
         "//intrinsic/assets/dependencies:utils_py",
+        "//intrinsic/assets/services/examples/calcserver:approximate_function_py_pb2",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_py_pb2_grpc",
+        "//intrinsic/assets/services/examples/calcserver:two_dimensional_function_data_py_pb2",
         "//intrinsic/resources/proto:runtime_context_py_pb2",
         requirement("grpcio"),
         "@com_google_absl_py//absl:app",
@@ -222,22 +165,22 @@ intrinsic_service(
     ],
     manifest = ":approximate_function_manifest.textproto",
     deps = [
-        ":approximate_function_proto",
-        ":calc_server_proto",
+        "//intrinsic/assets/services/examples/calcserver:approximate_function_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_proto",
     ],
 )
 
 intrinsic_data(
     name = "inverted_pyramid_function_data",
     manifest = "inverted_pyramid_function_data.textproto",
-    deps = [":two_dimensional_function_data_proto"],
+    deps = ["//intrinsic/assets/services/examples/calcserver:two_dimensional_function_data_proto"],
 )
 
 intrinsic_data(
     name = "units_conversion_data",
     manifest = "units_conversion_data.textproto",
     deps = [
-        ":calc_server_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_proto",
     ],
 )
 
@@ -246,8 +189,8 @@ cc_library(
     srcs = ["exponentiate.cc"],
     hdrs = ["exponentiate.h"],
     deps = [
-        ":calc_server_cc_grpc_proto",
-        ":calc_server_cc_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_cc_grpc_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_cc_proto",
         "//intrinsic/resources/proto:runtime_context_cc_proto",
         "@com_github_grpc_grpc//:grpc++",
     ],
@@ -257,8 +200,8 @@ cc_binary(
     name = "exponentiate_main",
     srcs = ["exponentiate_main.cc"],
     deps = [
-        ":calc_server_cc_proto",
         ":exponentiate",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_cc_proto",
         "//intrinsic/icon/release:file_helpers",
         "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/resources/proto:runtime_context_cc_proto",
@@ -288,18 +231,8 @@ intrinsic_service(
     ],
     manifest = ":exponentiate_manifest.textproto",
     deps = [
-        ":calc_server_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_proto",
     ],
-)
-
-proto_library(
-    name = "modulo_add_proto",
-    srcs = ["modulo_add.proto"],
-)
-
-cc_proto_library(
-    name = "modulo_add_cc_proto",
-    deps = [":modulo_add_proto"],
 )
 
 cc_library(
@@ -307,9 +240,9 @@ cc_library(
     srcs = ["modulo_add.cc"],
     hdrs = ["modulo_add.h"],
     deps = [
-        ":calc_server_cc_grpc_proto",
-        ":calc_server_cc_proto",
-        ":modulo_add_cc_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_cc_grpc_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_cc_proto",
+        "//intrinsic/assets/services/examples/calcserver:modulo_add_cc_proto",
         "//intrinsic/resources/proto:runtime_context_cc_proto",
         "@com_github_grpc_grpc//:grpc++",
     ],
@@ -319,9 +252,9 @@ cc_binary(
     name = "modulo_add_main",
     srcs = ["modulo_add_main.cc"],
     deps = [
-        ":calc_server_cc_proto",
         ":modulo_add",
-        ":modulo_add_cc_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_cc_proto",
+        "//intrinsic/assets/services/examples/calcserver:modulo_add_cc_proto",
         "//intrinsic/icon/release:file_helpers",
         "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/resources/proto:runtime_context_cc_proto",
@@ -353,8 +286,8 @@ intrinsic_service(
     ],
     manifest = ":modulo_add_manifest.textproto",
     deps = [
-        ":calc_server_proto",
-        ":modulo_add_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_proto",
+        "//intrinsic/assets/services/examples/calcserver:modulo_add_proto",
     ],
 )
 
@@ -362,9 +295,9 @@ py_library(
     name = "calc_server_py",
     srcs = ["calc_server.py"],
     deps = [
-        ":calc_server_py_pb2",
-        ":calc_server_py_pb2_grpc",
         "//intrinsic/assets/dependencies:utils_py",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_py_pb2",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_py_pb2_grpc",
         requirement("grpcio"),
         "@com_google_absl_py//absl/logging",
     ],
@@ -376,8 +309,8 @@ py_binary(
     main = "calc_server_main.py",
     deps = [
         ":calc_server_py",
-        ":calc_server_py_pb2",
-        ":calc_server_py_pb2_grpc",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_py_pb2",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_py_pb2_grpc",
         "//intrinsic/resources/proto:runtime_context_py_pb2",
         requirement("grpcio"),
         "@com_google_absl_py//absl:app",
@@ -400,6 +333,88 @@ intrinsic_service(
     ],
     manifest = "calc_manifest_py.textproto",
     deps = [
-        ":calc_server_proto",
+        "//intrinsic/assets/services/examples/calcserver:calc_server_proto",
     ],
+)
+
+proto_library(
+    name = "approximate_function_proto",
+    srcs = ["approximate_function.proto"],
+    deps = [
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
+    ],
+)
+
+py_proto_library(
+    name = "approximate_function_py_pb2",
+    deps = [":approximate_function_proto"],
+)
+
+proto_library(
+    name = "calc_server_proto",
+    srcs = ["calc_server.proto"],
+    deps = [
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "calc_server_cc_proto",
+    deps = [":calc_server_proto"],
+)
+
+cc_grpc_library(
+    name = "calc_server_cc_grpc_proto",
+    srcs = [":calc_server_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":calc_server_cc_proto"],
+)
+
+go_proto_library(
+    name = "calc_server_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
+    importpath = "intrinsic/assets/services/examples/calcserver/calc_server_go_proto",
+    protos = [":calc_server_proto"],
+    deps = [
+        "//intrinsic/assets/proto:field_metadata_go_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "calc_server_py_pb2",
+    deps = [":calc_server_proto"],
+)
+
+py_grpc_library(
+    name = "calc_server_py_pb2_grpc",
+    srcs = [":calc_server_proto"],
+    grpc_library = requirement("grpcio"),
+    deps = [":calc_server_py_pb2"],
+)
+
+proto_library(
+    name = "modulo_add_proto",
+    srcs = ["modulo_add.proto"],
+)
+
+cc_proto_library(
+    name = "modulo_add_cc_proto",
+    deps = [":modulo_add_proto"],
+)
+
+proto_library(
+    name = "two_dimensional_function_data_proto",
+    srcs = ["two_dimensional_function_data.proto"],
+)
+
+py_proto_library(
+    name = "two_dimensional_function_data_py_pb2",
+    deps = [":two_dimensional_function_data_proto"],
 )

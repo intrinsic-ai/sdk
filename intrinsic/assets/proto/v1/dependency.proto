@@ -1,0 +1,62 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.assets.v1;
+
+option go_package = "intrinsic/assets/proto/v1/dependency_go_proto";
+
+message Dependency {
+  // The interface URIs (protocol + fully qualified name) this instance or Asset
+  // must provide.
+  //
+  // Example of a gRPC interface URI:
+  //   - grpc://intrinsic_proto.motion_planning.MotionPlannerService
+  //
+  // Example of a data interface URI:
+  //   - data://intrinsic_proto.perception.v1.PoseEstimationConfig
+  repeated string requires = 1;
+
+  message ObjectConstraint {}
+  // Constraint on an object from the world that the dependency must provide.
+  // Omitting this implies that an object is not required to satisfy this
+  // dependency.
+  optional ObjectConstraint requires_object = 2;
+
+  message SkillAnnotations {
+    // Skills depending on gRPC interfaces can set this to true to indicate that
+    // connection information should be provided to all Skill contexts, such as
+    // during preview and get_footprint.
+    //
+    // Having this value unset or false would imply that connection information
+    // to gRPC services will only be provided in the ExecuteContext of the
+    // Skill.
+    //
+    // WARNING: Setting this value to true can enable the Skill to communicate
+    // with Services that interact with the real world (e.g., manipulate
+    // hardware) during preview or get_footprint modes.
+    //
+    // **ONLY** set this flag to true if you are sure that the Skill will never
+    // interact with the real world during preview. When in doubt, leave it
+    // false.
+    bool always_provide_connection_info = 1;
+
+  }
+
+  // Annotations that can only be used when annotated on a specific Asset type.
+  oneof asset_specific_annotations {
+    SkillAnnotations skill_annotations = 3;
+  }
+}

@@ -23,6 +23,11 @@ package(
     ],
 )
 
+js_library(
+    name = "digital_input_output_jspb_proto",
+    deps = ["//intrinsic/icon/hal/proto/v1:digital_input_output_proto"],
+)
+
 proto_library(
     name = "digital_input_output_proto",
     srcs = ["digital_input_output.proto"],
@@ -30,10 +35,5 @@ proto_library(
 
 cc_proto_library(
     name = "digital_input_output_cc_proto",
-    deps = [":digital_input_output_proto"],
-)
-
-js_library(
-    name = "digital_input_output_jspb_proto",
     deps = [":digital_input_output_proto"],
 )

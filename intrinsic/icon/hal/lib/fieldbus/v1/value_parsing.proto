@@ -1,0 +1,35 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.fieldbus.v1;
+
+option go_package = "intrinsic/icon/hal/lib/fieldbus/v1/value_parsing_go_proto";
+
+// An expected mask and value for a signal.
+// The comparison is: read_value & signal_mask == expected_value
+message ValuePattern {
+  // The values of the bits where the mask is 'true' will be compared.
+  uint32 expected_value = 1;
+  // Ones for bits that should be compared
+  uint32 signal_mask = 2;
+}
+// List of ValuePatterns to use in a map.
+// Usage:
+// map<string, intrinsic_proto.ecat.ValuePatterns> interpretation_of_value = 1;
+// Where the key string is the interpretation of the value.
+message ValuePatterns {
+  repeated ValuePattern patterns = 1;
+}

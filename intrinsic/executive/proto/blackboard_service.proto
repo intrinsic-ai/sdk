@@ -1,0 +1,226 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.executive;
+
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+import "intrinsic/util/status/extended_status.proto";
+
+option go_package = "intrinsic/executive/proto/blackboard_service_go_proto";
+
+message BlackboardValue {
+  string key = 1;
+  string scope = 2;
+  string operation_name = 4;
+  google.protobuf.Any value = 3;
+}
+
+// Reference to a blackboard snapshot that was saved with
+// CreateBlackboardSnapshot
+message BlackboardSnapshot {
+  enum SnapshotSource {
+    SNAPSHOT_SOURCE_UNSPECIFIED = 0;
+    SNAPSHOT_SOURCE_USER = 1;
+    SNAPSHOT_SOURCE_AUTOMATIC = 2;
+  }
+
+  string handle = 1;
+
+  string display_name = 2;
+  google.protobuf.Timestamp save_time = 3;
+  uint64 estimated_size_bytes = 4;  // An estimate of the size of the snapshot
+
+  // Provided by the user to indicate why the snapshot was created
+  SnapshotSource snapshot_source = 5;
+}
+
+service ExecutiveBlackboard {
+
+  // Retrieves a specified blackboard value.
+  rpc GetBlackboardValue(GetBlackboardValueRequest) returns (BlackboardValue) {
+    option (google.api.http) = {
+      get: "/executive/v0/operations/{operation_name}/blackboard/{key}"
+    };
+  }
+
+  // List all available entries on the blackboard.
+  rpc ListBlackboardValues(ListBlackboardValuesRequest)
+      returns (ListBlackboardValuesResponse) {
+    option (google.api.http) = {
+      get: "/executive/v0/operations/{operation_name}/blackboard"
+    };
+  }
+
+  // Update a specific value on the blackboard.
+  // Updating a blackboard value that is a loop or retry node counter will also
+  // change the node's internal counter.
+  rpc UpdateBlackboardValue(UpdateBlackboardValueRequest)
+      returns (BlackboardValue) {
+    option (google.api.http) = {
+      patch: "/executive/v0/operations/{value.operation_name}/blackboard/{value.key}"
+      body: "*"
+    };
+  }
+
+  // Delete a specific value on the blackboard.
+  rpc DeleteBlackboardValue(DeleteBlackboardValueRequest)
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/executive/v0/operations/{operation_name}/blackboard/{key}"
+    };
+  }
+
+  // Save the given operation's blackboard as a snapshot.
+  rpc CreateBlackboardSnapshot(CreateBlackboardSnapshotRequest)
+      returns (CreateBlackboardSnapshotResponse) {
+    option (google.api.http) = {
+      post: "/executive/v0/operations/{operation_name}/blackboard:createSnapshot"
+      body: "*"
+    };
+  }
+
+  // Load a previously saved snapshot into the given operation's blackboard.
+  // Values from the snapshot are integrated into the given operation's
+  // blackboard according to the specified integration mode. Snapshot return
+  // values from skills are migrated to the version in the workcell.
+  rpc LoadBlackboardSnapshot(LoadBlackboardSnapshotRequest)
+      returns (LoadBlackboardSnapshotResponse) {
+    option (google.api.http) = {
+      post: "/executive/v0/operations/{operation_name}/blackboard:loadSnapshot"
+      body: "*"
+    };
+  }
+
+  // List the currently saved snapshots.
+  rpc ListBlackboardSnapshots(ListBlackboardSnapshotsRequest)
+      returns (ListBlackboardSnapshotsResponse) {
+    option (google.api.http) = {
+      get: "/executive/v0/blackboardSnapshots"
+    };
+  }
+
+  // Delete the given snapshot.
+  rpc DeleteBlackboardSnapshot(DeleteBlackboardSnapshotRequest)
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/executive/v0/blackboardSnapshots/{handle}"
+    };
+  }
+}
+
+message GetBlackboardValueRequest {
+  string key = 1;
+
+  // A blackboard key is scoped based on where it is defined.
+  // If left unset this defaults to the scope of the current process tree.
+  // When retrieving values within reusable processes the scope can be found in
+  // the `blackboard_scope` field of a behavior tree in the RunMetadata.
+  optional string scope = 2;
+
+  string operation_name = 3;
+}
+
+message ListBlackboardValuesRequest {
+  // Limit the request to a specific scope. Will return all blackboard values,
+  // if not set.
+  optional string scope = 1;
+  string operation_name = 2;
+
+  enum View {
+    DEFAULT = 0;  // Currently this corresponds to ANY_TYPEURL_ONLY
+    FULL = 1;
+    ANY_TYPEURL_ONLY = 2;
+  }
+  View view = 3;
+}
+
+message ListBlackboardValuesResponse {
+  repeated BlackboardValue values = 2;
+
+  reserved "value_infos";
+  reserved 1;
+}
+
+message UpdateBlackboardValueRequest {
+  BlackboardValue value = 1;
+}
+
+message DeleteBlackboardValueRequest {
+  string key = 1;
+  // A blackboard key is scoped based on where it is defined.
+  // If left unset this defaults to the scope of the current process tree.
+  // When retrieving values within reusable processes the scope can be found in
+  // the `blackboard_scope` field of a behavior tree in the RunMetadata.
+  string scope = 2;
+  string operation_name = 3;
+}
+
+message CreateBlackboardSnapshotRequest {
+  string operation_name = 1;
+  string display_name = 2;
+  BlackboardSnapshot.SnapshotSource snapshot_source = 3;
+}
+message CreateBlackboardSnapshotResponse {
+  BlackboardSnapshot snapshot = 1;
+}
+
+message LoadBlackboardSnapshotRequest {
+  string operation_name = 1;
+  string handle = 2;
+
+  // Controls how a snapshot is loaded into a target operation.
+  enum IntegrationMode {
+    // Default integration mode. The default is MERGE.
+    INTEGRATION_MODE_UNSPECIFIED = 0;
+
+    // Merge the snapshot into the blackboard of the target operation. Keys that
+    // are present in both the existing blackboard and the snapshot will be
+    // overridden from the snapshot.
+    INTEGRATION_MODE_MERGE = 1;
+  }
+  IntegrationMode integration_mode = 3;
+}
+
+message LoadBlackboardSnapshotResponse {
+  // Information about the load process for individual values. This need not
+  // necessarily be all errors. The top-level status indicates if there were any
+  // issues restoring individual values. Its severity is the worst severity of
+  // its context ExtendedStatus entries.
+  intrinsic_proto.status.ExtendedStatus diagnostics = 1;
+}
+
+message DeleteBlackboardSnapshotRequest {
+  string handle = 1;
+}
+
+message ListBlackboardSnapshotsRequest {
+  // The maximum number of BlackboardSnapshots to return in one call.
+  // The maximum value is 200; values above 200 will be coerced to 200.
+  // If unspecified, at most 200 will be returned.
+  int64 page_size = 1;
+
+  string page_token = 2;
+}
+message ListBlackboardSnapshotsResponse {
+  repeated BlackboardSnapshot snapshots = 1;
+
+  // Pass this token to the subsequent list request to obtain the next page.
+  string next_page_token = 2;
+}

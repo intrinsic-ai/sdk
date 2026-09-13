@@ -1,0 +1,35 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.world;
+
+option go_package = "intrinsic/world/proto/simulation_component_go_proto";
+
+// Component indicating how the owning Entity (or the object/collection
+// represented by the owning entity) should be treated in simulation.
+message SimulationComponent {
+  // If true, the entity or object is disabled in the simulated world.
+  //
+  // NOTE: It is recommended to *not* set this value to true for objects with
+  // non-fixed joints or sensors as associated hardware device services may not
+  // function in sim.
+  bool disabled = 4;
+  // If true, the entity or object is immovable (not affected by physics during
+  // simulation.).
+  bool is_static = 1;
+  reserved 2, 3;
+  reserved "joint_control_plugins", "joint_state_plugins";
+}

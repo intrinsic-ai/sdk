@@ -1,0 +1,64 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.data_logger;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "intrinsic/logging/proto/critical_event_log_go_proto";
+
+// CriticalEventLog is a log message that describes a text event message that is
+// being sent via the structured logging system. This allows us to upload event
+// logs to the cloud when fluent-bit is not able to upload them in operational
+// environments. See go/intrinsic-production-data-handling for more details.
+message CriticalEventLog {
+  // Enum describing the logging level of the log message.
+  enum Level {
+    UNKNOWN = 0;
+    DEBUG = 1;
+    INFO = 2;
+    WARN = 3;
+    ERROR = 4;
+    FATAL = 5;
+  }
+
+  // The logging level of the log message.
+  Level level = 1;
+
+  // The name of the component that is sending the log message.
+  string source_component = 2;
+
+  // The body of the log message.
+  string msg = 3;
+
+  // The file that the log message was logged from. This helps identify the
+  // source of the log message.
+  optional string file = 4;
+
+  // The function that the log message was logged from. This helps identify the
+  // source of the log message.
+  optional string function = 5;
+
+  // The line number that the log message was logged from. This helps identify
+  // the source of the log message.
+  optional uint32 line = 6;
+
+  // The timestamp of the log message.
+  google.protobuf.Timestamp timestamp = 7;
+
+  // Labels associated with the log message.
+  map<string, string> labels = 8;
+}

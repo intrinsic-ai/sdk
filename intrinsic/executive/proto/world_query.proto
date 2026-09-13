@@ -1,0 +1,73 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.executive;
+
+import "intrinsic/world/proto/object_world_refs.proto";
+
+option go_package = "intrinsic/executive/proto/world_query_go_proto";
+
+// Specification to retrieve data from the world.
+// Used in BehaviorTree.DataNode.
+message WorldQuery {
+  // Selection criteria for elements to return.
+  message Query {
+    oneof query_type {
+      // Fills for_each with intrinsic_proto.world.FrameReference from the
+      // immediate child frames of the given ObjectReference.
+      intrinsic_proto.world.ObjectReference child_frames_of = 1;
+
+      // Fills for_each with intrinsic_proto.world.ObjectReference from the
+      // immediate child objects of the given ObjectReference.
+      intrinsic_proto.world.ObjectReference child_objects_of = 2;
+
+      // Fills for_each with intrinsic_proto.world.TransformNodeReference from
+      // the immediate child frames or objects of the given ObjectReference.
+      intrinsic_proto.world.ObjectReference children_of = 3;
+
+      // Fills for_each with intrinsic_proto.world.NamedJointConfiguration of
+      // the object identified by the given ObjectReference. This must be a
+      // kinematic object. Use the name filter to select a specific
+      // configuration.
+      intrinsic_proto.world.ObjectReference joint_configurations_of = 4;
+    }
+  }
+
+  // Filtering specifications for output.
+  message Filter {
+    oneof filter_type {
+      string name_regex = 1;
+    }
+  }
+
+  // Order criteria for output.
+  message Order {
+    enum Criterion {
+      SORT_ORDER_UNSPECIFIED = 0;
+      NAME = 1;
+    }
+    enum Direction {
+      ASCENDING = 0;
+      DESCENDING = 1;
+    }
+    Criterion by = 1;
+    Direction direction = 2;
+  }
+
+  Query select = 1;
+  optional Filter filter = 2;
+  optional Order order = 3;
+}

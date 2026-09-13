@@ -1,0 +1,189 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.motion_planning.v1;
+
+import "intrinsic/icon/proto/joint_space.proto";
+import "intrinsic/kinematics/types/joint_limits.proto";
+import "intrinsic/math/proto/pose.proto";
+import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
+import "intrinsic/world/proto/collision_settings.proto";
+
+option go_package = "intrinsic/motion_planning/proto/v1/motion_planning_error_go_proto";
+
+// Defines the context in which error occurred.
+// We use this field to create the frontend error messages.
+// So removing an error context type can impact or alter the generated error
+// message.
+message ErrorContext {
+  enum Type {
+    // Default context is set to UNKNOWN for all errors.
+    UNKNOWN = 0;
+    // IK error when solution(s) are in collision.
+    IK_COLLISION = 1;
+    // IK error when no solution(s) are found due to limit violation
+    // or outside the reachable envelope.
+    IK_NO_SOLUTIONS_FOUND = 2;
+    // IK error when using nlopt solver.
+    IK_NO_SOLUTIONS_FOUND_W_COLLISION_CHECKING = 3;
+    // Error when initial state is in collision.
+    INITIAL_STATE_COLLISION = 4;
+    // Error when goal state is in collision.
+    GOAL_STATE_COLLISION = 5;
+    // Error when a joint configuration (state) is in collision.
+    STATE_IN_COLLISION = 6;
+    // Fine Path Error
+    FINE_PATH_IK_ERROR = 7;
+    // Linear Cartesian Path planner
+    LINEAR_CARTESIAN_PATH_PLANNER_ERROR = 8;
+    // Trajectory Planning Error
+    // Error when initial state is in collision.
+    TRAJECTORY_PLANNING_INITIAL_STATE_COLLISION = 9;
+    // Error when goal state is in collision.
+    TRAJECTORY_PLANNING_GOAL_STATE_COLLISION = 10;
+    // Error when a joint configuration (state) is in collision.
+    TRAJECTORY_PLANNING_STATE_COLLISION = 11;
+    // Initial configuration validation
+    INITIAL_CONF_VALIDATION = 12;
+    // Goal configuration validation
+    GOAL_CONF_VALIDATION = 13;
+    // Joint configuration validation
+    CONF_VALIDATION = 14;
+    // Refinement validation
+    REFINEMENT_VALIDATION = 15;
+  }
+}
+
+// Defines the errors when multi-segment planning
+// Currently we only support error for single segments.
+message MotionPipelineError {
+  // Used for multi-segment planning.
+  repeated MotionPlanningError motion_planning_error = 1;
+  optional string logging_id = 2;
+}
+
+// Defines a motion planning error
+message MotionPlanningError {
+  oneof error {
+    // The collision error that is reported for a given geometric constraint/
+    // pose.
+    CollisionError collision_error = 1;
+    // IK error reported by the IK solver
+    IKError ik_error = 2;
+    // FinePathIK error reported during path planning
+    FinePathIKError fine_path_ik_error = 4;
+    // LinearCartesianMotionPathPlannerError reported during path planning for
+    //  cartesian linear motions.
+    LinearCartesianMotionPathPlannerError linear_cartesian_path_planning_error =
+        5;
+    JointLimitError joint_limit_error = 6;
+  }
+  // Segment id represents the segment for which the error was reported.
+  // For multiple segments we add the first and last segment ids where
+  // the planning failures occurred.
+  repeated int32 segment_id = 3;
+}
+
+// `CollisionError` corresponds to an error generated when a collision is
+// detected during planning. This message holds the collision debug information,
+// the collision settings used, and the context where the error occurs.
+// One `CollisionError` message can hold multiple collision debug messages, i.e.
+// multiple collision checks.
+message CollisionError {
+  repeated CollisionDebug collision_debug = 1;
+  // Collision settings used for the collision checker.
+  optional intrinsic_proto.world.CollisionSettings collision_settings = 2;
+  // Allows any additional information regarding context where the error
+  // occurs.
+  optional ErrorContext.Type error_context = 3;
+}
+
+// Each collision debug message corresponds to a collision check.
+message CollisionDebug {
+  // Error message reported.
+  optional string error_message = 1;
+  // Joint positions for which collision was checked.
+  intrinsic_proto.icon.JointVec joint_positions = 2;
+  // Left entity for the reported collision.
+  string left_entity = 3;
+  // Right entity/entities for the reported collision.
+  // The number of entities in right entities depends on the type of collision
+  // checker that is used. If we use no-merge collision checker, we have only
+  // one right entity. If we use the merge collision checker, it probable there
+  // are multiple entities.
+  string right_entities = 4;
+  // Left entity id for the reported collision.
+  int64 left_entity_id = 5;
+  // Right entity ids for the reported collision.
+  repeated int64 right_entity_ids = 6;
+}
+
+message IKError {
+  optional string error_message = 1;
+  // Constraint for which the error was reported. This is an optional field that
+  // is populated for all IK methods that have access to the object world.
+  optional intrinsic_proto.motion_planning.v1.GeometricConstraint constraint =
+      2;
+  // Allows any additional information regarding context where the error
+  // occurs.
+  optional ErrorContext.Type error_context = 3;
+}
+
+// `FinePathIKError` corresponds to an error that is generated during path
+// planning when using the FinePathIK planner which computes the inverse
+// kinematics on a finely interpolated Cartesian path. This message holds the
+// previous and current IK solution, hint for the IK solution.
+// This error also includes the desired base to tip transform and the
+// joint limits used as optional fields.
+message FinePathIKError {
+  optional string error_message = 1;
+  intrinsic_proto.icon.JointVec previous_ik_solution = 2;
+  intrinsic_proto.icon.JointVec current_ik_hint = 3;
+  intrinsic_proto.icon.JointVec current_ik_solution = 4;
+  optional intrinsic_proto.Pose base_t_tip_desired = 5;
+  optional intrinsic_proto.JointLimits applied_joint_limits = 6;
+  // Allows any additional information regarding context where the error
+  // occurs.
+  optional ErrorContext.Type error_context = 7;
+}
+
+// `LinearCartesianMotionPathPlannerError` corresponds to an error generated
+// during path planning when planning for linear cartesian motions. This message
+// holds the target joint positions that the planner tries to plan for and the
+// final joint positions it was able to reach.
+message LinearCartesianMotionPathPlannerError {
+  optional string error_message = 1;
+  // Target joint positions that the planner tried to plan to.
+  optional intrinsic_proto.icon.JointVec target_joint_positions = 3;
+  // Final joint positions where the path planner was able to reach.
+  optional intrinsic_proto.icon.JointVec final_joint_positions = 4;
+  // Allows any additional information regarding context where the error
+  // occurs.
+  optional ErrorContext.Type error_context = 5;
+}
+
+// `JointLimitsError` corresponds to an error generated when the joint limits
+// are violated during planning.
+message JointLimitError {
+  optional string error_message = 1;
+  // Joint limits that are enforced.
+  optional intrinsic_proto.JointLimits joint_limits = 2;
+  // Joint positions that violate the joint limits.
+  intrinsic_proto.icon.JointVec joint_positions = 3;
+  // Allows any additional information regarding context where the error
+  // occurs.
+  optional ErrorContext.Type error_context = 4;
+}

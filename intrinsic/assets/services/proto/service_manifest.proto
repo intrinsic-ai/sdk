@@ -1,0 +1,199 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.services;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/descriptor.proto";
+import "intrinsic/assets/proto/asset_tag.proto";
+import "intrinsic/assets/proto/documentation.proto";
+import "intrinsic/assets/proto/id.proto";
+import "intrinsic/assets/proto/status_spec.proto";
+import "intrinsic/assets/proto/vendor.proto";
+import "intrinsic/assets/services/proto/env_var.proto";
+import "intrinsic/assets/services/proto/service_http_config.proto";
+import "intrinsic/assets/services/proto/service_permissions.proto";
+import "intrinsic/assets/proto/v1/recommended_configuration_config.proto";
+import "intrinsic/assets/services/proto/service_volume.proto";
+import "intrinsic/assets/services/proto/v1/dynamic_reconfiguration.proto";
+import "intrinsic/assets/services/proto/v1/service_inspection.proto";
+import "intrinsic/assets/services/proto/v1/service_state.proto";
+import "intrinsic/kubernetes/workcell_spec/proto/image.proto";
+
+option go_package = "intrinsic/assets/services/proto/service_manifest_go_proto";
+
+message ServiceMetadata {
+  // The service's id.
+  intrinsic_proto.assets.Id id = 1;
+  // The service's vendor.
+  intrinsic_proto.assets.Vendor vendor = 2;
+  // Documentation about the service which will be shown to users.
+  intrinsic_proto.assets.Documentation documentation = 3;
+  // The display name of this service to be shown in UIs.
+  string display_name = 4;
+  // A tag identifying the category of the service.
+  intrinsic_proto.assets.AssetTag asset_tag = 5;
+}
+
+message ServiceDef {
+  // The list of gRPC service names that this service will expose.
+  //
+  // Descriptors for each service in this list must be included in the file
+  // descriptor set in the manifest's ServiceAssets.
+  //
+  // Do not include DynamicReconfiguration or ServiceState in this list.
+  repeated string service_proto_prefixes = 1;
+  // The full name of the proto message used to configure this service.
+  //
+  // For each instance of the service in a solution, a message of this type is
+  // specified and provided to the service container.
+  //
+  // A descriptor for this message must be included in the file descriptor set
+  // in the manifest's ServiceAssets.
+  string config_message_full_name = 7;
+  // The pod spec to be used in real environments.
+  ServicePodSpec real_spec = 2;
+  // The pod spec to be used in simulated environments.
+  ServicePodSpec sim_spec = 3;
+  // The HTTP configuration for this service. If provided (including empty
+  // config), an HTTP route to the service will be set up. It may handle HTTP
+  // traffic at this route by serving HTTP responses at the HTTP port and path
+  // prefix available from `RuntimeContext`
+  // (`/etc/intrinsic/runtime_config.pb`) or `INTRINSIC_HTTP_PATH_PREFIX` and
+  // `INTRINSIC_HTTP_PORT` environment variables.
+  ServiceHttpConfig http_config = 4;
+
+  // Optional configuration for the dynamic reconfiguration service interfaces
+  // provided to the Intrinsic platform.
+  optional intrinsic_proto.services.v1.DynamicReconfigurationConfig
+      dynamic_reconfiguration_config = 10;
+  // Optional configuration for the service state service interfaces provided
+  // to the Intrinsic platform.
+  optional intrinsic_proto.services.v1.ServiceStateConfig service_state_config =
+      11;
+
+  // True if this Service supports dynamic reconfiguration by serving the
+  // DynamicReconfiguration service on its configured gRPC port.
+  bool supports_dynamic_reconfiguration = 5 [deprecated = true];
+  // True if the Service supports service state interaction by serving the
+  // ServiceState service on its configured gRPC port.
+  bool supports_service_state = 6 [deprecated = true];
+  // The inspection config for the service. Optional since not all services
+  // support inspection. If this is defined, the service is expected to publish
+  // its inspection data on the topic provided in the `service_inspection_topic`
+  // field of the `RuntimeContext` (`/etc/intrinsic/runtime_config.pb`).
+  optional v1.ServiceInspectionConfig service_inspection_config = 8;
+
+  // Config recommendation options for the Service.
+  //
+  // Leaving this undefined implies that the default platform behavior will be
+  // provided for the Service.
+  optional intrinsic_proto.assets.v1.RecommendedConfigurationConfig
+      recommended_configuration_config = 9;
+
+  // Specifications of codes that the Service may return. Codes are specific to
+  // this Service; i.e., different Assets may use the same numeric codes to
+  // represent different errors.
+  repeated intrinsic_proto.assets.StatusSpec status_info = 12;
+}
+
+message ServicePodSpec {
+  // The image to be used in simulated or real environments.
+  ServiceImage image = 1;
+  // The settings for this pod.
+  ServicePodSettings settings = 2;
+  // Additional images to be used in the pod.
+  repeated ServiceImage extra_images = 3;
+
+}
+
+message ServicePodSettings {
+  // If true, use the host's network namespace.
+  bool host_network = 1;
+  // A list of named volumes that can be mounted by a resource image.
+  repeated Volume volumes = 2;
+  // Security settings for the pod and all its containers.
+  PodSecurityContext security_context = 3;
+}
+
+message ServiceImage {
+  // The image archive file.
+  string archive_filename = 1;
+  // The settings for this specific image.
+  ServiceImageSettings settings = 2;
+}
+
+message ServiceImageSettings {
+  // A list of volumes to be mounted in the image.
+  repeated VolumeMount volume_mounts = 1;
+  // Security permissions for the image.
+  SecurityContext security_context = 2;
+  // The compute resource requirements for the container running the service.
+  ResourceRequirements resource_requirements = 3;
+  // If true, this image must be scheduled on a real-time node.
+  bool requires_rtpc_node = 4;
+
+  // The environment variables to set in the container.
+  repeated EnvVar env_vars = 5;
+
+  // The arguments to pass to the container.
+  repeated string args = 6;
+}
+
+message ServiceAssets {
+  // The binary proto file containing the default configuration.
+  //
+  // If unspecified, the default configuration will be an empty message of the
+  // type specified in the manifest's ServiceDef.config_message_full_name.
+  optional string default_configuration_filename = 1;
+  // The file descriptor set containing the service's parameters.
+  optional string parameter_descriptor_filename = 2;
+  // The filenames of images used in the service definition.
+  repeated string image_filenames = 3;
+}
+
+message ServiceManifest {
+  // Metadata associated with this service (e.g., id, documentation, etc.)
+  ServiceMetadata metadata = 1;
+  // The service definition.
+  ServiceDef service_def = 2;
+  // This service's assets.
+  ServiceAssets assets = 3;
+}
+
+message ProcessedServiceAssets {
+  // Default configuration data for the service.
+  google.protobuf.Any default_configuration = 1;
+  // A complete descriptor set for the configuration message.
+  google.protobuf.FileDescriptorSet file_descriptor_set = 2;
+  // References to images uploaded in a container registry. The keys are the
+  // original filenames in the bundle, as referenced by the service definition.
+  map<string, workcell_spec.v1.Image> images = 3;
+}
+
+message ProcessedServiceManifest {
+  // Metadata associated with this service (e.g., id, documentation, etc.)
+  ServiceMetadata metadata = 1;
+  // The service's pod spec.
+  ServiceDef service_def = 2;
+  // The processed version of the service assets. This can be used to send a
+  // complete description of a service using a manifest.
+  ProcessedServiceAssets assets = 3;
+}
+
+message ServiceManifests {
+  repeated ServiceManifest manifests = 1;
+}

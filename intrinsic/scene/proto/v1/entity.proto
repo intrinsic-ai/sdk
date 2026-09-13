@@ -1,0 +1,88 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.scene_object.v1;
+
+import "intrinsic/math/proto/pose.proto";
+import "intrinsic/world/proto/geometry_component.proto";
+import "intrinsic/world/proto/kinematics_component.proto";
+import "intrinsic/world/proto/physics_component.proto";
+import "intrinsic/world/proto/sensor_component.proto";
+
+option go_package = "intrinsic/scene/proto/v1/entity_go_proto";
+
+// Frame represents a reference frame local to the model (e.g., a grasp or
+// drop-off position, a tool frame, etc.). A frame must parent to a `Link` or a
+// `Frame`.
+message Frame {
+  // If true, this frame is designated as an attachment frame.
+  //
+  // Attachment frames differ from regular frames in their behavior during
+  // object parenting. When an object is parented to
+  // an attachment frame, it automatically snaps to the frame's transform,
+  // aligning the object'd origin with the frame's origin and setting its
+  // relative pose (`parent_t_this`) to identity.
+  //
+  // In contrast, parenting to a regular frame typically maintains the object's
+  // current world-space pose by calculating a non-identity relative offset.
+  bool is_attachment_frame = 1;
+}
+
+// Link represents a rigid segment of the model with geometric and physics
+// properties. A link may parent to no entity, a `Link` or a `Joint`.
+message Link {
+  // Visual and collision geometry of this entity.
+  intrinsic_proto.world.GeometryComponent geometry_component = 1;
+
+  // Physics properties of this entity.
+  intrinsic_proto.world.PhysicsComponent physics_component = 2;
+}
+
+// Joint represents a moveable component of the model, generally connecting two
+// `Links`. A joint must parent to a `Link`.
+message Joint {
+  // Kinematics properties of the joint.
+  intrinsic_proto.world.KinematicsComponent kinematics_component = 1;
+}
+
+// Sensor represents a specific sensing capability of the model.
+// A sensor must parent to a `Link` or a `Joint`.
+message Sensor {
+  intrinsic_proto.world.SensorComponent sensor_component = 1;
+}
+
+// Entity represents a node in the tree of entities that together form a model.
+message Entity {
+  // Human readable name for the entity.
+  // Guaranteed to be unique within the model.
+  string name = 1;
+
+  // Name of the parent entity. Unset for the root entity.
+  // The parent entity must be a valid `entity_type` for the child entity.
+  // See the documentation of each `entity_type` for details.
+  string parent_name = 2;
+
+  // Pose of this entity in the space of the parent entity. Unset for the root
+  // entity.
+  intrinsic_proto.Pose parent_t_this = 3;
+
+  oneof entity_type {
+    Frame frame = 4;
+    Link link = 5;
+    Joint joint = 6;
+    Sensor sensor = 7;
+  }
+}

@@ -1,0 +1,131 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.skills;
+
+import "intrinsic/geometry/proto/transformed_geometry_storage_refs.proto";
+import "intrinsic/geometry/proto/v1/transformed_geometry.proto";
+import "intrinsic/world/proto/object_world_refs.proto";
+
+option go_package = "intrinsic/skills/proto/footprint_go_proto";
+
+// A footprint contains zero or more reservations that must be held when
+// executing a skill. Each reservation has a sharing type which is used to
+// determine when two skills can be scheduled concurrently. Note that volume
+// reservations can also generate conflicts with the geometrical state of the
+// world. E.g., a volume reservation that intersects static geometry would not
+// be schedulable even when the skill is executing by itself.
+message Footprint {
+  // One or more volume reservations.
+  repeated VolumeReservation volume = 1;
+
+  // One or more reservations in the world (objects or frames).
+  repeated ObjectWorldReservation object_reservation = 4;
+
+  // One or more resource reservations.
+  repeated ResourceReservation resource_reservation = 6;
+
+  // A special value - true indicates that all entities in the entire universe
+  // are held, implying that this holder of this footprint cannot execute at
+  // the same time as anything else that holds any entity.
+  //
+  // NOTE: If set, the volume and entity constraints are ignored and every
+  // entity is locked with write access.
+  bool lock_the_universe = 3;
+
+  // By default we will automatically add the extra missing permissions to make
+  // this footprint a complete set. This includes read access for all entities
+  // in the parent chains of any already specified entities. As well as write
+  // access to any children of write enabled entitiees already provided.
+  //
+  // If set to true, this process will be skipped.
+  bool skip_missing_permissions = 5;
+}
+
+message ObjectWorldReservation {
+  enum SharingType {
+    // The holder has an exclusive lock on this object and is free to change
+    // its state. For example, a writer lock must be held to control a robot.
+    WRITE = 0;
+
+    // The holder has a shared lock on this object and its state must not
+    // change until all reader locks are released.
+    READ = 1;
+  }
+
+  // The type of reservation lock.
+  SharingType type = 1;
+
+  // The object world item to which to apply the specified sharing type.
+  oneof object_type {
+    // Name of an object.
+    intrinsic_proto.world.ObjectReferenceByName object = 2;
+
+    // Name of a frame and its parent object.
+    intrinsic_proto.world.FrameReferenceByName frame = 3;
+  }
+}
+
+message VolumeReservation {
+  enum SharingType {
+    // The holder is allowed to change the contents of the volume. This is an
+    // exclusive lock. For example, a robot moving through a swept volume would
+    // need to acquire this type of lock.
+    WRITE = 0;
+
+  }
+
+  // The type of volume lock.
+  SharingType type = 1;
+
+  // The volume must be expressed using on of the following:
+  oneof volume_oneof {
+    intrinsic_proto.geometry.TransformedGeometryStorageRefs shape = 4
+        [deprecated = true];
+    // The TransformedGeometry message for footprint volume reservation. If
+    // inline_geometry is provided, it must ONLY contain primitives, not
+    // meshes or point clouds.
+    intrinsic_proto.geometry.v1.TransformedGeometry transformed_geometry = 6;
+  }
+
+  reserved 2, 5;
+  reserved "universe", "shape_data";
+}
+
+message ResourceReservation {
+  enum SharingType {
+    // Unspecified sharing type is treated the same as WRITE_NONEXCLUSIVE.
+    UNSPECIFIED = 0;
+    // The holder requires exclusive access to read and change the state of this
+    // resource.
+    WRITE = 1;
+    // The holder can read but may not change the state of this resource.
+    READ = 2;
+    // The holder can read and change the state of this resource. It requires
+    // exclusive access to change the state, but does not require exclusive
+    // access to read it.
+    WRITE_EXCLUSIVE_READ_NONEXCLUSIVE = 3;
+    // The holder can read and change the state of this resource, but does not
+    // require exclusive access to either.
+    WRITE_NONEXCLUSIVE = 4;
+  }
+
+  // The type of reservation.
+  SharingType type = 1;
+
+  // Name of the equipment to be locked.
+  string name = 2;
+}

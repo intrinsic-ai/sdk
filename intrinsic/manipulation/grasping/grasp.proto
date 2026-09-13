@@ -1,0 +1,246 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.grasping;
+
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/id.proto";
+import "intrinsic/hardware/gripper/eoat/eoat_service.proto";
+import "intrinsic/hardware/gripper/gripper.proto";
+import "intrinsic/icon/proto/joint_space.proto";
+import "intrinsic/math/proto/pose.proto";
+import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
+import "intrinsic/perception/proto/v1/pose_estimate_in_root.proto";
+import "intrinsic/world/proto/object_world_refs.proto";
+
+option go_package = "intrinsic/manipulation/grasping/grasp_go_proto";
+
+message GraspCommand {
+  oneof grasp_command {
+    intrinsic_proto.eoat.GraspRequest grasp_request = 1;
+    intrinsic_proto.gripper.PinchGripperCommand pinch_gripper_command = 2;
+  }
+}
+
+message HeuristicResult {
+  double score = 1;  // Score range between 0.0 and 1.0.
+  optional string description = 2;
+  // An IK solution for the pregrasp pose.
+  optional intrinsic_proto.icon.JointVec pregrasp_ik_solution = 3;
+  // An IK solution for the grasp pose.
+  optional intrinsic_proto.icon.JointVec grasp_ik_solution = 4;
+}
+
+message ObjectPose {
+  intrinsic_proto.world.TransformNodeReference reference = 1;
+  intrinsic_proto.Pose pose = 2;
+}
+
+message Grasp {
+  message GraspHistory {
+    string name = 1;
+    HeuristicResult result = 2;
+  }
+
+  string grasp_id = 1;
+  intrinsic_proto.motion_planning.v1.PoseEquality pregrasp_motion_spec = 8;
+  intrinsic_proto.motion_planning.v1.PoseEquality grasp_motion_spec = 2;
+  GraspCommand grasp_command = 3;
+  intrinsic_proto.motion_planning.v1.PoseEquality postgrasp_motion_spec = 4;
+  ObjectPose object_pose = 5;
+  repeated GraspHistory history = 6;
+  string object_category = 7;
+  // The score of the grasp. Range: [0, 1]. A higher score means a higher
+  // probability of execution success.
+  double score = 9;
+  // The name of the target object to grasp in the world.
+  optional string object_name = 10;
+  // Confidence of detection, in range [0, 1].
+  optional float visibility = 11;
+
+  // An IK solution for the pregrasp pose.
+  intrinsic_proto.icon.JointVec pregrasp_ik_solution = 12;
+  // An IK solution for the grasp pose.
+  intrinsic_proto.icon.JointVec grasp_ik_solution = 13;
+  // A possible placement pose only if
+  // PlacementConstraints.placement_pose_constraint is specified and the
+  // constraint is feasible.
+  // This provides a feasible placement pose for the grasp for the user when
+  // `PlacementPoseConstraint.target_frame_margins` is specified, when the user
+  // is expecting the placement to take place within the margins but not sure
+  // where exactly would guarantee the placement success.
+  // Its IK is guaranteed to be feasible, while trajectories towards it are not.
+  optional intrinsic_proto.motion_planning.v1.PoseEquality
+      possible_placement_pose = 14;
+}
+
+message RepeatedGrasps {
+  repeated Grasp grasps = 1;
+}
+message FingerGrasp {
+  Grasp grasp = 1;
+
+  // FingerGrasp specific
+  double open_position = 2;
+  double close_position = 3;
+  double max_effort = 4;  // Max force.
+}
+
+message RepeatedFingerGrasps {
+  repeated FingerGrasp finger_grasps = 1;
+}
+
+// Predefined grasp related information.
+message PoseBasedGraspInfo {
+  // Grasp pose in the object frame.
+  intrinsic_proto.Pose obj_t_grasp = 1;
+  // The estimated probability of success for this grasp assuming object pose is
+  // accurate, in the range [0, 1].
+  double score = 2;
+  // The label of this grasp in the given grasp set.
+  string grasp_label_in_set = 3;
+}
+
+// Direct mapping to the GraspPlan type.
+message GraspPlan {
+  message DebugInfo {
+    map<string, double> timing_info = 1;
+    // Scene ID if this grasp plan is computed from a perception scene.
+    optional string scene_uuid = 2;
+  }
+
+  repeated Grasp filtered_grasps = 1;
+  repeated Grasp grasps = 2;
+  repeated Grasp unexamined_grasps = 3;
+
+  // Optional debug information.
+  optional DebugInfo debug_info = 4;
+}
+
+// The object to grasp and grasp constraints
+message GraspTarget {
+  // Define a list of poses to use it in oneof.
+  message Poses {
+    repeated intrinsic_proto.Pose poses = 1;
+  }
+  // Define a message to use it with "optional".
+  message GraspConstraint {
+    oneof grasp_constraint_type {
+      Poses poses = 1;
+      intrinsic_proto.motion_planning.v1.GeometricConstraint
+          geometric_constraint = 2;
+    }
+  }
+
+  oneof target_type {
+    string object_category = 1;
+    intrinsic_proto.world.ObjectReference object_reference = 2;
+    PoseEstimatesTarget pose_estimates = 4;
+  }
+  optional GraspConstraint grasp_constraint = 3;
+}
+
+message PoseBasedGrasp {
+  string grasp_id = 1;
+  // For convenience, this frame is a child frame of the `object`.
+  intrinsic_proto.world.TransformNodeReference grasp_frame = 2;
+  // For convenience, this frame is a child frame of the `object`.
+  intrinsic_proto.world.TransformNodeReference pre_grasp_frame = 3;
+  // The target object to pick
+  intrinsic_proto.world.ObjectReference object = 4;
+  // Object reference frame
+  // Will remove after b/296861796 is fixed.
+  intrinsic_proto.world.TransformNodeReference object_frame = 5;
+  // An IK solution for the pregrasp pose.
+  intrinsic_proto.icon.JointVec pregrasp_ik_solution = 6;
+  // An IK solution for the grasp pose.
+  intrinsic_proto.icon.JointVec grasp_ik_solution = 7;
+  // The placement pose only if PlacementPoseConstraint is specified and met.
+  // The `moving_frame` and `target_frame` here are set to the same values as
+  // set in PlacementPoseConstraint.
+  // This provides a feasible placement pose for the grasp for the user when
+  // `PlacementPoseConstraint.target_frame_margins` is specified, when the user
+  // is expecting the placement to take place within the margins but not sure
+  // where exactly would guarantee the placement success.
+  // Populated the same as `PlacementPoseConstraint.target_frame` when no
+  // `PlacementPoseConstraint.target_frame_margins` is specified.
+  // This only guarantees its IK but not the trajectories towards it.
+  intrinsic_proto.motion_planning.v1.PoseEquality possible_placement_pose = 8;
+}
+
+message RepeatedPoseBasedGrasps {
+  repeated PoseBasedGrasp pose_based_grasps = 1;
+}
+
+message GraspExecutionPlan {
+  // Trajectory to move from starting position to pregrasp position/pose.
+  // If unspecified, then traj_to_grasp moves from starting position to
+  // grasp position/pose via pregrasp position/pose in a single trajectory.
+  optional intrinsic_proto.icon.JointTrajectoryPVA traj_to_pregrasp = 1;
+
+  // If traj_to_pregrasp is specified, then this trajectory moves from
+  // pregrasp position/pose to grasp position/pose; otherwise this moves from
+  // start to grasp via pregrasp in a single trajectory.
+  intrinsic_proto.icon.JointTrajectoryPVA traj_to_grasp = 2;
+
+  // Trajectory to move from grasp position to post position/pose.
+  intrinsic_proto.icon.JointTrajectoryPVA traj_to_postgrasp = 3;
+}
+
+message GraspExecutionPlanningResult {
+  enum FailureReason {
+    UNSET = 0;
+    PREGRASP_MOTION_PLAN_FAILED = 1;
+    GRASP_MOTION_PLAN_FAILED = 2;
+    POSTGRASP_MOTION_PLAN_FAILED = 3;
+    START_POSITION_IN_COLLISION = 4;
+  }
+
+  // The ID of the grasp that we were asked to plan for.
+  string grasp_id = 1;
+
+  oneof planning_result {
+    // The actual plan if planning is successful.
+    GraspExecutionPlan grasp_execution_plan = 2;
+    // Cause of planning failure.
+    FailureReason failure_reason = 3;
+  }
+
+  // The total time took to plan this grasp execution.
+  double planning_time_in_seconds = 4;
+
+  // Message to give more details to this grasp execution planning.
+  optional string debug_message = 5;
+}
+
+message AttemptedGrasp {
+  // The attempted grasp.
+  Grasp grasp = 1;
+  // Whether the grasp successfully picked up an object.
+  bool success = 2;
+}
+
+message PoseEstimatesTarget {
+  // Pose estimates for objects in the scene.
+  repeated perception.v1.PoseEstimateInRoot estimates = 1;
+  // The id of the Scene Object asset for which the pose estimates belong to.
+  // The asset must be installed in the solution.
+  intrinsic_proto.assets.Id object_category = 3
+      [(intrinsic_proto.assets.field_metadata) = {
+        is_installed_scene_object_asset: true
+      }];
+  reserved 2;
+}

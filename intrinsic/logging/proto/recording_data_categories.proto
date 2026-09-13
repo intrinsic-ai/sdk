@@ -1,0 +1,42 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.data_logger;
+
+option go_package = "intrinsic/logging/proto/recording_data_categories_go_proto";
+
+message RecordingDataCategory {
+  // e.g. "text_logs", "scene_data". Must match the field names in
+  // `CreateRecordingParams.RecordingContents`.
+  string category_id = 1;
+
+  // e.g. "Text logs", "Scene data". Displayed in the UI.
+  string display_name = 2;
+
+  // A brief description of what this category contains.
+  string description = 5;
+
+  // The regular expressions of event sources that belong to this category.
+  repeated string event_sources = 3;
+
+  // Indicates if this data category only captures lightweight data
+  // (e.g. text logs or flowstate events), which affects duration limits.
+  bool is_lightweight = 4;
+}
+
+message RecordingDataCategories {
+  repeated RecordingDataCategory categories = 1;
+}

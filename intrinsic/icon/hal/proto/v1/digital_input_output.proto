@@ -1,0 +1,40 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.icon.v1;
+
+option go_package = "intrinsic/icon/hal/proto/v1/digital_input_output_go_proto";
+
+// Collection of digital inputs/outputs.
+// This information is not purely for simulation, it should represent the real
+// hardware as well.
+message DigitalInputOutput {
+  message DigitalInputBlock {
+    // The number of input bits in this block. Must be greater than zero.
+    int32 num_bits = 1;
+  }
+  // Input blocks by name. The map key is also the name of the corresponding
+  // hardware interface for each block.
+  map<string, DigitalInputBlock> digital_input_blocks = 1;
+
+  message DigitalOutputBlock {
+    // The number of output bits in this block. Must be greater than zero.
+    int32 num_bits = 1;
+  }
+  // Output blocks by name. The map key is also the name of the corresponding
+  // hardware interface for each block.
+  map<string, DigitalOutputBlock> digital_output_blocks = 2;
+}

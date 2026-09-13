@@ -1,0 +1,39 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.icon.v1;
+
+option go_package = "intrinsic/icon/control/parts/proto/v1/mode_of_safe_operation_limits_config_go_proto";
+
+// This contains the individual configurations for limits under each necessary
+// ModeOfSafeOperation ( as defined in
+// intrinsic/icon/proto/safety_status.proto ). All configurations are
+// optional and if omitted these limits are filled from the hardware modules
+// application and system limits.
+message ModeOfSafeOperationLimitsConfig {
+  // A set of maximum velocities for the TEACHING_1 (T1) mode of safe operation.
+  // These velocities are used by the part to create a full set of limits.
+  message T1Limits {
+    // The maximal velocity of a joint rotation in rad/s.
+    double joint_max_velocity = 1;
+    // The maximal velocity of the tcp translation in m/s.
+    double tcp_max_translational_velocity = 2;
+    // The maximal velocity of the tcp rotation in rad/s.
+    double tcp_max_rotational_velocity = 3;
+  }
+
+  optional T1Limits t1_limits = 1;
+}

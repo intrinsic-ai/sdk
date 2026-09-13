@@ -60,16 +60,6 @@ cc_binary(
     ],
 )
 
-proto_library(
-    name = "joint_move_positions_proto",
-    srcs = ["joint_move_positions.proto"],
-)
-
-cc_proto_library(
-    name = "joint_move_positions_cc_proto",
-    deps = [":joint_move_positions_proto"],
-)
-
 cc_library(
     name = "joint_move_lib",
     srcs = ["joint_move_lib.cc"],
@@ -182,7 +172,6 @@ cc_library(
     hdrs = ["joint_move_loop_lib.h"],
     visibility = ["//visibility:private"],
     deps = [
-        ":joint_move_positions_cc_proto",
         "//intrinsic/eigenmath",
         "//intrinsic/icon/actions:point_to_point_move_info",
         "//intrinsic/icon/cc_client:client",
@@ -190,6 +179,7 @@ cc_library(
         "//intrinsic/icon/cc_client:condition",
         "//intrinsic/icon/cc_client:session",
         "//intrinsic/icon/common:id_types",
+        "//intrinsic/icon/examples:joint_move_positions_cc_proto",
         "//intrinsic/kinematics/types:joint_limits",
         "//intrinsic/util:eigen",
         "//intrinsic/util/grpc:channel_interface",
@@ -206,7 +196,7 @@ cc_binary(
     srcs = ["joint_move_loop.cc"],
     deps = [
         ":joint_move_loop_lib",
-        ":joint_move_positions_cc_proto",
+        "//intrinsic/icon/examples:joint_move_positions_cc_proto",
         "//intrinsic/icon/release/portable:init_intrinsic",
         "//intrinsic/util/grpc:channel",
         "//intrinsic/util/grpc:connection_params",
@@ -257,4 +247,14 @@ cc_binary(
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/strings",
     ],
+)
+
+proto_library(
+    name = "joint_move_positions_proto",
+    srcs = ["joint_move_positions.proto"],
+)
+
+cc_proto_library(
+    name = "joint_move_positions_cc_proto",
+    deps = [":joint_move_positions_proto"],
 )

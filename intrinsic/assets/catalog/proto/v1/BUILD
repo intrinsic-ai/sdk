@@ -23,13 +23,15 @@ load("//bazel:go_macros.bzl", "go_proto_library")
 
 # AssetCatalog protos.
 
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
 package(default_visibility = ["//visibility:public"])
 
 proto_library(
     name = "asset_catalog_proto",
     srcs = ["asset_catalog.proto"],
     deps = [
-        ":release_metadata_proto",
+        "//intrinsic/assets/catalog/proto/v1:release_metadata_proto",
         "//intrinsic/assets/data/proto/v1:data_asset_proto",
         "//intrinsic/assets/data/proto/v1:referenced_data_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_proto",
@@ -72,7 +74,7 @@ go_proto_library(
     importpath = "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto",
     protos = [":asset_catalog_proto"],
     deps = [
-        ":release_metadata_go_proto",
+        "//intrinsic/assets/catalog/proto/v1:release_metadata_go_proto",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
@@ -108,19 +110,14 @@ py_grpc_library(
     deps = [":asset_catalog_py_pb2"],
 )
 
+js_library(
+    name = "release_metadata_jspb_proto",
+    deps = ["//intrinsic/assets/catalog/proto/v1:release_metadata_proto"],
+)
+
 proto_library(
     name = "release_metadata_proto",
     srcs = ["release_metadata.proto"],
-)
-
-js_library(
-    name = "release_metadata_jspb_proto",
-    deps = [":release_metadata_proto"],
-)
-
-py_proto_library(
-    name = "release_metadata_py_pb2",
-    deps = [":release_metadata_proto"],
 )
 
 cc_proto_library(
@@ -132,4 +129,9 @@ go_proto_library(
     name = "release_metadata_go_proto",
     importpath = "intrinsic/assets/catalog/proto/v1/release_metadata_go_proto",
     protos = [":release_metadata_proto"],
+)
+
+py_proto_library(
+    name = "release_metadata_py_pb2",
+    deps = [":release_metadata_proto"],
 )

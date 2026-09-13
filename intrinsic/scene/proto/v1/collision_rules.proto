@@ -1,0 +1,105 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+edition = "2023";
+
+package intrinsic_proto.scene_object.v1;
+
+option go_package = "intrinsic/scene/proto/v1/collision_rules_go_proto";
+
+// Rule defining a pair of entities to use with the margin and exclusion rules.
+message CollisionEntityPair {
+  message Entity {
+    // The name of the entity to use in the rule. If it is not specified it
+    // means it will match all entities within the current scene object.
+    string entity_name = 1;
+  }
+
+  // One of the entities to use in the rule. The ordering between the left and
+  // right entities does not affect the application of this rule. If the
+  // internal entity_name is not specified (empty) then this is used as a
+  // 'anything' matcher. If both left and right entity names are not specified
+  // then the given rule applies to all entities within the scene object.
+  Entity left_entity = 1;
+
+  // One of the entities to use in the rule. The ordering between the left and
+  // right entities does not affect the application of this rule.
+  Entity right_entity = 2;
+}
+
+// Rule defining the collision margin between a pair of entities.
+message CollisionMarginRule {
+  // Specifies the pair of entities to apply the margin rule to.
+  CollisionEntityPair entity_pair = 1;
+
+  // This rule will be applied for the pair of entities specified by the given
+  // left_entity and right_entity fields. If the internal entity_name is not
+  // specified (or empty) for one of the two fields then that is used as an
+  // 'all/anything' matcher within the scene object. If both left and right
+  // entity names are not specified then the given rule applies to all entities
+  // within the scene objects.
+  //
+  // The hard margin (in meters) is the closest we allow two entities to get
+  // before we treat it as a collision. A negative number is considered
+  // invalid. Default is 0, meaning that entities are deemed not in collision
+  // unless they intersect.
+  double hard_margin = 2;
+}
+
+// Rule defining the collision margin between a pair of entities.
+message CollisionExclusionRule {
+  // Specifies the pair of entities to apply the exclusion rule to.
+  CollisionEntityPair entity_pair = 1;
+
+  // This rule will be applied for the pair of entities specified by the given
+  // left_entity and right_entity fields. If the internal entity_name is not
+  // specified (or empty) for one of the two fields then that is used as an
+  // 'all/anything' matcher within the scene object. If both left and right
+  // entity names are not specified then the given rule applies to all entities
+  // within the scene objects.
+  //
+  // If true, the collisions will be ignored between these two entities. If
+  // false, we defer to the margins specified elsewhere.
+  bool is_excluded = 2;
+}
+
+// A collection of collision rules to apply to a scene object.
+//
+// When evaluating whether a pair of entities are in collision, we will first
+// check to see if the pair of entities should be excluded from collisions
+// (using the exclusion rules). If not, we will check to see what margin value
+// is specified for the pair using the margin rules.
+message CollisionRules {
+  // The margin based rules for this instance. We can specify rules that define
+  // the minimum margin for specific entity pairs.
+  //
+  // If there are multiple rules that apply, the more restrictive rule will
+  // apply for any given pair of entities. This means that if we have a rule
+  // that specifies anything with anything is a maring of 2cm, and we have a
+  // rule that says entity "base" and anything has a margin of 1cm, while a
+  // third rule says "base" entity and "target" entity have a margin of 3cm.
+  // When we eveluate these rules and calculate collisions for the "base" and
+  // "target" entities, the most restrictive rule (the 1cm rule) will apply.
+  //
+  // DEPRECATED: setting this field as no effect. Use world level collision
+  // settings instead.
+  repeated CollisionMarginRule margin_rules = 1 [deprecated = true];
+
+  // The exclusion rules for this instance. We can specify rules that define  if
+  // a specific entity pair should be treated as collidable.
+  //
+  // If there are multiple rules that apply to a given pair of entities, the
+  // last rule within this list wins and its value is used.
+  repeated CollisionExclusionRule exclusion_rules = 2;
+}

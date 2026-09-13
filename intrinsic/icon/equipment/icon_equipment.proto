@@ -1,0 +1,78 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.icon;
+
+import "intrinsic/hardware/gpio/gpio_service_equipment.proto";
+import "intrinsic/icon/equipment/force_control_settings.proto";
+
+option go_package = "intrinsic/icon/equipment/icon_equipment_go_proto";
+
+message Icon2PositionPart {
+  string part_name = 1 [deprecated = true];
+  string world_robot_collection_name = 3 [deprecated = true];
+
+  // Object names by part name.
+  map<string, string> object_names = 4;
+
+  reserved 2;
+  reserved "connection_config";
+}
+
+message Icon2GripperPart {
+  string part_name = 1 [deprecated = true];
+  repeated string part_names = 4;
+
+  reserved 2, 3;
+  reserved "connection_config", "world_robot_collection_name";
+}
+
+message Icon2AdioPart {
+  message IconTarget {
+    string part_name = 1;
+    reserved 2, 3;
+    reserved "connection_config", "world_robot_collection_name";
+  }
+
+  oneof target {
+    IconTarget icon_target = 3 [deprecated = true];
+    gpio.GPIOServiceTarget gpio_service_target = 5 [deprecated = true];
+  }
+  repeated string icon_parts = 6;
+
+  reserved 4;
+  reserved "ads_target";
+}
+
+message Icon2ForceTorqueSensorPart {
+  string part_name = 1 [deprecated = true];
+  // Parameters used for all force control skills.
+  ForceControlSettings force_control_settings = 4 [deprecated = true];
+
+  // Force control settings by part name.
+  map<string, ForceControlSettings> settings = 5;
+
+  reserved 2, 3;
+  reserved "connection_config", "world_robot_collection_name";
+}
+
+message Icon2RangefinderPart {
+  string part_name = 1 [deprecated = true];
+  repeated string part_names = 4;
+
+  reserved 2, 3;
+  reserved "connection_config", "world_robot_collection_name";
+}

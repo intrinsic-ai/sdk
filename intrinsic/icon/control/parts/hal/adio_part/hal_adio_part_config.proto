@@ -1,0 +1,60 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.icon;
+
+import "intrinsic/icon/control/parts/hal/v1/hal_part_config.proto";
+
+option go_package = "intrinsic/icon/control/parts/hal/adio_part/hal_adio_part_config_go_proto";
+
+// Config used to create an `ADIOPart` providing access to the configured inputs
+// and outputs.
+// It is possible to define multiple parts interacting with hardware modules.
+// This poses the risk of multiple parts controlling the same IO blocks!
+//
+// At least one input or output needs to be defined.
+// Next ID: 5
+message HalADIOPartConfig {
+  // Defines a single input or output block exposed by the respective interface.
+  // A block is a logical group of inputs or outputs.
+  message HalBlockConfig {
+    // Uniquely identifies an interface.
+    intrinsic_proto.icon.v1.HardwareInterface interface = 1;
+    //  `export_name` can be used to overwrite the name generated from
+    //  `interface`.
+    // Interface names need to be unique within a HalBlockConfig.
+    // This means that e.g. no two digital_input blocks can share a name. It is
+    // fine to have an input_block and an output_block with the same name.
+    optional string export_name = 2;
+  }
+
+  // Digital input blocks.
+  // Block names and interfaces need to be unique within a list.
+  repeated HalBlockConfig digital_inputs = 1;
+  // Digital output blocks.
+  // The state of the physical output is not reflected in the command.
+  // A module can reflect the physical state of the outputs as a digital input.
+  // Block names and interfaces need to be unique within a list.
+  repeated HalBlockConfig digital_outputs = 2;
+  // Analog input blocks.
+  // Block names and interfaces need to be unique within a list.
+  repeated HalBlockConfig analog_inputs = 3;
+  // Analog output blocks.
+  // The state of the physical output is not reflected in the command.
+  // A module can reflect the physical state of the outputs as an analog input.
+  // Block names and interfaces need to be unique within a list.
+  repeated HalBlockConfig analog_outputs = 4;
+}

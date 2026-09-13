@@ -1,0 +1,86 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.world;
+
+import "google/protobuf/timestamp.proto";
+import "intrinsic/math/proto/pose.proto";
+import "intrinsic/math/proto/vector3.proto";
+
+option go_package = "intrinsic/world/proto/kinematics_component_go_proto";
+
+// Component indicating the owning Entity represents a DoF.
+message KinematicsComponent {
+  // Pose of the inboard coordinate frame in the parent object's space.
+  intrinsic_proto.Pose parent_t_inboard = 10;
+  intrinsic_proto.Pose outboard_t_child = 13;
+
+  // Type of joint.
+  enum MotionType {
+    MOTION_TYPE_UNDEFINED = 0;
+
+    // 1 DoF, rotates about the axis.
+    MOTION_TYPE_REVOLUTE = 1;
+
+    // 1 DoF, translates along the axis.
+    MOTION_TYPE_PRISMATIC = 2;
+
+    // 0 DoF, inboard and outboard transforms are always equal.
+    MOTION_TYPE_FIXED = 3;
+  }
+  MotionType motion_type = 1;
+
+  // Axis of this joint in its local space (relative to its inboard coordinate
+  // frame). If not set, +z is used by default.
+  intrinsic_proto.Vector3 axis = 11;
+
+  // GetDof() and SetDof()-style functions operate on this value.
+  optional double raw_value = 3;
+  // Next tag: 6
+  message Limits {
+    double velocity = 1;
+    double acceleration = 2;
+    double jerk = 3;
+    double effort = 5;
+
+    // A pair of lower and upper limits.
+    message LimitPair {
+      double lower = 1;
+      double upper = 2;
+    }
+
+    // Optional limits on raw_value. If none of these options are set, no limits
+    // are enforced on raw_value.
+    oneof raw_value_limits_type {
+      LimitPair fixed_limits = 4;
+
+      // In the future, we could have other types of value limits.
+    }
+  }
+
+  // System limits of this joint.
+  Limits system_limits = 5;
+
+  // Application limits of this joint.
+  Limits application_limits = 12;
+
+  // The physical velocity dependent viscous damping coefficient of the joint.
+  double damping = 8;
+
+  // The physical static friction value of the joint.
+  double friction = 9;
+
+}
