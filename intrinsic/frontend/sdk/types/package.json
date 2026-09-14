@@ -5,6 +5,10 @@
   "type": "module",
   "license": "Apache-2.0",
   "exports": {
+    "./google/*": {
+      "types": "./google/*.d.ts",
+      "default": "./google/*.js"
+    },
     "./*": {
       "types": "./intrinsic/*.d.ts",
       "default": "./intrinsic/*.js"
