@@ -56,7 +56,7 @@ func init() {
 	flags = cmdutils.NewCmdFlags()
 	flags.SetCommand(iconCmd)
 	flags.AddFlagsAddressClusterSolution()
-	flags.AddFlagsProjectOrg()
+	flags.AddFlagsProjectOrgOptional()
 
 	iconCmd.PersistentFlags().StringVar(&flagInstanceName, "instance_name", "", "name of the ICON instance to connect to")
 

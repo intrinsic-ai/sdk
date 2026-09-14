@@ -22,27 +22,25 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc/metadata"
 
 	pb "intrinsic/hardware/gpio/v1/gpio_service_go_proto"
 	signalpb "intrinsic/hardware/gpio/v1/signal_go_proto"
 )
 
-func readSignals(ctx context.Context, serverAddress, k8sContext, resourceInstanceName string, signalNames []string) error {
-	c, err := makeConnectionManager(ctx, serverAddress, k8sContext)
+func readSignals(ctx context.Context, opts ClientOptions, signalNames []string) error {
+	ctx, client, err := makeGPIOClient(ctx, opts)
 	if err != nil {
 		return err
 	}
-	defer c.close()
+	defer client.Close()
 
-	rctx := metadata.AppendToOutgoingContext(ctx, "x-resource-instance-name", resourceInstanceName)
 	req := &pb.ReadSignalsRequest{SignalNames: signalNames}
-	resp, err := c.client().ReadSignals(rctx, req)
+	resp, err := client.ReadSignals(ctx, req)
 	if err != nil {
 		return err
 	}
 
-	if resp.SignalValues == nil || len(resp.SignalValues.Values) == 0 {
+	if resp.GetSignalValues() == nil || len(resp.GetSignalValues().GetValues()) == 0 {
 		fmt.Println("No signals found!")
 		return nil
 	}
@@ -56,8 +54,8 @@ func readSignals(ctx context.Context, serverAddress, k8sContext, resourceInstanc
 	formatString := "%-" + strconv.Itoa(maxSignalNameLength) + "s  %-15s\n"
 
 	fmt.Printf(formatString, "NAME", "VALUE")
-	for _, name := range slices.Sorted(maps.Keys(resp.SignalValues.Values)) {
-		switch val := resp.SignalValues.Values[name].Value.(type) {
+	for _, name := range slices.Sorted(maps.Keys(resp.GetSignalValues().GetValues())) {
+		switch val := resp.GetSignalValues().GetValues()[name].Value.(type) {
 		case *signalpb.SignalValue_BoolValue:
 			fmt.Printf(formatString, name, strconv.FormatBool(val.BoolValue))
 		case *signalpb.SignalValue_UnsignedIntValue:
@@ -83,7 +81,7 @@ var gpioReadSignalsCmd = &cobra.Command{
 	Use:   "read-signals",
 	Short: "Print the values of signals",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return readSignals(cmd.Context(), flagServerAddress, flagK8sContext, flagResourceInstanceName, flagSignalNames)
+		return readSignals(cmd.Context(), clientOptionsFromFlags(), flagSignalNames)
 	},
 }
 

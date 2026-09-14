@@ -22,7 +22,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	codespb "google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/prototext"
 
 	pb "intrinsic/hardware/gpio/v1/gpio_service_go_proto"
@@ -33,19 +32,18 @@ import (
 // first by attempting to unmarshal it as pbtxt, then by comparing it to
 // various versions of "true" and "false".
 func tryConvertSignalValue(value string) (*signalpb.SignalValue, error) {
-	signalValue := &signalpb.SignalValue{}
-
-	// First try to convert the value by unmarshaling pbtxt.
-	if err := prototext.Unmarshal([]byte(value), signalValue); err == nil { // If NO error
+	var signalValue = new(signalpb.SignalValue)
+	if err := prototext.Unmarshal([]byte(value), signalValue); err == nil {
 		return signalValue, nil
 	}
 
-	if strings.ToLower(value) == "true" {
+	lowerValue := strings.ToLower(value)
+	if lowerValue == "true" {
 		signalValue.Value = &signalpb.SignalValue_BoolValue{BoolValue: true}
 		return signalValue, nil
 	}
 
-	if strings.ToLower(value) == "false" {
+	if lowerValue == "false" {
 		signalValue.Value = &signalpb.SignalValue_BoolValue{BoolValue: false}
 		return signalValue, nil
 	}
@@ -53,29 +51,33 @@ func tryConvertSignalValue(value string) (*signalpb.SignalValue, error) {
 	return nil, fmt.Errorf("failed to convert value argument %q to a SignalValue", value)
 }
 
-func writeSignal(ctx context.Context, serverAddress, k8sContext, resourceInstanceName, signalName, value string) error {
+func writeSignal(ctx context.Context, opts ClientOptions, signalName, value string) error {
 	val, err := tryConvertSignalValue(value)
 	if err != nil {
 		return err
 	}
 
-	c, err := makeConnectionManager(ctx, serverAddress, k8sContext)
+	ctx, client, err := makeGPIOClient(ctx, opts)
 	if err != nil {
 		return err
 	}
-	defer c.close()
-
-	rctx := metadata.AppendToOutgoingContext(ctx, "x-resource-instance-name", resourceInstanceName)
+	defer client.Close()
 
 	initialReq := &pb.OpenWriteSessionRequest{
 		InitialSessionData: &pb.OpenWriteSessionRequest_InitialSessionData{
 			SignalNames: []string{signalName},
 		},
 	}
-	session, err := c.client().OpenWriteSession(rctx)
+	session, err := client.OpenWriteSession(ctx)
 	if err != nil {
 		return errors.Wrap(err, "open")
 	}
+	defer func() {
+		if err := session.CloseSend(); err != nil {
+			fmt.Printf("Failed to close write session: %v\n", err)
+		}
+	}()
+
 	if err := session.Send(initialReq); err != nil {
 		return errors.Wrap(err, "failed to send initial req")
 	}
@@ -84,15 +86,9 @@ func writeSignal(ctx context.Context, serverAddress, k8sContext, resourceInstanc
 		return errors.Wrap(err, "failed to receive")
 	}
 
-	if got, want := resp.Status.Code, int32(codespb.OK); got != want {
+	if got, want := resp.GetStatus().GetCode(), int32(codespb.OK); got != want {
 		return fmt.Errorf("initial session failed, got %v, want %v", got, want)
 	}
-
-	defer func() {
-		if err := session.CloseSend(); err != nil {
-			fmt.Printf("Failed to close write session: %v", err)
-		}
-	}()
 
 	writeReq := &pb.OpenWriteSessionRequest{
 		ActionRequest: &pb.OpenWriteSessionRequest_WriteSignals{
@@ -114,7 +110,7 @@ func writeSignal(ctx context.Context, serverAddress, k8sContext, resourceInstanc
 	if err != nil {
 		return errors.Wrap(err, "failed to receive write resp")
 	}
-	if got, want := writeResp.Status.Code, int32(codespb.OK); got != want {
+	if got, want := writeResp.GetStatus().GetCode(), int32(codespb.OK); got != want {
 		return fmt.Errorf("write failed, got %v, want %v", got, want)
 	}
 	return nil
@@ -129,7 +125,7 @@ var gpioWriteSignalsCmd = &cobra.Command{
 	Use:   "write-signal",
 	Short: "Sets the value of a signal",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return writeSignal(cmd.Context(), flagServerAddress, flagK8sContext, flagResourceInstanceName, flagSignalName, flagValue)
+		return writeSignal(cmd.Context(), clientOptionsFromFlags(), flagSignalName, flagValue)
 	},
 }
 

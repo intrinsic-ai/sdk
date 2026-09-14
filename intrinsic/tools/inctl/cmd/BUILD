@@ -12,9 +12,52 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//bazel:go_macros.bzl", "go_library")
+load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 package(default_visibility = ["//visibility:public"])
+
+go_library(
+    name = "gpio",
+    srcs = [
+        "gpio.go",
+        "gpio_list_signals.go",
+        "gpio_read_signals.go",
+        "gpio_write_signal.go",
+    ],
+    importpath = "intrinsic/tools/inctl/cmd/gpio",
+    deps = [
+        ":root",
+        "//intrinsic/assets:clientutils",
+        "//intrinsic/assets:cmdutils",
+        "//intrinsic/hardware/gpio/v1:gpio_service_go_proto",
+        "//intrinsic/hardware/gpio/v1:signal_go_proto",
+        "//intrinsic/tools/inctl/util:cobrautil",
+        "@com_github_pkg_errors//:go_default_library",
+        "@com_github_spf13_cobra//:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+        "@org_golang_google_protobuf//encoding/prototext:go_default_library",
+    ],
+)
+
+go_test(
+    name = "gpio_test",
+    size = "small",
+    srcs = ["gpio_test.go"],
+    embed = [":gpio"],
+    importpath = "intrinsic/tools/inctl/cmd/gpio_test",
+    deps = [
+        "//intrinsic/assets:cmdutils",
+        "//intrinsic/hardware/gpio/v1:gpio_service_go_proto",
+        "//intrinsic/hardware/gpio/v1:signal_go_proto",
+        "@com_github_spf13_cobra//:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+    ],
+)
 
 go_library(
     name = "icon",

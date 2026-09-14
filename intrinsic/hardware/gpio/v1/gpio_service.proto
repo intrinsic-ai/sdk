@@ -96,6 +96,7 @@ message OpenWriteSessionResponse {
 // signals, it's very easy to inadvertently bind the wrong GPIO resource ot a
 // skill
 service GPIOService {
+
   // Returns metadata about the signals available on this server.
   rpc GetSignalDescriptions(GetSignalDescriptionsRequest)
       returns (GetSignalDescriptionsResponse) {

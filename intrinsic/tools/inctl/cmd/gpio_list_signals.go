@@ -22,21 +22,19 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc/metadata"
 
 	pb "intrinsic/hardware/gpio/v1/gpio_service_go_proto"
 	spb "intrinsic/hardware/gpio/v1/signal_go_proto"
 )
 
-func listSignals(ctx context.Context, serverAddress, k8sContext, resourceInstanceName string) error {
-	c, err := makeConnectionManager(ctx, serverAddress, k8sContext)
+func listSignals(ctx context.Context, opts ClientOptions) error {
+	ctx, client, err := makeGPIOClient(ctx, opts)
 	if err != nil {
 		return err
 	}
-	defer c.close()
+	defer client.Close()
 
-	rctx := metadata.AppendToOutgoingContext(ctx, "x-resource-instance-name", resourceInstanceName)
-	signals, err := c.client().GetSignalDescriptions(rctx, &pb.GetSignalDescriptionsRequest{})
+	signals, err := client.GetSignalDescriptions(ctx, &pb.GetSignalDescriptionsRequest{})
 	if err != nil {
 		return err
 	}
@@ -74,7 +72,7 @@ var gpioListSignalsCmd = &cobra.Command{
 	Use:   "list-signals",
 	Short: "Print a list of signals",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return listSignals(cmd.Context(), flagServerAddress, flagK8sContext, flagResourceInstanceName)
+		return listSignals(cmd.Context(), clientOptionsFromFlags())
 	},
 }
 

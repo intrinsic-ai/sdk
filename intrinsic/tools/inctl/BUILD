@@ -24,6 +24,7 @@ go_binary(
         "//intrinsic/assets/inctl:assetcmd",
         "//intrinsic/assets/services/inctl:service",
         "//intrinsic/skills/tools/skill/cmd",
+        "//intrinsic/tools/inctl/cmd:gpio",
         "//intrinsic/tools/inctl/cmd:icon",
         "//intrinsic/tools/inctl/cmd:markdown",
         "//intrinsic/tools/inctl/cmd:root",

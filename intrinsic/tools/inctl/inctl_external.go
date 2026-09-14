@@ -26,6 +26,7 @@ import (
 	_ "intrinsic/tools/inctl/cmd/device/device"
 	_ "intrinsic/tools/inctl/cmd/doctor/doctor"
 	_ "intrinsic/tools/inctl/cmd/ethercat/ethercat"
+	_ "intrinsic/tools/inctl/cmd/gpio"
 	_ "intrinsic/tools/inctl/cmd/icon"
 	_ "intrinsic/tools/inctl/cmd/logs/logs"
 	_ "intrinsic/tools/inctl/cmd/markdown"
