@@ -71,13 +71,6 @@ message MotionPlannerFlags {
 
   // See comment for `path_refinement_validation_margin_relative_factor`.
   optional double path_refinement_validation_margin_absolute_factor = 7;
-  // Enables the Debug Mode of the motion planner. In Debug Mode, the
-  // motion planner will fill-in and/or publish (via `PubSub`) additional
-  // information regarding statistics (e.g. timing statistics) of some of the
-  // motion planning computations for debugging and/or Quality Assurance (QA)
-  // monitoring (e.g. to monitor software regressions).
-  optional bool enable_motion_planning_debug_mode = 12;
-
   // Enables the collection of collision checking statistics for the motion
   // planner.
   optional bool enable_distance_check_statistics = 13;
@@ -131,9 +124,6 @@ message MotionPlannerServiceConfig {
   double pose_angular_tolerance_in_rad = 8;
   bool enable_motion_planner_service_nonvolatile_cache = 9;
   int32 geometry_service_cache_size = 10;
-  bool enable_motion_planning_inspector = 11;
-  bool save_debug_data = 12;
-
   // If true, creates a recording for all motion planning calls.
   // If false (default), restricts automated recordings to only failed plans.
   optional bool log_all_recordings = 13;

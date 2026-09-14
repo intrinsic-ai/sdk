@@ -103,7 +103,6 @@ go_proto_library(
         "//intrinsic/motion_planning/proto/v1:compute_ik_go_proto",
         "//intrinsic/motion_planning/proto/v1:geometric_constraints_go_proto",
         "//intrinsic/motion_planning/proto/v1:motion_planner_config_go_proto",
-        "//intrinsic/motion_planning/proto/v1:motion_planning_error_go_proto",
         "//intrinsic/motion_planning/proto/v1:motion_planning_go_proto",
         "//intrinsic/motion_planning/proto/v1:robot_specification_go_proto",
         "//intrinsic/world/proto:collision_checker_config_go_proto",
