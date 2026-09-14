@@ -68,6 +68,7 @@ message AssetInstanceInfo {
   // The name of the node in which the service asset must run on. This option is
   // only valid for service assets.
   optional string required_node_hostname = 4;
+
   // The asset instance's config will be a text proto until we can parse it with
   // the asset's file descriptor set. The default config will be assigned if no
   // config was given.
@@ -78,5 +79,6 @@ message AssetInstanceInfo {
     google.protobuf.Any parsed = 6;
   }
 
-  reserved 3;
+  reserved 3, 7;
+  reserved "data_files";
 }
