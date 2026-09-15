@@ -208,6 +208,7 @@ cc_library(
     srcs = ["skill_utils.cc"],
     hdrs = ["skill_utils.h"],
     deps = [
+        "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
         "//intrinsic/resources/proto:resource_handle_cc_proto",
         "//intrinsic/skills/proto:equipment_cc_proto",
         "//intrinsic/skills/proto:footprint_cc_proto",

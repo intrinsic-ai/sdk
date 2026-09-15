@@ -19,6 +19,7 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
+#include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/resources/proto/resource_handle.pb.h"
 #include "intrinsic/skills/proto/equipment.pb.h"
 #include "intrinsic/skills/proto/footprint.pb.h"
@@ -27,9 +28,15 @@
 
 namespace intrinsic {
 namespace skills {
-
 absl::StatusOr<ConnectionParams> GetConnectionParamsFromHandle(
     const intrinsic_proto::resources::ResourceHandle& handle);
+
+// Returns the connection parameters for the specified interface from a
+// resolved dependency. Only dependencies with no headers or a single header
+// with key 'x-resource-instance-name' are supported.
+absl::StatusOr<ConnectionParams> GetConnectionParamsFromResolvedDependency(
+    const intrinsic_proto::assets::v1::ResolvedDependency& dep,
+    absl::string_view interface_uri);
 
 // Creates client channel for communicating with equipment.
 absl::StatusOr<std::shared_ptr<intrinsic::Channel>> CreateChannelFromHandle(

@@ -29,6 +29,12 @@
 
 namespace intrinsic::skills {
 
+namespace {
+
+constexpr char kAssetInstanceNameHeader[] = "x-resource-instance-name";
+
+}  // namespace
+
 absl::StatusOr<intrinsic::ConnectionParams> GetConnectionParamsFromHandle(
     const intrinsic_proto::resources::ResourceHandle& handle) {
   if (!handle.connection_info().has_grpc()) {
@@ -44,6 +50,60 @@ absl::StatusOr<intrinsic::ConnectionParams> GetConnectionParamsFromHandle(
       .header =
           std::string(handle.connection_info().grpc().header()),  // NOLINT
   };
+}
+
+absl::StatusOr<intrinsic::ConnectionParams>
+GetConnectionParamsFromResolvedDependency(
+    const intrinsic_proto::assets::v1::ResolvedDependency& dep,
+    absl::string_view interface_uri) {
+  const auto it = dep.interfaces().find(std::string(interface_uri));
+  if (it == dep.interfaces().end()) {
+    return absl::NotFoundError(absl::StrFormat(
+        "Interface \"%s\" not found in ResolvedDependency \"%s\"",
+        interface_uri, dep.name()));
+  }
+  const auto& iface = it->second;
+  if (!iface.has_grpc() || !iface.grpc().has_connection()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Interface \"%s\" in ResolvedDependency \"%s\" does "
+                        "not specify gRPC connection",
+                        interface_uri, dep.name()));
+  }
+
+  const auto& grpc_conn = iface.grpc().connection();
+  if (grpc_conn.address().empty()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("gRPC connection for interface \"%s\" in "
+                        "ResolvedDependency \"%s\" has empty address",
+                        interface_uri, dep.name()));
+  }
+
+  if (grpc_conn.metadata_size() > 1) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "gRPC connection for interface \"%s\" in ResolvedDependency \"%s\" has "
+        "%d metadata entries; only at most one '%s' "
+        "header is supported",
+        interface_uri, dep.name(), grpc_conn.metadata_size(),
+        kAssetInstanceNameHeader));
+  }
+
+  intrinsic::ConnectionParams params;
+  params.address = grpc_conn.address();
+
+  if (grpc_conn.metadata_size() == 1) {
+    const auto& metadata = grpc_conn.metadata(0);
+    if (metadata.key() != kAssetInstanceNameHeader) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "gRPC connection for interface \"%s\" in ResolvedDependency \"%s\" "
+          "specifies unsupported metadata key \"%s\"; only "
+          "'%s' is supported",
+          interface_uri, dep.name(), metadata.key(), kAssetInstanceNameHeader));
+    }
+    params.header = metadata.key();
+    params.instance_name = metadata.value();
+  }
+
+  return params;
 }
 
 absl::StatusOr<std::shared_ptr<intrinsic::Channel>> CreateChannelFromHandle(
