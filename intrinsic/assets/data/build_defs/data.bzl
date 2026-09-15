@@ -84,9 +84,6 @@ def _intrinsic_data_impl(ctx):
         "--bundle_path",
         ctx.outputs.bundle_out,
     ).add(
-        "--bundle_short_path",
-        ctx.outputs.bundle_out.short_path,
-    ).add(
         "--bundle_runfiles_path",
         to_rlocation_path(ctx, ctx.outputs.bundle_out),
     ).add_all(

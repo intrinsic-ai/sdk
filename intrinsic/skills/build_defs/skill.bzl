@@ -347,9 +347,6 @@ def _intrinsic_skill_rule_impl(ctx):
         "--bundle_path",
         bundle_output,
     ).add(
-        "--bundle_short_path",
-        bundle_output.short_path,
-    ).add(
         "--bundle_runfiles_path",
         to_rlocation_path(ctx, bundle_output),
     ).add(

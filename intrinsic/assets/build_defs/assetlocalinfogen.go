@@ -44,7 +44,6 @@ import (
 var (
 	assetType            = flag.String("asset_type", "", "The type of asset.")
 	bundlePath           = flag.String("bundle_path", "", "Path to the generated bundle file.")
-	bundleShortPath      = flag.String("bundle_short_path", "", "Bazel short path of the generated bundle file.")
 	bundleRunfilesPath   = flag.String("bundle_runfiles_path", "", "Bazel runfiles path of the generated bundle file.")
 	manifest             = flag.String("manifest", "", "The asset's manifest.")
 	fileDescriptorSets   = intrinsicflag.MultiString("file_descriptor_set", nil, "Path to a binary file descriptor set proto to be used to resolve the data payload. Can be repeated. Passing only empty files has the same effect as passing no files at all.")
@@ -62,9 +61,6 @@ func writeAsset(fds *dpb.FileDescriptorSet) {
 
 	if *bundlePath == "" {
 		log.Exitf("bundle_path is required")
-	}
-	if *bundleShortPath == "" {
-		log.Exitf("bundle_short_path is required")
 	}
 	if *bundleRunfilesPath == "" {
 		log.Exitf("bundle_runfiles_path is required")
@@ -125,7 +121,6 @@ func writeAsset(fds *dpb.FileDescriptorSet) {
 		AssetType:          atype,
 		Id:                 id,
 		BundlePath:         *bundlePath,
-		BundleShortPath:    *bundleShortPath,
 		BundleRunfilesPath: *bundleRunfilesPath,
 	}, protoio.WithDeterministic(true)); err != nil {
 		log.Exitf("Could not write asset local info: %v", err)

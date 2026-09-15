@@ -82,9 +82,6 @@ def _intrinsic_scene_object_impl(ctx):
         "--bundle_path",
         bundle_output,
     ).add(
-        "--bundle_short_path",
-        bundle_output.short_path,
-    ).add(
         "--bundle_runfiles_path",
         to_rlocation_path(ctx, ctx.outputs.bundle_out),
     ).add_all(
