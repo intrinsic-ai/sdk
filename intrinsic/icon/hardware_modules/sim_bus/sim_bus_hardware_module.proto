@@ -112,18 +112,11 @@ message SimBusModuleConfig {
   repeated DeviceConfig additional_devices = 4;
   // If the HWM has DIOs, you must provide this to map bit values to names that
   // ICON understands. This must mirror the DIO configuration for the
-  // corresponding real robot. DIO configuration is usually stored in one of
-  // two ways:
-  // 1. Directly in the machine.xml file:
-  //    http://intrinsic/icon/machines/rtcl_iiwa/iiwa_extra_config_rtcl.xml;l=116;rcl=538418285
-  // 2. In a textproto referenced by machine.xml:
-  //    http://intrinsic/icon/machines/rtcl_ur/ur_extra_config_hal.xml;l=159;rcl=549275616
-  //    http://intrinsic/icon/machines/rtcl_ur/sim_dios.textproto;rcl=549275616
+  // corresponding real robot.
   //
-  // Some configurations of ICON have neither of these (because the hardware
-  // module defines DIOs implicitly, for example. The UR module does this). If
-  // you're writing a SimBusModuleConfig proto, you probably know how to deal
-  // with this.
+  // Some configurations of ICON may not have this (because the hardware
+  // module defines DIOs implicitly, for example). If you're writing
+  // a SimBusModuleConfig proto, you probably know how to deal with this.
   optional intrinsic_proto.icon.DigitalIOs dio_config = 5;
   // Overrides world server address (in hostname:port format). Only use this for
   // testing!
