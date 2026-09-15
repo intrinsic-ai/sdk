@@ -255,6 +255,8 @@ go_library(
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:installed_assets_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",
+        "//intrinsic/assets/proto/v1:asset_go_proto",
+        "//intrinsic/assets/proto/v1:processed_asset_go_proto",
         "//intrinsic/assets/scene_objects:gzfprocessor",
         "//intrinsic/assets/scene_objects:sceneobjectbundle",
         "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",

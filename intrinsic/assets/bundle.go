@@ -46,6 +46,8 @@ import (
 	idpb "intrinsic/assets/proto/id_go_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_proto"
 	metadatapb "intrinsic/assets/proto/metadata_go_proto"
+	assetpb "intrinsic/assets/proto/v1/asset_go_proto"
+	processedassetpb "intrinsic/assets/proto/v1/processed_asset_go_proto"
 	sompb "intrinsic/assets/scene_objects/proto/scene_object_manifest_go_proto"
 	smpb "intrinsic/assets/services/proto/service_manifest_go_proto"
 	psmpb "intrinsic/skills/proto/processed_skill_manifest_go_proto"
@@ -149,6 +151,10 @@ type ProcessedBundle interface {
 	// Install returns a processed asset in the form required to be released to
 	// the catalog.
 	Release(VersionDetails) *acpb.Asset
+
+	// Solution returns a processed asset in the form required to be included in
+	// a solution.
+	Solution() *assetpb.Asset
 	// FileDescriptorSet may return nil for asset types that do not have a file
 	// descriptor set or do not have one available from the given information
 	// (due to referencing catalog assets).
@@ -179,6 +185,18 @@ func (b processedDataBundle) Release(details VersionDetails) *acpb.Asset {
 			AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_DataSpecificDeploymentData{
 				DataSpecificDeploymentData: &acpb.Asset_DataDeploymentData{
 					Data: da,
+				},
+			},
+		},
+	}
+}
+
+func (b processedDataBundle) Solution() *assetpb.Asset {
+	return &assetpb.Asset{
+		Source: &assetpb.Asset_Local{
+			Local: &processedassetpb.ProcessedAsset{
+				Variant: &processedassetpb.ProcessedAsset_Data{
+					Data: cloneOf(b.da),
 				},
 			},
 		},
@@ -234,6 +252,18 @@ func (b processedHardwareDeviceBundle) Release(details VersionDetails) *acpb.Ass
 	}
 }
 
+func (b processedHardwareDeviceBundle) Solution() *assetpb.Asset {
+	return &assetpb.Asset{
+		Source: &assetpb.Asset_Local{
+			Local: &processedassetpb.ProcessedAsset{
+				Variant: &processedassetpb.ProcessedAsset_HardwareDevice{
+					HardwareDevice: cloneOf(b.manifest),
+				},
+			},
+		},
+	}
+}
+
 func (b processedHardwareDeviceBundle) FileDescriptorSet() *dpb.FileDescriptorSet {
 	return nil
 }
@@ -263,6 +293,18 @@ func (b processedProcessBundle) Release(details VersionDetails) *acpb.Asset {
 			AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_ProcessSpecificDeploymentData{
 				ProcessSpecificDeploymentData: &acpb.Asset_ProcessDeploymentData{
 					Process: pa,
+				},
+			},
+		},
+	}
+}
+
+func (b processedProcessBundle) Solution() *assetpb.Asset {
+	return &assetpb.Asset{
+		Source: &assetpb.Asset_Local{
+			Local: &processedassetpb.ProcessedAsset{
+				Variant: &processedassetpb.ProcessedAsset_Process{
+					Process: cloneOf(b.pa),
 				},
 			},
 		},
@@ -311,6 +353,18 @@ func (b processedSceneObjectBundle) Release(details VersionDetails) *acpb.Asset 
 	}
 }
 
+func (b processedSceneObjectBundle) Solution() *assetpb.Asset {
+	return &assetpb.Asset{
+		Source: &assetpb.Asset_Local{
+			Local: &processedassetpb.ProcessedAsset{
+				Variant: &processedassetpb.ProcessedAsset_SceneObject{
+					SceneObject: cloneOf(b.manifest),
+				},
+			},
+		},
+	}
+}
+
 func (b processedSceneObjectBundle) FileDescriptorSet() *dpb.FileDescriptorSet {
 	return cloneOf(b.manifest.GetAssets().GetFileDescriptorSet())
 }
@@ -353,6 +407,18 @@ func (b processedServiceBundle) Release(details VersionDetails) *acpb.Asset {
 	}
 }
 
+func (b processedServiceBundle) Solution() *assetpb.Asset {
+	return &assetpb.Asset{
+		Source: &assetpb.Asset_Local{
+			Local: &processedassetpb.ProcessedAsset{
+				Variant: &processedassetpb.ProcessedAsset_Service{
+					Service: cloneOf(b.manifest),
+				},
+			},
+		},
+	}
+}
+
 func (b processedServiceBundle) FileDescriptorSet() *dpb.FileDescriptorSet {
 	return cloneOf(b.manifest.GetAssets().GetFileDescriptorSet())
 }
@@ -388,6 +454,18 @@ func (b processedSkillBundle) Release(details VersionDetails) *acpb.Asset {
 			AssetSpecificDeploymentData: &acpb.Asset_AssetDeploymentData_SkillSpecificDeploymentData{
 				SkillSpecificDeploymentData: &acpb.Asset_SkillDeploymentData{
 					Manifest: manifest,
+				},
+			},
+		},
+	}
+}
+
+func (b processedSkillBundle) Solution() *assetpb.Asset {
+	return &assetpb.Asset{
+		Source: &assetpb.Asset_Local{
+			Local: &processedassetpb.ProcessedAsset{
+				Variant: &processedassetpb.ProcessedAsset_Skill{
+					Skill: cloneOf(b.manifest),
 				},
 			},
 		},

@@ -1,0 +1,179 @@
+# Copyright 2026 Intrinsic Innovation LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Thread-safe, in-memory caching for Skill data across lifecycle methods."""
+
+from __future__ import annotations
+
+from collections import OrderedDict
+import functools
+import threading
+from typing import Any
+from typing import Callable
+from typing import Optional
+from typing import TypeVar
+
+_T = TypeVar("_T")
+
+# Sentinel to missing values in the internal LRU cache.
+_MISSING = object()
+
+
+@functools.cache
+def get_skill_data() -> SkillData:
+  """Returns the process-wide default SkillData instance."""
+  return SkillData()
+
+
+class SkillData:
+  """Provides thread-safe in-memory caching across Skill lifecycle methods.
+
+  SkillData caches values keyed by (context_id, key) across Skill lifecycle
+  methods with automatic LRU eviction bounded by the maximum number of active
+  context_ids.
+
+  Args:
+    max_contexts: Maximum number of concurrent action execution contexts
+      expected to be kept in memory (i.e., the maximum number of expected
+      parallel calls of the Skill by the Executive). Defaults to 32.
+  """
+
+  def __init__(self, max_contexts: int = 32) -> None:
+    if max_contexts < 0:
+      raise ValueError(
+          f"max_contexts must be non-negative, got {max_contexts}."
+      )
+    self._cache = _LRUCache(max_contexts)
+
+  def get(
+      self,
+      context_id: str,
+      key: str,
+      validate_fn: Optional[Callable[[_T], bool]] = None,
+  ) -> Optional[_T]:
+    """Returns the cached value for (context_id, key), or None if not found.
+
+    If `validate_fn` is provided and a cached value exists:
+    - Returns cached value if `validate_fn` returns True.
+    - Returns None if `validate_fn` returns False.
+    - Propagates any exception immediately if `validate_fn` raises one.
+
+    Args:
+      context_id: Identifier for the action execution context.
+      key: Identifier for the cached item within the context.
+      validate_fn: Optional callback to validate the cached value.
+
+    Returns:
+      The cached value, or None if missing or invalidated.
+    """
+    cached = self._cache.get(context_id, key)
+    if cached is _MISSING:
+      return None
+
+    if validate_fn is not None:
+      if not validate_fn(cached):
+        return None
+
+    return cached
+
+  def get_or_compute(
+      self,
+      context_id: str,
+      key: str,
+      compute_fn: Callable[[], _T],
+      validate_fn: Optional[Callable[[_T], bool]] = None,
+  ) -> _T:
+    """Returns the cached value for (context_id, key) or computes and stores it.
+
+    If `validate_fn` is provided and a cached value exists:
+    - Returns cached value if `validate_fn` returns true.
+    - Recomputes via `compute_fn`, updates cache, and returns fresh value if
+      `validate_fn` returns false.
+    - Propagates any exception immediately if `validate_fn` raises an exception.
+
+    Automatically evicts the least recently used context_id (and all its
+    associated keys) if the context capacity is reached.
+
+    Args:
+      context_id: Identifier for the action execution context.
+      key: Identifier for the cached item within the context.
+      compute_fn: Callback to compute the value if missing or invalidated.
+      validate_fn: Optional callback to validate the cached value.
+
+    Returns:
+      The cached or computed value.
+    """
+    if compute_fn is None:
+      raise ValueError("compute_fn must not be None.")
+
+    cached = self._cache.get(context_id, key)
+    if cached is not _MISSING:
+      if validate_fn is None or validate_fn(cached):
+        return cached
+
+    fresh_value = compute_fn()
+    self._cache.put(context_id, key, fresh_value)
+
+    return fresh_value
+
+  def delete(self, context_id: str) -> bool:
+    """Deletes all entries for a specific context_id.
+
+    Args:
+      context_id: Identifier for the action execution context to delete.
+
+    Returns:
+      True if the context was deleted, False if not found.
+    """
+    return self._cache.erase(context_id)
+
+
+class _LRUCache:
+  """Thread-safe raw LRU cache storing data by context_id and key."""
+
+  def __init__(self, max_contexts: int) -> None:
+    self._max_contexts = max_contexts
+    self._lock = threading.Lock()
+    self._contexts: OrderedDict[str, dict[str, Any]] = OrderedDict()
+
+  def get(self, context_id: str, key: str) -> Any:
+    """Returns the cached value or _MISSING if not found."""
+    with self._lock:
+      context = self._contexts.get(context_id)
+      if context is None:
+        return _MISSING
+      self._contexts.move_to_end(context_id)
+      return context.get(key, _MISSING)
+
+  def put(self, context_id: str, key: str, value: Any) -> None:
+    """Stores a value for (context_id, key), updating LRU order."""
+    if self._max_contexts == 0:
+      return
+
+    with self._lock:
+      context = self._contexts.get(context_id)
+      if context is not None:
+        context[key] = value
+        self._contexts.move_to_end(context_id)
+        return
+
+      if len(self._contexts) >= self._max_contexts:
+        self._contexts.popitem(last=False)
+
+      self._contexts[context_id] = {key: value}
+
+  def erase(self, context_id: str) -> bool:
+    """Erases a context_id and all its keys. Returns True if found."""
+    with self._lock:
+      return self._contexts.pop(context_id, None) is not None

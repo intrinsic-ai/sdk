@@ -17,15 +17,12 @@ syntax = "proto3";
 package intrinsic_proto.motion_planning.v1;
 
 import "google/api/annotations.proto";
-import "google/protobuf/duration.proto"; // intrinsic:enable_reachability_analysis:strip
 import "google/protobuf/empty.proto";
 import "intrinsic/assets/proto/field_metadata.proto";
 import "intrinsic/assets/proto/v1/resolved_dependency.proto";
 import "intrinsic/geometry/proto/transformed_geometry_storage_refs.proto";
 import "intrinsic/icon/proto/joint_space.proto";
-import "intrinsic/kinematics/types/joint_limits.proto"; // intrinsic:enable_reachability_analysis:strip
 import "intrinsic/logging/proto/context.proto";
-import "intrinsic/math/proto/point.proto"; // intrinsic:enable_reachability_analysis:strip
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/motion_planning/proto/v1/compute_ik.proto";
 import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
@@ -347,124 +344,6 @@ message CheckCollisionsResponse {
   // be more collisions.
   string collision_debug_msg = 2;
 }
-// intrinsic:enable_reachability_analysis:strip_begin
-
-message ReachabilityEnvelopeRequest {
-  string world_id = 1;
-
-  // Specification of what robot is being controlled.
-  RobotReference robot_reference = 2;
-}
-
-message ReachabilityEnvelopeResponse {
-  // The numerical approximation of the maximum arm length from the base to the
-  // flange (i.e. no additional/attached tooltip being considered) of the robot,
-  // in meters. Because of the nature of the numerical approximation, this value
-  // is not guaranteed to be accurate.
-  double approximate_maximum_arm_length_meters = 1;
-}
-
-// This feature is experimental.
-message ReachabilityRequest {
-  string world_id = 1;
-  RobotReference robot_reference = 2;
-
-  // Optional starting joint configuration. If not set, the current position
-  // in the world will be used. The starting joint configuration is used as
-  // a seed for the underlying IK solver.
-  optional intrinsic_proto.icon.JointVec start_configuration = 3;
-
-  // Optional collision settings for the reachability analysis. Collision
-  // checking is enabled by default internally.
-  optional intrinsic_proto.world.CollisionSettings collision_settings = 4;
-
-  // Optional user-specified joint limits to use for the reachability analysis.
-  optional intrinsic_proto.JointLimitsUpdate joint_position_limits = 5;
-
-  message ProblemSpecification {
-    intrinsic_proto.motion_planning.v1.PoseEquality pose_equality = 1;
-    // Optionally, specify a RotationCone constraint to test for variation in
-    // orientation at the target frame specified in the PoseEquality constraint.
-    optional intrinsic_proto.motion_planning.v1.RotationCone rotation_cone = 2;
-    // Number of orientation offsets to be sampled from the RotationCone
-    // constraint. Defaults to 10 internally.
-    optional int32 num_rotation_cone_samples = 3;
-  }
-
-  repeated ProblemSpecification problem_specifications = 10;
-
-  // A Boolean flag to specify whether the problem specifications are generated
-  // from a region of interest. The value of this field is passed through in the
-  // response and does not change the format of the response.
-  bool is_region_of_interest_study = 12;
-
-  // Optional maximum number of IK solutions to be sampled per pose.
-  // Defaults to 8 internally.
-  optional int32 max_ik_solutions_sampled = 11;
-
-  // Optional override for default collision checker configuration.
-  optional intrinsic_proto.world.CollisionCheckerConfig
-      collision_checker_config = 13;
-}
-
-message ReachabilityResponse {
-  // For now store the id of the cloned world with which we do the analysis.
-  // In the future store the full world. This will allow us to log this response
-  // itself which can be loaded for introspection. Also, the response contains
-  // the request, all IK solutions, motion planning results, etc. such that the
-  // user does not need to rerun the analysis again.
-  string snapshot_world_id = 1;
-
-  // Stores the IK results for a pose.
-  message PoseResult {
-    // For simplicity, return the pose of the target w.r.t. the world frame.
-    // This is the pose in the world frame for which we attempted to compute IK
-    // solutions.
-    intrinsic_proto.Pose world_t_target = 1;
-    // Is the above pose reachable?
-    bool is_reachable = 2;
-    message IkSolutionInfo {
-      intrinsic_proto.icon.JointVec config = 1;
-      optional double manipulability = 2;
-      optional double manipulability_mod_limits = 3;
-    }
-    // If reachable, return all IK solutions for this pose.
-    // If the pose is not reachable, this field will be empty.
-    repeated IkSolutionInfo ik_solution_infos = 8;
-
-    // Contains the debug information from the IK call. This includes all
-    // solutions generated from the IK solver and their validation results. It
-    // informs a user why specific configurations were excluded from the
-    // results. In case of collision, it also provides the collision information
-    // to identify the objects in collision.
-    intrinsic_proto.motion_planning.v1.ComputeIkDebugInformation
-        ik_debug_information = 5;
-    // If the pose is not reachable, return the failure message.
-    optional string failure_description = 4;
-
-    // Deprecated; replaced by ik_solution_infos above.
-    repeated intrinsic_proto.icon.JointVec ik_solutions = 3 [deprecated = true];
-  }
-
-  // Stores the results for a point which can have multiple poses sampled from
-  // the rotation cone constraint.
-  message PointResult {
-    intrinsic_proto.world.TransformNodeReference target_frame = 1;
-    intrinsic_proto.Point point = 2;
-    repeated PoseResult pose_results = 3;
-  }
-
-  // Stores results for multi-point and region of interest studies.
-  repeated PointResult point_results = 7;
-
-  // A Boolean flag to specify whether the problem specifications are generated
-  // from a region of interest.
-  bool is_region_of_interest_study = 9;
-
-  // Store the time required for performing the analysis.
-  google.protobuf.Duration time_to_compute = 8;
-}
-// intrinsic:enable_reachability_analysis:strip_end
 // The Motion Planner Service provides motion planning and related operations,
 // such as kinematics and collision checking. It is used by skills such as
 // `Move Robot` and is available by thid party skills and services.
@@ -527,27 +406,6 @@ service MotionPlannerService {
       body: "*"
     };
   }
-  // intrinsic:enable_reachability_analysis:strip_begin
-
-  // Gets the reachability envelope of a robot.
-  rpc GetReachabilityEnvelope(ReachabilityEnvelopeRequest)
-      returns (ReachabilityEnvelopeResponse) {
-    option (google.api.http) = {
-      post: "/v1/reachability:getEnvelope"
-      body: "*"
-    };
-  }
-
-  // This feature is experimental.
-  // Checks reachability for a region.
-  rpc CheckReachability(ReachabilityRequest) returns (ReachabilityResponse) {
-    option (google.api.http) = {
-      post: "/v1/reachability:check"
-      body: "*"
-    };
-  }
-  // intrinsic:enable_reachability_analysis:strip_end
-
   // PlanTrajectory uses caching to speed up repeated similar planning calls.
   // Clear cache for PlanTrajectory.
   rpc ClearCache(google.protobuf.Empty) returns (google.protobuf.Empty) {
