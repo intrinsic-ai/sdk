@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 
 package(default_visibility = ["//visibility:public"])
@@ -130,6 +130,20 @@ py_library(
     ],
 )
 
+py_library(
+    name = "skill_data",
+    srcs = ["skill_data.py"],
+)
+
+py_test(
+    name = "skill_data_test",
+    srcs = ["skill_data_test.py"],
+    deps = [
+        ":skill_data",
+        "@com_google_absl_py//absl/testing:absltest",
+    ],
+)
+
 py_package(
     name = "skills_py_packages",
     packages = [
@@ -137,6 +151,7 @@ py_package(
     ],
     deps = [
         ":proto_utils",
+        ":skill_data",
         ":skill_interface",
         "//intrinsic/icon/proto:icon_protos",
         "//intrinsic/icon/python:icon",

@@ -34,19 +34,19 @@
 
 namespace intrinsic::skills {
 
-// SkillData provides thread-safe, in-memory caching keyed by
-// (context_id, key) across Skill lifecycle methods with automatic LRU
-// eviction bounded by the maximum number of active context_ids.
+// Provides thread-safe in-memory caching across Skill lifecycle methods.
+//
+// SkillData caches values keyed by (context_id, key) across Skill lifecycle
+// methods with automatic LRU eviction bounded by the maximum number of active
+// context_ids.
 //
 // `max_contexts` corresponds to the maximum number of concurrent action
 // execution contexts expected to be kept in memory (i.e., the maximum number of
 // expected parallel calls of the Skill by the Executive).
 class SkillData {
  public:
-  static constexpr size_t kDefaultMaxContexts = 32;
-
   // Constructs a SkillData cache with a maximum number of concurrent contexts.
-  explicit SkillData(size_t max_contexts = kDefaultMaxContexts);
+  explicit SkillData(size_t max_contexts = 32);
   virtual ~SkillData() = default;
 
   SkillData(const SkillData&) = delete;
