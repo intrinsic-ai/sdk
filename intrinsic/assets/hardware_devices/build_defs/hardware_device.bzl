@@ -14,7 +14,6 @@
 
 """Build rules for HardwareDevice assets."""
 
-load("@bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("//intrinsic/assets/build_defs:asset.bzl", "AssetCatalogRefInfo", "AssetInfo", "AssetLocalInfo")
 
 HardwareDeviceAssetInfo = provider(
@@ -28,8 +27,8 @@ def _intrinsic_hardware_device_impl(ctx):
         for a in ctx.attr.assets
         if AssetLocalInfo in a
     ]
-    local_assets = [
-        a[AssetLocalInfo].local_info
+    local_asset_infos = [
+        a[AssetInfo].asset_info
         for a in ctx.attr.assets
         if AssetLocalInfo in a
     ]
@@ -42,10 +41,14 @@ def _intrinsic_hardware_device_impl(ctx):
     args = ctx.actions.args().add(
         "--manifest",
         ctx.file.manifest,
-    ).add_all(
-        local_assets,
-        format_each = "--local_asset=%s",
-    ).add_all(
+    )
+    for a in ctx.attr.assets:
+        if AssetLocalInfo in a:
+            args.add(
+                "--local_asset",
+                "%s=%s" % (a[AssetInfo].asset_info.path, a[AssetLocalInfo].bundle_path.path),
+            )
+    args.add_all(
         catalog_assets,
         format_each = "--catalog_asset=%s",
     ).add(
@@ -56,7 +59,7 @@ def _intrinsic_hardware_device_impl(ctx):
     ctx.actions.run(
         arguments = [args],
         executable = ctx.executable._hardwaredevicegen,
-        inputs = asset_bundles + local_assets + catalog_assets + [ctx.file.manifest],
+        inputs = asset_bundles + local_asset_infos + catalog_assets + [ctx.file.manifest],
         mnemonic = "HardwareDeviceBundle",
         outputs = [ctx.outputs.bundle_out],
         progress_message = "HardwareDevice bundle %s" % ctx.outputs.bundle_out.short_path,
@@ -69,19 +72,12 @@ def _intrinsic_hardware_device_impl(ctx):
 
     transitive_inputs = [transitive_descriptor_sets]
     asset_info_output = ctx.actions.declare_file(ctx.label.name + ".asset_info.binpb")
-    asset_local_info_output = ctx.actions.declare_file(ctx.label.name + ".asset_local_info.binpb")
     local_info_args = ctx.actions.args().add(
         "--manifest",
         ctx.file.manifest,
     ).add(
         "--asset_type",
         "ASSET_TYPE_HARDWARE_DEVICE",
-    ).add(
-        "--bundle_path",
-        ctx.outputs.bundle_out,
-    ).add(
-        "--bundle_runfiles_path",
-        to_rlocation_path(ctx, ctx.outputs.bundle_out),
     ).add_all(
         transitive_descriptor_sets,
         before_each = "--file_descriptor_set",
@@ -94,17 +90,14 @@ def _intrinsic_hardware_device_impl(ctx):
     ).add(
         "--output_asset_info",
         asset_info_output,
-    ).add(
-        "--output_asset_local_info",
-        asset_local_info_output,
     )
     ctx.actions.run(
         arguments = [local_info_args],
         executable = ctx.executable._assetlocalinfogen,
         inputs = depset([ctx.file.manifest], transitive = transitive_inputs),
         mnemonic = "AssetLocalInfo",
-        outputs = [asset_info_output, asset_local_info_output],
-        progress_message = "Writing asset local info %{output} for %{label}",
+        outputs = [asset_info_output],
+        progress_message = "Writing asset info %{output} for %{label}",
     )
 
     return [
@@ -120,7 +113,6 @@ def _intrinsic_hardware_device_impl(ctx):
         ),
         AssetLocalInfo(
             bundle_path = ctx.outputs.bundle_out,
-            local_info = asset_local_info_output,
         ),
     ]
 

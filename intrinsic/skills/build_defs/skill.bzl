@@ -14,7 +14,6 @@
 
 """Build rules for creating Skill artifacts."""
 
-load("@bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
@@ -336,7 +335,6 @@ def _intrinsic_skill_rule_impl(ctx):
     )
 
     asset_info_output = ctx.actions.declare_file(ctx.label.name + ".asset_info.binpb")
-    asset_local_info_output = ctx.actions.declare_file(ctx.label.name + ".asset_local_info.binpb")
     local_info_args = ctx.actions.args().add(
         "--manifest",
         manifest,
@@ -344,28 +342,19 @@ def _intrinsic_skill_rule_impl(ctx):
         "--asset_type",
         "ASSET_TYPE_SKILL",
     ).add(
-        "--bundle_path",
-        bundle_output,
-    ).add(
-        "--bundle_runfiles_path",
-        to_rlocation_path(ctx, bundle_output),
-    ).add(
         "--file_descriptor_set",
         fds,
     ).add(
         "--output_asset_info",
         asset_info_output,
-    ).add(
-        "--output_asset_local_info",
-        asset_local_info_output,
     )
     ctx.actions.run(
         arguments = [local_info_args],
         executable = ctx.executable._assetlocalinfogen,
         inputs = depset([manifest, fds]),
         mnemonic = "AssetLocalInfo",
-        outputs = [asset_info_output, asset_local_info_output],
-        progress_message = "Writing asset local info %{output} for %{label}",
+        outputs = [asset_info_output],
+        progress_message = "Writing asset info %{output} for %{label}",
     )
 
     return [
@@ -383,7 +372,6 @@ def _intrinsic_skill_rule_impl(ctx):
         ),
         AssetLocalInfo(
             bundle_path = bundle_output,
-            local_info = asset_local_info_output,
         ),
     ]
 

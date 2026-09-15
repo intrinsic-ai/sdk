@@ -28,7 +28,7 @@ import (
 
 var (
 	manifestPath      = flag.String("manifest", "", "Path to the HardwareDeviceManifest textproto file.")
-	localAssetPaths   = intrinsicflag.MultiString("local_asset", nil, "Path to serialized AssetLocalInfo proto for an asset to add to the manifest. Can be repeated.")
+	localAssetSpecs   = intrinsicflag.MultiString("local_asset", nil, "Spec of <asset_info_path>=<bundle_path> for a local asset to add to the manifest. Can be repeated.")
 	catalogAssetPaths = intrinsicflag.MultiString("catalog_asset", nil, "Path to serialized AssetCatalogRefInfo proto for an asset to add to the manifest. Can be repeated.")
 	outputBundlePath  = flag.String("output_bundle", "", "Output path for the .tar bundle.")
 )
@@ -39,7 +39,7 @@ func main() {
 	ctx := context.Background()
 	if err := hardwaredevicegen.CreateHardwareDeviceBundle(ctx, &hardwaredevicegen.CreateHardwareDeviceBundleOptions{
 		ManifestPath:             *manifestPath,
-		AssetLocalInfoPaths:      *localAssetPaths,
+		LocalAssetSpecs:          *localAssetSpecs,
 		AssetCatalogRefInfoPaths: *catalogAssetPaths,
 		OutputBundlePath:         *outputBundlePath,
 	}); err != nil {

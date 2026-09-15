@@ -28,7 +28,6 @@ AssetLocalInfo = provider(
     "Info about a built asset bundle file.",
     fields = {
         "bundle_path": "The full path to the asset's bundle file",
-        "local_info": "An AssetLocalInfo proto",
     },
 )
 

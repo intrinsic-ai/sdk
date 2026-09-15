@@ -23,7 +23,6 @@ bzl_library(
     deps = [
         "//intrinsic/assets/build_defs:asset_bzl",
         "//intrinsic/util/proto/build_defs:descriptor_set",
-        "@bazel_lib//lib:paths.bzl",
     ],
 )
 

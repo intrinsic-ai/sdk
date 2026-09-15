@@ -42,14 +42,11 @@ import (
 )
 
 var (
-	assetType            = flag.String("asset_type", "", "The type of asset.")
-	bundlePath           = flag.String("bundle_path", "", "Path to the generated bundle file.")
-	bundleRunfilesPath   = flag.String("bundle_runfiles_path", "", "Bazel runfiles path of the generated bundle file.")
-	manifest             = flag.String("manifest", "", "The asset's manifest.")
-	fileDescriptorSets   = intrinsicflag.MultiString("file_descriptor_set", nil, "Path to a binary file descriptor set proto to be used to resolve the data payload. Can be repeated. Passing only empty files has the same effect as passing no files at all.")
-	mergeFDS             = flag.Bool("merge_fds", false, "Merge files within the asset's file descriptor set.  This should only enabled for HardwareDevices as other assets are expected to provide a single, self-consistent set of proto dependencies.")
-	outputAssetInfo      = flag.String("output_asset_info", "", "Output AssetInfo proto path.")
-	outputAssetLocalInfo = flag.String("output_asset_local_info", "", "Output AssetLocalInfo proto path.")
+	assetType          = flag.String("asset_type", "", "The type of asset.")
+	manifest           = flag.String("manifest", "", "The asset's manifest.")
+	fileDescriptorSets = intrinsicflag.MultiString("file_descriptor_set", nil, "Path to a binary file descriptor set proto to be used to resolve the data payload. Can be repeated. Passing only empty files has the same effect as passing no files at all.")
+	mergeFDS           = flag.Bool("merge_fds", false, "Merge files within the asset's file descriptor set.  This should only enabled for HardwareDevices as other assets are expected to provide a single, self-consistent set of proto dependencies.")
+	outputAssetInfo    = flag.String("output_asset_info", "", "Output AssetInfo proto path.")
 )
 
 func writeAsset(fds *dpb.FileDescriptorSet) {
@@ -57,13 +54,6 @@ func writeAsset(fds *dpb.FileDescriptorSet) {
 	atype := typeutils.AssetTypeFromName(*assetType)
 	if atype == atypepb.AssetType_ASSET_TYPE_UNSPECIFIED {
 		log.Exitf("unknown asset type %q", *assetType)
-	}
-
-	if *bundlePath == "" {
-		log.Exitf("bundle_path is required")
-	}
-	if *bundleRunfilesPath == "" {
-		log.Exitf("bundle_runfiles_path is required")
 	}
 
 	switch atype {
@@ -116,14 +106,6 @@ func writeAsset(fds *dpb.FileDescriptorSet) {
 		FileDescriptorSet: fds,
 	}, protoio.WithDeterministic(true)); err != nil {
 		log.Exitf("Could not write asset info: %v", err)
-	}
-	if err := protoio.WriteBinaryProto(*outputAssetLocalInfo, &assetpb.AssetLocalInfo{
-		AssetType:          atype,
-		Id:                 id,
-		BundlePath:         *bundlePath,
-		BundleRunfilesPath: *bundleRunfilesPath,
-	}, protoio.WithDeterministic(true)); err != nil {
-		log.Exitf("Could not write asset local info: %v", err)
 	}
 }
 

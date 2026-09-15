@@ -39,16 +39,11 @@ message AssetLocalInfo {
   intrinsic_proto.assets.AssetType asset_type = 1;
   // The asset ID.
   intrinsic_proto.assets.Id id = 2;
-  // The short path to the bundle file relative to a root directory. This path
-  // can be used to detect differences between two local assets that share the
-  // same ID.
-  string bundle_short_path = 3;
-  // The full path to the bundle file.
-  string bundle_path = 4;
   // This is the Bazel runfiles path to the bundle file.
   string bundle_runfiles_path = 5;
 
-  reserved 199;
+  reserved 3, 4, 199;
+  reserved "bundle_short_path", "bundle_path";
 }
 
 message AssetCatalogRefInfo {

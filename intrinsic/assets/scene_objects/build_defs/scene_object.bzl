@@ -16,7 +16,6 @@
 Bazel rules for generating an Intrinsic scene object.
 """
 
-load("@bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@com_google_protobuf//bazel/common:proto_info.bzl", "ProtoInfo")
 load("//intrinsic/assets/build_defs:asset.bzl", "AssetInfo", "AssetLocalInfo")
 load("//intrinsic/scene/build_defs:scene_object.bzl", "SceneObjectInfo")
@@ -71,19 +70,12 @@ def _intrinsic_scene_object_impl(ctx):
     )
 
     asset_info_output = ctx.actions.declare_file(ctx.label.name + ".asset_info.binpb")
-    asset_local_info_output = ctx.actions.declare_file(ctx.label.name + ".asset_local_info.binpb")
     local_info_args = ctx.actions.args().add(
         "--manifest",
         ctx.file.manifest,
     ).add(
         "--asset_type",
         "ASSET_TYPE_SCENE_OBJECT",
-    ).add(
-        "--bundle_path",
-        bundle_output,
-    ).add(
-        "--bundle_runfiles_path",
-        to_rlocation_path(ctx, ctx.outputs.bundle_out),
     ).add_all(
         transitive_descriptor_sets,
         before_each = "--file_descriptor_set",
@@ -91,17 +83,14 @@ def _intrinsic_scene_object_impl(ctx):
     ).add(
         "--output_asset_info",
         asset_info_output,
-    ).add(
-        "--output_asset_local_info",
-        asset_local_info_output,
     )
     ctx.actions.run(
         arguments = [local_info_args],
         executable = ctx.executable._assetlocalinfogen,
         inputs = depset([ctx.file.manifest], transitive = transitive_inputs),
         mnemonic = "AssetLocalInfo",
-        outputs = [asset_info_output, asset_local_info_output],
-        progress_message = "Writing asset local info %{output} for %{label}",
+        outputs = [asset_info_output],
+        progress_message = "Writing asset info %{output} for %{label}",
     )
 
     return [
@@ -120,7 +109,6 @@ def _intrinsic_scene_object_impl(ctx):
         ),
         AssetLocalInfo(
             bundle_path = bundle_output,
-            local_info = asset_local_info_output,
         ),
     ]
 

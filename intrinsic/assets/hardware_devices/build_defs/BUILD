@@ -21,7 +21,6 @@ bzl_library(
     visibility = ["//visibility:private"],
     deps = [
         "//intrinsic/assets/build_defs:asset_bzl",
-        "@bazel_lib//lib:paths.bzl",
     ],
 )
 
