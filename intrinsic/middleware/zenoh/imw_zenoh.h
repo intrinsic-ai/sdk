@@ -150,26 +150,33 @@ class IMWZenoh {
   void destroy_publishers_marked_for_deletion()
       ABSL_SHARED_LOCKS_REQUIRED(publishers_mutex_);
 
-  void destroy_empty_subscriptions()
-      ABSL_SHARED_LOCKS_REQUIRED(subscriptions_mutex_) {
-    destroy_empty_subscriptions(subscriptions_);
+  void destroy_empty_subscriptions() ABSL_LOCKS_EXCLUDED(subscriptions_mutex_) {
+    destroy_empty_subscriptions(subscriptions_, subscriptions_mutex_);
   }
 
   void destroy_empty_liveliness_subscriptions()
-      ABSL_SHARED_LOCKS_REQUIRED(liveliness_subscriptions_mutex_) {
-    destroy_empty_subscriptions(liveliness_subscriptions_);
+      ABSL_LOCKS_EXCLUDED(liveliness_subscriptions_mutex_) {
+    destroy_empty_subscriptions(liveliness_subscriptions_,
+                                liveliness_subscriptions_mutex_);
   }
 
   template <typename T>
-  void destroy_empty_subscriptions(
-      std::list<std::shared_ptr<T>>& subscriptions) {
-    for (auto it = subscriptions.begin(); it != subscriptions.end();) {
-      if ((*it)->is_empty()) {
-        z_undeclare_subscriber(z_move((*it)->get_zenoh_sub()));
-        it = subscriptions.erase(it);
-      } else {
-        ++it;
+  void destroy_empty_subscriptions(std::list<std::shared_ptr<T>>& subscriptions,
+                                   absl::Mutex& mutex) {
+    std::vector<std::shared_ptr<T>> subs_to_undeclare;
+    {
+      absl::MutexLock lock(&mutex);
+      for (auto it = subscriptions.begin(); it != subscriptions.end();) {
+        if ((*it)->is_empty()) {
+          subs_to_undeclare.push_back(*it);
+          it = subscriptions.erase(it);
+        } else {
+          ++it;
+        }
       }
+    }
+    for (auto& sub : subs_to_undeclare) {
+      z_undeclare_subscriber(z_move(sub->get_zenoh_sub()));
     }
   }
 

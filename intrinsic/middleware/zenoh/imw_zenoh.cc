@@ -251,8 +251,8 @@ imw_ret_t IMWZenoh::destroy_session() {
     for (auto it = subscriptions_.begin(); it != subscriptions_.end(); ++it) {
       (*it)->clear_callbacks();
     }
-    destroy_empty_subscriptions();
   }
+  destroy_empty_subscriptions();
 
   {
     absl::MutexLock lock(&liveliness_subscriptions_mutex_);
@@ -260,14 +260,20 @@ imw_ret_t IMWZenoh::destroy_session() {
          it != liveliness_subscriptions_.end(); ++it) {
       (*it)->clear_callbacks();
     }
-    destroy_empty_liveliness_subscriptions();
   }
+  destroy_empty_liveliness_subscriptions();
 
   {
-    absl::MutexLock lock(&queryables_mutex_);
-    for (auto it = queryables_.begin(); it != queryables_.end();) {
-      z_undeclare_queryable(z_move((*it)->get_zenoh_queryable()));
-      it = queryables_.erase(it);
+    std::vector<std::unique_ptr<IMWZenohQueryable>> queryables_to_undeclare;
+    {
+      absl::MutexLock lock(&queryables_mutex_);
+      for (auto it = queryables_.begin(); it != queryables_.end(); ++it) {
+        queryables_to_undeclare.push_back(std::move(*it));
+      }
+      queryables_.clear();
+    }
+    for (auto& q : queryables_to_undeclare) {
+      z_undeclare_queryable(z_move(q->get_zenoh_queryable()));
     }
   }
 
@@ -562,17 +568,34 @@ imw_ret_t IMWZenoh::destroy_subscription(const char* keyexpr,
   }
 
   const string keyexpr_s(keyexpr);
-  absl::MutexLock lock(&subscriptions_mutex_);
-  for (auto it = subscriptions_.begin(); it != subscriptions_.end(); ++it) {
-    if ((*it)->get_keyexpr() != keyexpr_s) continue;
+  std::shared_ptr<IMWZenohSubscription> sub_to_undeclare;
+  bool found = false;
+  {
+    absl::MutexLock lock(&subscriptions_mutex_);
+    for (auto it = subscriptions_.begin(); it != subscriptions_.end(); ++it) {
+      if ((*it)->get_keyexpr() != keyexpr_s) continue;
 
-    // We've found the subscription for the requested keyexpr, so we need to
-    // remove this callback, and potentially also undeclare the Zenoh
-    // subscriber if there are no additional callbacks left
-    if (!(*it)->remove_callback(callback, user_context)) {
-      LOG(ERROR) << "Could not remove callback for " << keyexpr_s;
-      return IMW_ERROR;
+      found = true;
+      // We've found the subscription for the requested keyexpr, so we need to
+      // remove this callback, and potentially also undeclare the Zenoh
+      // subscriber if there are no additional callbacks left
+      if (!(*it)->remove_callback(callback, user_context)) {
+        LOG(ERROR) << "Could not remove callback for " << keyexpr_s;
+        return IMW_ERROR;
+      }
+      if ((*it)->is_empty()) {
+        sub_to_undeclare = *it;
+        subscriptions_.erase(it);
+      }
+      break;
     }
+  }
+
+  if (sub_to_undeclare != nullptr) {
+    z_undeclare_subscriber(z_move(sub_to_undeclare->get_zenoh_sub()));
+    return IMW_OK;
+  }
+  if (found) {
     return IMW_OK;
   }
 
@@ -590,18 +613,35 @@ imw_ret_t IMWZenoh::destroy_liveliness_subscription(
   }
 
   const string keyexpr_s(keyexpr);
-  absl::MutexLock lock(&liveliness_subscriptions_mutex_);
-  for (auto it = liveliness_subscriptions_.begin();
-       it != liveliness_subscriptions_.end(); ++it) {
-    if ((*it)->get_keyexpr() != keyexpr_s) continue;
+  std::shared_ptr<IMWZenohLivelinessSubscription> sub_to_undeclare;
+  bool found = false;
+  {
+    absl::MutexLock lock(&liveliness_subscriptions_mutex_);
+    for (auto it = liveliness_subscriptions_.begin();
+         it != liveliness_subscriptions_.end(); ++it) {
+      if ((*it)->get_keyexpr() != keyexpr_s) continue;
 
-    // We've found the subscription for the requested keyexpr, so we need to
-    // remove this callback, and potentially also undeclare the Zenoh
-    // subscriber if there are no additional callbacks left
-    if (!(*it)->remove_callback(callback, user_context)) {
-      LOG(ERROR) << "Could not remove callback for " << keyexpr_s;
-      return IMW_ERROR;
+      found = true;
+      // We've found the subscription for the requested keyexpr, so we need to
+      // remove this callback, and potentially also undeclare the Zenoh
+      // subscriber if there are no additional callbacks left
+      if (!(*it)->remove_callback(callback, user_context)) {
+        LOG(ERROR) << "Could not remove callback for " << keyexpr_s;
+        return IMW_ERROR;
+      }
+      if ((*it)->is_empty()) {
+        sub_to_undeclare = *it;
+        liveliness_subscriptions_.erase(it);
+      }
+      break;
     }
+  }
+
+  if (sub_to_undeclare != nullptr) {
+    z_undeclare_subscriber(z_move(sub_to_undeclare->get_zenoh_sub()));
+    return IMW_OK;
+  }
+  if (found) {
     return IMW_OK;
   }
 
@@ -664,17 +704,6 @@ void IMWZenoh::data_callback(const std::string& subscription_keyexpr,
     LOG(ERROR) << "No subscriber for sample_keyexpr " << sample_keyexpr_str
                << " with subscription_keyexpr " << subscription_keyexpr;
   }
-
-  // Now that we have completed handling this message, we can complete
-  // any pending requests to destroy subscriptions. It was necessary to wait
-  // until now because if we destroyed the subscription to this very message
-  // before invoking its callbacks, Zenoh would have invoked static_closure_drop
-  // and destroyed the zenoh_context pointer that we use in this context, which
-  // at least in theory could have led to undefined behavior.
-  {
-    absl::MutexLock lock(&subscriptions_mutex_);
-    destroy_empty_subscriptions();
-  }
 }
 
 void IMWZenoh::liveliness_callback(const std::string& subscription_keyexpr,
@@ -707,11 +736,6 @@ void IMWZenoh::liveliness_callback(const std::string& subscription_keyexpr,
     LOG(ERROR) << "No liveliness subscriber for sample_keyexpr "
                << sample_keyexpr_str << " with subscription_keyexpr "
                << subscription_keyexpr;
-  }
-
-  {
-    absl::MutexLock lock(&liveliness_subscriptions_mutex_);
-    destroy_empty_liveliness_subscriptions();
   }
 }
 
@@ -806,13 +830,18 @@ void IMWZenoh::introspection_collect_and_publish() {
     }
   }
   json json_subscriptions;
-  for (auto it = subscriptions_.begin(); it != subscriptions_.end(); ++it) {
+  std::vector<std::shared_ptr<IMWZenohSubscription>> subscriptions_copy;
+  {
+    absl::MutexLock lock(&subscriptions_mutex_);
+    subscriptions_copy.assign(subscriptions_.begin(), subscriptions_.end());
+  }
+  for (const auto& sub : subscriptions_copy) {
     // don't publish introspection statistics about introspection topics
-    if ((*it)->get_keyexpr().rfind("in/_introspection/", 0) == 0) continue;
+    if (sub->get_keyexpr().rfind("in/_introspection/", 0) == 0) continue;
 
-    IMWZenohSubscription::Statistics s = (*it)->get_statistics();
+    IMWZenohSubscription::Statistics s = sub->get_statistics();
     json json_subscription = {
-        {"name", (*it)->get_keyexpr()},
+        {"name", sub->get_keyexpr()},
         {"messages", s.n_messages},
         {"bytes", s.n_bytes},
     };
@@ -1143,28 +1172,30 @@ imw_ret_t IMWZenoh::destroy_queryable(const char* keyexpr,
                                       imw_queryable_callback_fn* callback,
                                       void* user_context) {
   if (!z_internal_check(session_)) {
-    LOG(ERROR) << "Invalid session in IMWZenoh::destroy_subscription";
+    LOG(ERROR) << "Invalid session in IMWZenoh::destroy_queryable";
     return IMW_ERROR;
   }
   const string keyexpr_s(keyexpr);
-  absl::MutexLock lock(&queryables_mutex_);
-  // In this loop, to keep the iterator valid after erase(), we need to
-  // handle the iterator increment inside both cases of the condition.
-  // This isn't strictly necessary at time of writing because we immediately
-  // return after erasing the desired queryable, but it seems better hygiene
-  // to keep the iterator always valid.
-  for (auto it = queryables_.begin(); it != queryables_.end();) {
-    if (((*it)->get_keyexpr() != keyexpr_s) ||
-        ((*it)->get_callback() != callback) ||
-        ((*it)->get_user_context() != user_context)) {
-      ++it;
-    } else {
-      // We have found the queryable we want to destroy. Erase it and return,
-      z_undeclare_queryable(z_move((*it)->get_zenoh_queryable()));
-      it = queryables_.erase(it);
-      return IMW_OK;
+  std::unique_ptr<IMWZenohQueryable> queryable_to_undeclare;
+  {
+    absl::MutexLock lock(&queryables_mutex_);
+    for (auto it = queryables_.begin(); it != queryables_.end(); ++it) {
+      if (((*it)->get_keyexpr() == keyexpr_s) &&
+          ((*it)->get_callback() == callback) &&
+          ((*it)->get_user_context() == user_context)) {
+        queryable_to_undeclare = std::move(*it);
+        queryables_.erase(it);
+        break;
+      }
     }
   }
+
+  if (queryable_to_undeclare != nullptr) {
+    z_undeclare_queryable(
+        z_move(queryable_to_undeclare->get_zenoh_queryable()));
+    return IMW_OK;
+  }
+
   // If we get here, we didn't find a matching queryable.
   LOG(ERROR) << "Could not find a queryable for " << keyexpr_s;
   return IMW_ERROR;
