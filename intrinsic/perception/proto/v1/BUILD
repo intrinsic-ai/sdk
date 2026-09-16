@@ -22,7 +22,6 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 package(default_visibility = ["//visibility:public"])
@@ -99,43 +98,10 @@ js_library(
     deps = ["//intrinsic/perception/proto/v1:intrinsic_params_proto"],
 )
 
-proto_library(
-    name = "perception_model_proto",
-    srcs = ["perception_model.proto"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        "//intrinsic/assets/data/proto/v1:referenced_data_proto",
-        "//intrinsic/perception/proto/v1:pose_estimation_config",
-    ],
-)
-
-go_proto_library(
-    name = "perception_model_go_proto",
-    importpath = "intrinsic/perception/proto/v1/perception_model_go_proto",
-    protos = [":perception_model_proto"],
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [
-        "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
-        "//intrinsic/perception/proto/v1:pose_estimation_config_go_proto",
-    ],
-)
-
 js_library(
     name = "perception_model_jspb_proto",
     visibility = ["//intrinsic:internal_api_users"],
-    deps = [":perception_model_proto"],
-)
-
-py_proto_library(
-    name = "perception_model_py_pb2",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":perception_model_proto"],
-)
-
-cc_proto_library(
-    name = "perception_model_cc_proto",
-    visibility = ["//intrinsic:public_api_users"],
-    deps = [":perception_model_proto"],
+    deps = ["//intrinsic/perception/proto/v1:perception_model_proto"],
 )
 
 js_library(
@@ -992,6 +958,37 @@ go_proto_library(
 py_proto_library(
     name = "pattern_detection_result_py_pb2",
     deps = [":pattern_detection_result_proto"],
+)
+
+proto_library(
+    name = "perception_model_proto",
+    srcs = ["perception_model.proto"],
+    deps = [
+        "//intrinsic/assets/data/proto/v1:referenced_data_proto",
+        "//intrinsic/perception/proto/pose_estimators/v1:one_shot_base_model_config_proto",
+        "//intrinsic/perception/proto/v1:pose_estimation_config_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "perception_model_cc_proto",
+    deps = [":perception_model_proto"],
+)
+
+go_proto_library(
+    name = "perception_model_go_proto",
+    importpath = "intrinsic/perception/proto/v1/perception_model_go_proto",
+    protos = [":perception_model_proto"],
+    deps = [
+        "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
+        "//intrinsic/perception/proto/pose_estimators/v1:one_shot_base_model_config_go_proto",
+        "//intrinsic/perception/proto/v1:pose_estimation_config_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "perception_model_py_pb2",
+    deps = [":perception_model_proto"],
 )
 
 proto_library(
