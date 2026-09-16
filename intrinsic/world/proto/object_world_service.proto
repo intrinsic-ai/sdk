@@ -68,8 +68,8 @@ service ObjectWorldService {
   // string identifier, which is sometimes provided by the user and sometimes
   // auto-generated.
 
-  // Returns the metadata about a single world.
-  rpc GetWorld(GetWorldRequest) returns (WorldMetadata) {
+  // Returns a single world.
+  rpc GetWorld(GetWorldRequest) returns (World) {
     option (google.api.http) = {
       get: "/world/v0/worlds/{world_id}"
     };
@@ -727,17 +727,31 @@ message World {
   // World-level metadata.
   WorldMetadata world_metadata = 1;
 
-  // All world objects (which contain the frames in the world). Always
-  // populated according to ObjectView==FULL.
+  // All world objects (which contain the frames in the world).
   repeated Object objects = 2;
 
   // The set of collision rules in use with this world.
   CollisionSettings collision_settings = 3;
 }
 
+// Indicates at which level-of-detail to return a world when querying it.
+enum WorldView {
+  // Defaults to the BASIC view.
+  WORLD_VIEW_UNSPECIFIED = 0;
+  // Returns metadata and basic objects (excluding collision settings).
+  WORLD_VIEW_BASIC = 1;
+  // Returns metadata, full objects, and collision settings.
+  WORLD_VIEW_FULL = 2;
+}
+
 message GetWorldRequest {
   // Id of the world to be queried.
   string world_id = 1;
+
+  // Requested world view. Defaults to WORLD_VIEW_BASIC (metadata and basic
+  // objects are returned, excluding collision settings). Pass as
+  // WORLD_VIEW_FULL to return metadata, full objects, and collision settings.
+  WorldView view = 2;
 }
 
 message CloneWorldRequest {
