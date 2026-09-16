@@ -25,4 +25,8 @@ option go_package = "intrinsic/perception/proto/v1/capture_data_go_proto";
 message CaptureData {
   kvstore.StorageLocation capture_result_location = 1;
   Pose world_t_camera = 2;
+  // Optional transform from the camera frame to the reference frame
+  // (reference_t_camera, i.e. the pose of the camera in the reference frame).
+  // If reference_frame is not specified, this field is not set.
+  optional Pose reference_t_camera = 3;
 }
