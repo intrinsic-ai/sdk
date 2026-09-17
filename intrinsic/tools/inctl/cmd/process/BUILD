@@ -36,7 +36,7 @@ go_library(
         "//intrinsic/executive/proto:run_metadata_go_proto",
         "//intrinsic/frontend/solution_service/proto:solution_service_go_proto",
         "//intrinsic/proto_tools/proto:proto_registry_go_proto",
-        "//intrinsic/proto_tools/registry:protoregistryclient",
+        "//intrinsic/proto_tools/registry/protoregistryclient",
         "//intrinsic/skills/tools/skill/cmd:dialerutil",
         "//intrinsic/skills/tools/skill/cmd:solutionutil",
         "//intrinsic/tools/inctl/cmd:root",

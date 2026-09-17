@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 
+	"intrinsic/proto_tools/registry/protoregistryclient"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/platformlevelswitch"
 	"intrinsic/assets/processes/processbundle"
@@ -28,7 +29,6 @@ import (
 	executiveservicepb "intrinsic/executive/proto/executive_service_go_proto"
 	solutionservicepb "intrinsic/frontend/solution_service/proto/solution_service_go_proto"
 	protoregistrygrpcpb "intrinsic/proto_tools/proto/proto_registry_go_proto"
-	"intrinsic/proto_tools/registry/protoregistryclient"
 	"intrinsic/tools/inctl/util/orgutil"
 
 	"github.com/pkg/errors"

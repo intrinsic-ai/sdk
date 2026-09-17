@@ -23,6 +23,7 @@ from google.protobuf import any_pb2
 from google.protobuf import text_format
 import grpc
 
+from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.assets.proto import id_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
 from intrinsic.executive.proto import blackboard_service_pb2
@@ -33,7 +34,6 @@ from intrinsic.executive.proto import executive_service_pb2_grpc
 from intrinsic.executive.proto import run_metadata_pb2
 from intrinsic.executive.proto import run_response_pb2
 from intrinsic.logging.errors.proto import error_report_pb2
-from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.solutions import behavior_tree as bt
 from intrinsic.solutions import blackboard_value

@@ -49,6 +49,7 @@ from google.protobuf.internal import api_implementation
 from google.protobuf.internal import decoder
 import grpc
 
+from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.assets import id_utils
 from intrinsic.assets.proto import id_pb2
 from intrinsic.executive.proto import behavior_tree_pb2
@@ -59,7 +60,6 @@ from intrinsic.executive.proto import executive_service_pb2
 from intrinsic.executive.proto import executive_service_pb2_grpc
 from intrinsic.executive.proto import run_metadata_pb2
 from intrinsic.executive.proto import run_response_pb2
-from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.solutions import behavior_tree as bt
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import error_processing

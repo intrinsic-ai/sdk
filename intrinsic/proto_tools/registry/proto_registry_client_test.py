@@ -12,25 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 from unittest import mock
 
 from absl.testing import absltest
-
-# isort: off
-# isort: on
 from google.protobuf import descriptor_pb2
 
-# isort: off
-# isort: on
-
-from python.runfiles import runfiles
-
+from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.proto_tools.proto import proto_registry_pb2
 from intrinsic.proto_tools.proto import proto_registry_pb2_grpc
-from intrinsic.proto_tools.registry import proto_registry_client
-
-DESCRIPTOR_TEST_MESSAGE_FILENAME = "ai_intrinsic_sdks/intrinsic/proto_tools/registry/test_data/descriptor_test_message_proto_descriptor_set_transitive_set_sci.proto.bin"
 
 
 class ProtoRegistryTest(absltest.TestCase):

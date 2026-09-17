@@ -37,12 +37,12 @@ import warnings
 
 import grpc
 
+from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.assets.configuration import asset_configuration_client
 from intrinsic.assets.install import installed_assets_client
 from intrinsic.frontend.solution_service.proto import solution_service_pb2
 from intrinsic.frontend.solution_service.proto import solution_service_pb2_grpc
 from intrinsic.frontend.solution_service.proto import status_pb2 as solution_status_pb2
-from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.skills.client import skill_registry_client
 from intrinsic.solutions import error_processing

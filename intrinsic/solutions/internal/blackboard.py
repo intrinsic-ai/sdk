@@ -22,9 +22,9 @@ from google.protobuf import empty_pb2
 from google.protobuf import message
 from google.protobuf import wrappers_pb2
 
+from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.executive.proto import blackboard_service_pb2
 from intrinsic.executive.proto import blackboard_service_pb2_grpc
-from intrinsic.proto_tools.registry import proto_registry_client
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import ipython
 from intrinsic.solutions import utils
