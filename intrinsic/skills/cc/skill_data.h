@@ -25,6 +25,7 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/container/flat_hash_map.h"
+#include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
@@ -55,6 +56,9 @@ class SkillData {
   // Returns the cached value for (context_id, key), or std::nullopt if not
   // found.
   //
+  // If `context_id` is empty, logs a warning and returns std::nullopt without
+  // querying the cache.
+  //
   // If `validate_fn` is provided and a cached value exists:
   // - Returns cached value if `validate_fn` returns true.
   // - Returns std::nullopt if `validate_fn` returns false.
@@ -67,6 +71,12 @@ class SkillData {
   absl::StatusOr<std::optional<T>> Get(
       absl::string_view context_id, absl::string_view key,
       std::function<absl::StatusOr<bool>(const T&)> validate_fn = nullptr) {
+    if (context_id.empty()) {
+      LOG(WARNING) << "SkillData: context_id is empty for key '" << key
+                   << "'; cache lookup skipped.";
+      return std::nullopt;
+    }
+
     if (auto cached = cache_.Get(context_id, key)) {
       const T* val = std::any_cast<T>(&(*cached));
       if (val == nullptr) {
@@ -90,6 +100,9 @@ class SkillData {
   // Returns the cached value for (context_id, key) or computes, stores, and
   // returns the result of `compute_fn`.
   //
+  // If `context_id` is empty, logs a warning and computes via `compute_fn`
+  // returning the result without caching.
+  //
   // If `validate_fn` is provided and a cached value exists:
   // - Returns cached value if `validate_fn` returns true.
   // - Recomputes via `compute_fn`, updates cache, and returns fresh value if
@@ -108,6 +121,12 @@ class SkillData {
       return absl::InvalidArgumentError("compute_fn must not be null.");
     }
 
+    if (context_id.empty()) {
+      LOG(WARNING) << "SkillData: context_id is empty for key '" << key
+                   << "'; computing without caching.";
+      return compute_fn();
+    }
+
     INTR_ASSIGN_OR_RETURN(std::optional<T> cached,
                           Get<T>(context_id, key, validate_fn));
     if (cached.has_value()) {
@@ -121,6 +140,7 @@ class SkillData {
 
   // Deletes all entries for a specific context_id.
   // Returns true if the context was removed, false if not found.
+  // If `context_id` is empty, logs a warning and returns false.
   bool Delete(absl::string_view context_id);
 
  private:

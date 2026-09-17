@@ -494,5 +494,56 @@ TEST(SkillDataTest, GetSkillDataReturnsSameInstance) {
   GetSkillData().Delete("global_ctx");
 }
 
+TEST(SkillDataTest, GetWithEmptyContextIdReturnsNullopt) {
+  SkillData skill_data(10);
+  auto result = skill_data.Get<int>("", "plan");
+  ASSERT_TRUE(result.ok()) << result.status();
+  EXPECT_FALSE(result->has_value());
+}
+
+TEST(SkillDataTest, GetOrComputeWithEmptyContextIdComputesWithoutCaching) {
+  SkillData skill_data(10);
+  int compute_count = 0;
+
+  auto compute_fn = [&]() -> absl::StatusOr<int> {
+    ++compute_count;
+    return compute_count * 10;
+  };
+
+  // First computation returns 10
+  auto first_result = skill_data.GetOrCompute<int>("", "plan", compute_fn);
+  ASSERT_TRUE(first_result.ok()) << first_result.status();
+  EXPECT_THAT(*first_result, Eq(10));
+  EXPECT_THAT(compute_count, Eq(1));
+
+  // Second computation does NOT hit cache; recomputes to 20
+  auto second_result = skill_data.GetOrCompute<int>("", "plan", compute_fn);
+  ASSERT_TRUE(second_result.ok()) << second_result.status();
+  EXPECT_THAT(*second_result, Eq(20));
+  EXPECT_THAT(compute_count, Eq(2));
+
+  // Get with empty context_id still returns nullopt
+  auto get_result = skill_data.Get<int>("", "plan");
+  ASSERT_TRUE(get_result.ok());
+  EXPECT_FALSE(get_result->has_value());
+
+  // Non-empty context_id caches normally
+  auto normal_first = skill_data.GetOrCompute<int>("ctx_1", "plan", compute_fn);
+  ASSERT_TRUE(normal_first.ok());
+  EXPECT_THAT(*normal_first, Eq(30));
+  EXPECT_THAT(compute_count, Eq(3));
+
+  auto normal_second =
+      skill_data.GetOrCompute<int>("ctx_1", "plan", compute_fn);
+  ASSERT_TRUE(normal_second.ok());
+  EXPECT_THAT(*normal_second, Eq(30));
+  EXPECT_THAT(compute_count, Eq(3));
+}
+
+TEST(SkillDataTest, DeleteWithEmptyContextIdReturnsFalse) {
+  SkillData skill_data(10);
+  EXPECT_FALSE(skill_data.Delete(""));
+}
+
 }  // namespace
 }  // namespace intrinsic::skills

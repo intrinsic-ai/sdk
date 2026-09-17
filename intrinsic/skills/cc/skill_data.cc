@@ -23,6 +23,7 @@
 
 #include "absl/base/no_destructor.h"
 #include "absl/container/flat_hash_map.h"
+#include "absl/log/log.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 
@@ -38,6 +39,9 @@ SkillData::LRUCache::LRUCache(size_t max_contexts)
 
 std::optional<std::any> SkillData::LRUCache::Get(absl::string_view context_id,
                                                  absl::string_view key) {
+  if (context_id.empty()) {
+    return std::nullopt;
+  }
   absl::MutexLock lock(&mutex_);
   auto it = contexts_.find(context_id);
   if (it == contexts_.end()) {
@@ -55,7 +59,7 @@ std::optional<std::any> SkillData::LRUCache::Get(absl::string_view context_id,
 
 void SkillData::LRUCache::Put(absl::string_view context_id,
                               absl::string_view key, std::any value) {
-  if (max_contexts_ == 0) {
+  if (max_contexts_ == 0 || context_id.empty()) {
     return;
   }
   absl::MutexLock lock(&mutex_);
@@ -83,6 +87,9 @@ void SkillData::LRUCache::Put(absl::string_view context_id,
 }
 
 bool SkillData::LRUCache::Erase(absl::string_view context_id) {
+  if (context_id.empty()) {
+    return false;
+  }
   absl::MutexLock lock(&mutex_);
   auto it = contexts_.find(context_id);
   if (it == contexts_.end()) {
@@ -96,6 +103,10 @@ bool SkillData::LRUCache::Erase(absl::string_view context_id) {
 SkillData::SkillData(size_t max_contexts) : cache_(max_contexts) {}
 
 bool SkillData::Delete(absl::string_view context_id) {
+  if (context_id.empty()) {
+    LOG(WARNING) << "SkillData: context_id is empty; delete skipped.";
+    return false;
+  }
   return cache_.Erase(context_id);
 }
 

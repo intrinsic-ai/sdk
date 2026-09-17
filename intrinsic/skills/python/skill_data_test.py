@@ -401,6 +401,45 @@ class SkillDataTest(absltest.TestCase):
     self.assertEqual(res, "singleton_data")
     skill_data.get_skill_data().delete("global_ctx")
 
+  def test_get_with_empty_context_id_returns_none(self):
+    sd = skill_data.SkillData(10)
+    self.assertIsNone(sd.get("", "key_1"))
+
+  def test_get_or_compute_with_empty_context_id_computes_without_caching(self):
+    sd = skill_data.SkillData(10)
+    compute_count = 0
+
+    def compute_fn() -> int:
+      nonlocal compute_count
+      compute_count += 1
+      return compute_count * 10
+
+    # First computation returns 10
+    first = sd.get_or_compute("", "plan", compute_fn)
+    self.assertEqual(first, 10)
+    self.assertEqual(compute_count, 1)
+
+    # Second computation recomputes to 20 without caching
+    second = sd.get_or_compute("", "plan", compute_fn)
+    self.assertEqual(second, 20)
+    self.assertEqual(compute_count, 2)
+
+    # get with empty context_id returns None
+    self.assertIsNone(sd.get("", "plan"))
+
+    # Non-empty context_id caches normally
+    normal_first = sd.get_or_compute("ctx_1", "plan", compute_fn)
+    self.assertEqual(normal_first, 30)
+    self.assertEqual(compute_count, 3)
+
+    normal_second = sd.get_or_compute("ctx_1", "plan", compute_fn)
+    self.assertEqual(normal_second, 30)
+    self.assertEqual(compute_count, 3)
+
+  def test_delete_with_empty_context_id_returns_false(self):
+    sd = skill_data.SkillData(10)
+    self.assertFalse(sd.delete(""))
+
 
 if __name__ == "__main__":
   absltest.main()

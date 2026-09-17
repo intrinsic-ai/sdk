@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 import functools
+import logging
 import threading
 from typing import Any
 from typing import Callable
@@ -64,6 +65,9 @@ class SkillData:
   ) -> Optional[_T]:
     """Returns the cached value for (context_id, key), or None if not found.
 
+    If `context_id` is empty, logs a warning and returns None without querying
+    the cache.
+
     If `validate_fn` is provided and a cached value exists:
     - Returns cached value if `validate_fn` returns True.
     - Returns None if `validate_fn` returns False.
@@ -75,8 +79,15 @@ class SkillData:
       validate_fn: Optional callback to validate the cached value.
 
     Returns:
-      The cached value, or None if missing or invalidated.
+      The cached value, or None if missing, empty context_id, or invalidated.
     """
+    if not context_id:
+      logging.warning(
+          "SkillData: context_id is empty for key '%s'; cache lookup skipped.",
+          key,
+      )
+      return None
+
     cached = self._cache.get(context_id, key)
     if cached is _MISSING:
       return None
@@ -95,6 +106,9 @@ class SkillData:
       validate_fn: Optional[Callable[[_T], bool]] = None,
   ) -> _T:
     """Returns the cached value for (context_id, key) or computes and stores it.
+
+    If `context_id` is empty, logs a warning and computes via `compute_fn`
+    returning the result without caching.
 
     If `validate_fn` is provided and a cached value exists:
     - Returns cached value if `validate_fn` returns true.
@@ -117,6 +131,14 @@ class SkillData:
     if compute_fn is None:
       raise ValueError("compute_fn must not be None.")
 
+    if not context_id:
+      logging.warning(
+          "SkillData: context_id is empty for key '%s'; computing without"
+          " caching.",
+          key,
+      )
+      return compute_fn()
+
     cached = self._cache.get(context_id, key)
     if cached is not _MISSING:
       if validate_fn is None or validate_fn(cached):
@@ -130,12 +152,17 @@ class SkillData:
   def delete(self, context_id: str) -> bool:
     """Deletes all entries for a specific context_id.
 
+    If `context_id` is empty, logs a warning and returns False.
+
     Args:
       context_id: Identifier for the action execution context to delete.
 
     Returns:
-      True if the context was deleted, False if not found.
+      True if the context was deleted, False if not found or empty context_id.
     """
+    if not context_id:
+      logging.warning("SkillData: context_id is empty; delete skipped.")
+      return False
     return self._cache.erase(context_id)
 
 
@@ -149,6 +176,9 @@ class _LRUCache:
 
   def get(self, context_id: str, key: str) -> Any:
     """Returns the cached value or _MISSING if not found."""
+    if not context_id:
+      return _MISSING
+
     with self._lock:
       context = self._contexts.get(context_id)
       if context is None:
@@ -158,7 +188,7 @@ class _LRUCache:
 
   def put(self, context_id: str, key: str, value: Any) -> None:
     """Stores a value for (context_id, key), updating LRU order."""
-    if self._max_contexts == 0:
+    if self._max_contexts == 0 or not context_id:
       return
 
     with self._lock:
@@ -175,5 +205,8 @@ class _LRUCache:
 
   def erase(self, context_id: str) -> bool:
     """Erases a context_id and all its keys. Returns True if found."""
+    if not context_id:
+      return False
+
     with self._lock:
       return self._contexts.pop(context_id, None) is not None
