@@ -365,8 +365,8 @@ service MotionPlannerService {
   // Plans a path that fulfills the defined motion specification in the
   // `MotionPlanningRequest`. In contrast to PlanTrajectory, this rpc call
   // creates only the geometric path, not the full trajectory. As a consequence,
-  // it does not support all the motion planning features like Motion Events. In
-  // contrast to PlanTrajectory, this call does currently not support
+  // it does not support all the motion planning features.
+  // In contrast to PlanTrajectory, this call does currently not support
   // non-volatile and volatile caching.
   // This call can be useful if you are not interested in the full trajectory
   // and its associated controls and kinematics, but only interested in the
