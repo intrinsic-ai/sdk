@@ -52,6 +52,7 @@ proto_library(
 go_proto_library(
     name = "connectivity_diagnostics_service_go_proto",
     compilers = [
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway:go_gen_grpc_gateway",
         "@io_bazel_rules_go//proto:go_grpc_v2",
         "@io_bazel_rules_go//proto:go_proto",
     ],
