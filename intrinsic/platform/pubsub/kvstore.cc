@@ -14,6 +14,7 @@
 
 #include "intrinsic/platform/pubsub/kvstore.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -34,7 +35,6 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "google/protobuf/any.pb.h"
-#include "google/protobuf/util/message_differencer.h"
 #include "grpcpp/client_context.h"
 #include "grpcpp/create_channel.h"
 #include "grpcpp/security/credentials.h"
@@ -47,6 +47,7 @@
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_handle.h"
 #include "intrinsic/platform/pubsub/zenoh_util/zenoh_helpers.h"
 #include "intrinsic/util/status/status_macros.h"
+#include "intrinsic/util/time/deadline_timeout.h"
 
 ABSL_FLAG(bool, use_replicated_kv_store, false,
           "If true, use the replicated KV store.");
@@ -60,24 +61,50 @@ using platform::proto::WorkcellInfo;
 
 namespace {
 constexpr absl::Duration kHighConsistencyInitialGetTimeout = absl::Seconds(10);
-constexpr absl::Duration kHighConsistencySetTimeout = absl::Seconds(30);
-constexpr absl::Duration kHighConsistencyGetTimeout = absl::Milliseconds(100);
-constexpr absl::Duration kHighConsistencyRetryDelayMin = absl::Milliseconds(10);
-constexpr absl::Duration kHighConsistencyRetryDelayMax =
-    absl::Milliseconds(2500);
-constexpr double kHighConsistencyRetryDelayFactor = 5.0;
+constexpr absl::Duration kVerificationGetTimeout = absl::Milliseconds(100);
+constexpr absl::Duration kVerificationRetryDelayMin = absl::Milliseconds(10);
+constexpr absl::Duration kVerificationRetryDelayMax = absl::Milliseconds(2500);
+constexpr double kVerificationRetryDelayFactor = 5.0;
 constexpr absl::string_view kWorkcellInfoKey = "workcell_info";
 constexpr size_t kPayloadByteSizeWarningThreshold = 25 * 1024 * 1024;  // 25 MiB
 
-bool IsStateEqual(const std::optional<google::protobuf::Any>& a,
-                  const std::optional<google::protobuf::Any>& b) {
-  if (a.has_value() != b.has_value()) return false;
-  if (!a.has_value()) return true;  // Implicitly, both unset.
-  return google::protobuf::util::MessageDifferencer::Equals(*a, *b);
+using VerificationMode =
+    KeyValueStore::SetWithVerificationOptions::VerificationMode;
+
+// Renders a verification mode for logs, traces and error messages. The switch
+// deliberately has no `default:` case, so adding a mode raises -Wswitch here
+// instead of silently reporting the wrong one.
+absl::string_view ToString(VerificationMode mode) {
+  switch (mode) {
+    case VerificationMode::kFirstReply:
+      return "kFirstReply";
+    case VerificationMode::kHighConsistency:
+      return "kHighConsistency";
+  }
+  return "kUnknown";  // Only reachable via an out-of-range cast.
 }
 
-absl::StatusOr<std::optional<google::protobuf::Any>> FetchCurrentState(
-    absl::StatusOr<google::protobuf::Any> get_result, absl::string_view key) {
+absl::Status VerificationTimeoutError(VerificationMode mode,
+                                      absl::string_view key) {
+  return absl::DeadlineExceededError(absl::StrFormat(
+      "Timeout waiting for verification (mode: %s) for key '%s'",
+      ToString(mode), key));
+}
+
+// Waits out the retry backoff, but never past the point where one more poll
+// still fits in the budget. Sleeping through the tail of the budget would
+// spend it without ever looking for the value again.
+void SleepForBackoff(absl::Duration delay, absl::Time deadline) {
+  const absl::Duration sleepable =
+      ToTimeout(deadline) - kVerificationGetTimeout;
+  if (sleepable <= absl::ZeroDuration()) {
+    return;
+  }
+  absl::SleepFor(std::min(delay, sleepable));
+}
+
+absl::StatusOr<std::optional<std::string>> FetchCurrentRawState(
+    absl::StatusOr<std::string> get_result, absl::string_view key) {
   switch (get_result.status().code()) {
     case absl::StatusCode::kOk:
       // Value exists.
@@ -90,11 +117,13 @@ absl::StatusOr<std::optional<google::protobuf::Any>> FetchCurrentState(
       return get_result.status();
     default:
       return absl::InternalError(
-          absl::StrFormat("Unexpected error while waiting for high "
-                          "consistency check when setting key '%s': %s",
-                          key, get_result.status().ToString()));
+          absl::StrFormat("Unexpected error while waiting for verification "
+                          "(mode: %s) when setting key '%s': %s",
+                          ToString(VerificationMode::kHighConsistency), key,
+                          get_result.status().ToString()));
   }
 }
+
 }  // namespace
 
 KeyValueStore::KeyValueStore(std::optional<std::string> prefix_override)
@@ -141,27 +170,86 @@ void KeyValueStore::StripSlashesAndAppend(std::string& result,
 }
 
 absl::Status KeyValueStore::Set(absl::string_view key,
-                                const google::protobuf::Any& value,
-                                std::optional<bool> high_consistency) {
+                                const google::protobuf::Any& value) {
   INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKeyexpr(key));
   // Should not happen since ValidKeyexpr was called before this.
   INTR_ASSIGN_OR_RETURN(std::string prefixed_name,
                         ZenohHandle::add_key_prefix(key, key_prefix_));
   LOG(INFO) << "KVStore Set for key: " << prefixed_name;
 
-  // Get the initial value if high consistency is requested.
-  std::optional<google::protobuf::Any> initial_state;
+  std::string value_serialized;
+  {
+    value_serialized = value.SerializeAsString();
+  }
+  const size_t payload_size = value_serialized.size();
+  if (payload_size > kPayloadByteSizeWarningThreshold) {
+    LOG(WARNING) << "Large KVStore SetRequest payload detected. Key: " << key
+                 << ", Size: " << payload_size << " bytes.";
+  }
+
+  imw_ret_t ret;
+  {
+    ret = Zenoh().imw_set(prefixed_name.c_str(), value_serialized.data(),
+                          payload_size);
+  }
+  if (ret != IMW_OK) {
+    return absl::InternalError(
+        absl::StrFormat("Error setting a key, return code: %d", ret));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status KeyValueStore::Set(absl::string_view key,
+                                const google::protobuf::Any& value,
+                                std::optional<bool> high_consistency) {
   if (high_consistency.value_or(false)) {
-    absl::StatusOr<google::protobuf::Any> initial_result =
-        GetAny(key, kHighConsistencyInitialGetTimeout);
+    LOG_EVERY_N_SEC(WARNING, 60)
+        << "Passing high_consistency to Set() is deprecated. "
+        << "Use SetWithVerification() instead.";
+
+    // These values are frozen to reproduce pre-deprecation
+    // Set(key, value, /*high_consistency=*/true) semantics. Do not let them
+    // drift with SetWithVerificationOptions defaults.
+    return SetWithVerification(key, value,
+                               {.mode = VerificationMode::kHighConsistency,
+                                .timeout = absl::Seconds(30)});
+  }
+
+  return Set(key, value);
+}
+
+absl::Status KeyValueStore::SetWithVerification(
+    absl::string_view key, const google::protobuf::Any& value,
+    const SetWithVerificationOptions& options) {
+  if (options.timeout <= absl::ZeroDuration()) {
+    return absl::InvalidArgumentError(
+        "SetWithVerificationOptions::timeout must be positive");
+  }
+  INTR_RETURN_IF_ERROR(intrinsic::ValidZenohKeyexpr(key));
+  INTR_ASSIGN_OR_RETURN(std::string prefixed_name,
+                        ZenohHandle::add_key_prefix(key, key_prefix_));
+  LOG(INFO) << "KVStore SetWithVerification for key: " << prefixed_name;
+
+  // Get the initial value if high consistency is requested.
+  std::optional<std::string> initial_state;
+  if (options.mode ==
+      SetWithVerificationOptions::VerificationMode::kHighConsistency) {
+    // This read precedes the write, so it is not part of the verification
+    // budget. It is still clamped to the caller's timeout so that a caller
+    // asking for a short verification cannot be blocked here for ten seconds.
+    absl::StatusOr<std::string> initial_result = GetRawWithRawKey(
+        prefixed_name,
+        std::min(kHighConsistencyInitialGetTimeout, options.timeout));
     if (initial_result.ok()) {
       initial_state = std::move(initial_result.value());
     } else if (!absl::IsNotFound(initial_result.status())) {
       // If the initial read fails due to a transient error (e.g. deadline
       // exceeded), we intentionally leave initial_state empty (nullopt). This
       // ensures that if the key was already populated, our conflict check later
-      // will see the pre-existing value and abort the operation. The caller can
-      // then retry the set idempotently. This is preferred over skipping the
+      // will see the pre-existing value and abort the operation. The exception
+      // is a pre-existing value that already matches the bytes we wrote: the
+      // write is then a no-op and returning OK is correct. The caller can
+      // retry the set idempotently. This is preferred over skipping the
       // conflict check.
       LOG_EVERY_N_SEC(WARNING, 1)
           << "Initial read failed during high consistency check for key '"
@@ -181,57 +269,95 @@ absl::Status KeyValueStore::Set(absl::string_view key,
 
   imw_ret_t ret;
   {
-    ret = Zenoh().imw_set(prefixed_name.c_str(), value_serialized.c_str(),
+    ret = Zenoh().imw_set(prefixed_name.c_str(), value_serialized.data(),
                           payload_size);
   }
   if (ret != IMW_OK) {
     return absl::InternalError(
         absl::StrFormat("Error setting a key, return code: %d", ret));
   }
-  // If high consistency is set, we need to block until the key value is
-  // committed.
-  if (high_consistency.value_or(false)) {
-    return WaitForHighConsistency(key, value, initial_state);
+
+  switch (options.mode) {
+    case SetWithVerificationOptions::VerificationMode::kFirstReply:
+      return VerifyFirstReply(prefixed_name, key, options.timeout);
+    case SetWithVerificationOptions::VerificationMode::kHighConsistency:
+      return VerifyHighConsistency(prefixed_name, key, value_serialized,
+                                   initial_state, options.timeout);
   }
-  return absl::OkStatus();
+  return absl::InvalidArgumentError("Unknown verification mode");
 }
 
-absl::Status KeyValueStore::WaitForHighConsistency(
-    absl::string_view key, const google::protobuf::Any& value,
-    const std::optional<google::protobuf::Any>& initial_state) {
-  const absl::Time deadline = absl::Now() + kHighConsistencySetTimeout;
-  absl::Duration current_delay = kHighConsistencyRetryDelayMin;
+absl::Status KeyValueStore::VerifyFirstReply(const std::string& prefixed_name,
+                                             absl::string_view key,
+                                             absl::Duration timeout) {
+  const absl::Time deadline = ToDeadline(timeout);
+  absl::Duration current_delay = kVerificationRetryDelayMin;
   while (true) {
-    absl::StatusOr<std::optional<google::protobuf::Any>> current_state =
-        FetchCurrentState(GetAny(key, kHighConsistencyGetTimeout), key);
+    // Checked before polling rather than after, so that an exhausted budget
+    // never spends another (zero-timeout) round trip before reporting.
+    const absl::Duration remaining = ToTimeout(deadline);
+    if (remaining <= absl::ZeroDuration()) {
+      return VerificationTimeoutError(VerificationMode::kFirstReply, key);
+    }
+    absl::StatusOr<std::string> raw_result = GetRawWithRawKey(
+        prefixed_name, std::min(kVerificationGetTimeout, remaining));
+    if (raw_result.ok()) {
+      return absl::OkStatus();
+    }
+    if (!absl::IsNotFound(raw_result.status()) &&
+        !absl::IsDeadlineExceeded(raw_result.status())) {
+      return raw_result.status();
+    }
+    SleepForBackoff(current_delay, deadline);
+    current_delay = std::min(current_delay * kVerificationRetryDelayFactor,
+                             kVerificationRetryDelayMax);
+  }
+}
+
+absl::Status KeyValueStore::VerifyHighConsistency(
+    const std::string& prefixed_name, absl::string_view key,
+    absl::string_view serialized_value,
+    std::optional<absl::string_view> initial_state, absl::Duration timeout) {
+  const absl::Time deadline = ToDeadline(timeout);
+  absl::Duration current_delay = kVerificationRetryDelayMin;
+  while (true) {
+    // Checked before polling rather than after, so that an exhausted budget
+    // never spends another (zero-timeout) round trip before reporting.
+    const absl::Duration remaining = ToTimeout(deadline);
+    if (remaining <= absl::ZeroDuration()) {
+      return VerificationTimeoutError(VerificationMode::kHighConsistency, key);
+    }
+    absl::StatusOr<std::optional<std::string>> current_state =
+        FetchCurrentRawState(
+            GetRawWithRawKey(prefixed_name,
+                             std::min(kVerificationGetTimeout, remaining)),
+            key);
 
     if (!absl::IsDeadlineExceeded(current_state.status())) {
       INTR_RETURN_IF_ERROR(current_state.status());
 
       if (current_state->has_value() &&
-          google::protobuf::util::MessageDifferencer::Equals(
-              current_state->value(), value)) {
+          current_state->value() == serialized_value) {
         // Key value is committed.
         return absl::OkStatus();
       }
 
-      if (!IsStateEqual(*current_state, initial_state)) {
+      std::optional<absl::string_view> current_bytes;
+      if (current_state->has_value()) {
+        current_bytes = current_state->value();
+      }
+
+      if (current_bytes != initial_state) {
         return absl::AbortedError(absl::StrFormat(
             "Value for key '%s' was modified by another process while "
-            "waiting for high consistency",
-            key));
+            "waiting for verification (mode: %s)",
+            key, ToString(VerificationMode::kHighConsistency)));
       }
     }
 
-    if (absl::Now() > deadline) {
-      return absl::DeadlineExceededError(absl::StrFormat(
-          "Timeout waiting for high consistency for key '%s'", key));
-    }
-
-    // Exponential backoff before retrying.
-    absl::SleepFor(current_delay);
-    current_delay = std::min(current_delay * kHighConsistencyRetryDelayFactor,
-                             kHighConsistencyRetryDelayMax);
+    SleepForBackoff(current_delay, deadline);
+    current_delay = std::min(current_delay * kVerificationRetryDelayFactor,
+                             kVerificationRetryDelayMax);
   }
 }
 
@@ -244,12 +370,12 @@ absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAny(
   return GetAnyWithRawKey(*raw_key, timeout);
 }
 
-absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAnyWithRawKey(
+absl::StatusOr<std::string> KeyValueStore::GetRawWithRawKey(
     const std::string& raw_key, absl::Duration timeout) {
   if (timeout < absl::ZeroDuration()) {
     return absl::InvalidArgumentError("Timeout must be zero or positive");
   }
-  google::protobuf::Any value;
+  std::string value;
   absl::Notification notif;
   absl::Status lambda_status = absl::NotFoundError("Key not found");
   // We can capture all variables by reference because we wait for the
@@ -257,15 +383,15 @@ absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAnyWithRawKey(
   // variables will outlive the callback.
   auto reply_functor = std::make_unique<imw_callback_functor_t>(
       [&value,
-       &lambda_status](const char* keyexpr, const void* response_bytes,
+       &lambda_status](const char* unused_keyexpr, const void* response_bytes,
                        const size_t response_bytes_len) {
-        bool ok = value.ParseFromString(absl::string_view(
-            static_cast<const char*>(response_bytes), response_bytes_len));
-        if (ok) {
-          lambda_status = absl::OkStatus();
+        if (response_bytes != nullptr) {
+          value.assign(static_cast<const char*>(response_bytes),
+                       response_bytes_len);
         } else {
-          lambda_status = absl::InternalError("Failed to parse response");
+          value.clear();
         }
+        lambda_status = absl::OkStatus();
       });
   auto on_done_functor = std::make_unique<imw_on_done_functor_t>(
       [&notif](const char* unused_keyexpr) { notif.Notify(); });
@@ -293,6 +419,19 @@ absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAnyWithRawKey(
   }
 
   return std::move(value);
+}
+
+absl::StatusOr<google::protobuf::Any> KeyValueStore::GetAnyWithRawKey(
+    const std::string& raw_key, absl::Duration timeout) {
+  INTR_ASSIGN_OR_RETURN(std::string raw_bytes,
+                        GetRawWithRawKey(raw_key, timeout));
+
+  google::protobuf::Any value;
+  if (!value.ParseFromString(raw_bytes)) {
+    return absl::InternalError(
+        absl::StrFormat("Failed to parse response for key '%s'", raw_key));
+  }
+  return value;
 }
 
 absl::StatusOr<KVQuery> KeyValueStore::GetAll(absl::string_view keyexpr,

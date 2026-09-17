@@ -78,19 +78,104 @@ class KeyValueStore {
  public:
   friend class PubSub;
 
+  struct SetWithVerificationOptions {
+    // Both verification modes avoid protobuf deserialization overhead by
+    // comparing raw bytes.
+    enum class VerificationMode {
+      // Returns as soon as any populated value is read from the key, without
+      // verifying its contents.
+      //
+      // Use this for performant initial writes where confirming that *some*
+      // value was set is sufficient.
+      //
+      // WARNING:
+      //   Does not verify contents. If the key already has a value, or another
+      //   concurrent writer wrote to the key, this might falsely pass before
+      //   the new write has actually propagated.
+      //
+      //   If you need to verify contents to ensure your value was set, use
+      //   kHighConsistency instead.
+      kFirstReply,
+
+      // Blocks until the value is verified by reading it back and checking if
+      // it matches the expected bytes.
+      // Use this for updates where you need to guarantee that the key
+      // converged to the exact written value.
+      //
+      // Also detects race conditions by checking if another process wrote a
+      // different value while polling. The check is byte-exact on the
+      // serialized payload, so a concurrent writer storing a semantically
+      // equivalent message with a different encoding also counts as a
+      // conflict.
+      kHighConsistency,
+    };
+
+    VerificationMode mode = VerificationMode::kHighConsistency;
+
+    // Budget for the verification polling loop, starting after the write has
+    // been dispatched. Must be positive; SetWithVerification returns
+    // InvalidArgumentError otherwise. kHighConsistency additionally performs a
+    // read before the write, bounded by this timeout or 10 seconds, whichever
+    // is shorter, so that read is not covered by this budget.
+    absl::Duration timeout = absl::Seconds(30);
+  };
+
   virtual ~KeyValueStore() = default;
 
-  // Sets the value for the given key. A key can't include any of the following
-  // characters: /, *, ?, #, [ and ].
+  // Sets the value for the given key without waiting for verification
+  // (fire-and-forget). A key can't include any of the following characters: /,
+  // *, ?, #, [ and ].
+  //
+  // NOTE:
+  // Returning absl::OkStatus() indicates that the write was successfully
+  // dispatched/delegated to the underlying Zenoh transport, but Zenoh will
+  // still need to perform the write and have it propagate. If you need to
+  // guarantee and wait for the write to complete, use `SetWithVerification()`
+  // instead.
+  virtual absl::Status Set(absl::string_view key,
+                           const google::protobuf::Any& value);
+
+  // Sets the value for the given key without waiting for verification
+  // (fire-and-forget). Templated overload for arbitrary Protobuf messages.
+  //
+  // NOTE:
+  //   Returning absl::OkStatus() indicates that the write was successfully
+  //   dispatched/delegated to the underlying Zenoh transport, but Zenoh will
+  //   still need to perform the write and have it propagate. If you need to
+  //   guarantee and wait for the write to complete, use `SetWithVerification()`
+  //   instead.
+  template <typename T>
+  absl::Status Set(absl::string_view key, T&& value)
+    requires(
+        std::is_base_of_v<google::protobuf::Message, std::remove_cvref_t<T>> &&
+        !std::is_same_v<google::protobuf::Any, std::remove_cvref_t<T>>)
+  {
+    google::protobuf::Any any;
+    if (!any.PackFrom(std::forward<T>(value))) {
+      return absl::InternalError(
+          absl::StrCat("Failed to pack value for the key: ", key));
+    }
+    return Set(key, any);
+  }
+
+  // Sets the value for the given key with optional high consistency
+  // verification.
+  //
+  // If `high_consistency` is true, this method delegates to
+  // `SetWithVerification()` using `VerificationMode::kHighConsistency` and a
+  // 30-second timeout. If false, it behaves as fire-and-forget `Set(key,
+  // value)`.
+  [[deprecated("Use SetWithVerification() instead.")]]
   virtual absl::Status Set(absl::string_view key,
                            const google::protobuf::Any& value,
-                           std::optional<bool> high_consistency = std::nullopt);
+                           std::optional<bool> high_consistency);
 
-  // Sets the value for the given key. A key can't include any of the following
-  // characters: /, *, ?, #, [ and ].
+  // Sets the value for the given key with optional high consistency
+  // verification. Templated overload for arbitrary Protobuf messages.
   template <typename T>
+  [[deprecated("Use SetWithVerification() instead.")]]
   absl::Status Set(absl::string_view key, T&& value,
-                   std::optional<bool> high_consistency = std::nullopt)
+                   std::optional<bool> high_consistency)
     requires(
         std::is_base_of_v<google::protobuf::Message, std::remove_cvref_t<T>> &&
         !std::is_same_v<google::protobuf::Any, std::remove_cvref_t<T>>)
@@ -101,6 +186,36 @@ class KeyValueStore {
           absl::StrCat("Failed to pack value for the key: ", key));
     }
     return Set(key, any, high_consistency);
+  }
+
+  // Sets the value for the given key and blocks until verification completes
+  // according to the specified `options` (see `SetWithVerificationOptions` for
+  // available verification modes and their tradeoffs). A key can't include any
+  // of the following characters: /, *, ?, #, [ and ].
+  //
+  // Returns absl::InvalidArgumentError if `options.timeout` is not positive.
+  //
+  // Returns absl::AbortedError if another process wrote a conflicting value
+  // during verification (under kHighConsistency mode).
+  virtual absl::Status SetWithVerification(
+      absl::string_view key, const google::protobuf::Any& value,
+      const SetWithVerificationOptions& options);
+
+  // Sets the value for the given key and blocks until verification completes.
+  // Templated overload for arbitrary Protobuf messages.
+  template <typename T>
+  absl::Status SetWithVerification(absl::string_view key, T&& value,
+                                   const SetWithVerificationOptions& options)
+    requires(
+        std::is_base_of_v<google::protobuf::Message, std::remove_cvref_t<T>> &&
+        !std::is_same_v<google::protobuf::Any, std::remove_cvref_t<T>>)
+  {
+    google::protobuf::Any any;
+    if (!any.PackFrom(std::forward<T>(value))) {
+      return absl::InternalError(
+          absl::StrCat("Failed to pack value for the key: ", key));
+    }
+    return SetWithVerification(key, any, options);
   }
 
   template <typename T>
@@ -281,35 +396,40 @@ class KeyValueStore {
                                                        absl::Duration timeout);
 
  private:
+  // Returns the raw serialized bytes for the given key.
+  // The key is processed as is, i.e. no prefixes are added to it.
+  //
+  // This method is private because the raw keys contain prefixes not known
+  // to the client code, such as `kv_store` or `kv_store_repl`.
+  absl::StatusOr<std::string> GetRawWithRawKey(const std::string& raw_key,
+                                               absl::Duration timeout);
+
   // Returns the value for the given key, wrapped into a google::protobuf::Any.
   // The key is processed as is, i.e. no prefixes are added to it.
   //
   // This method is private because the raw keys contain prefixes not known
   // to the client code, such as `kv_store` or `kv_store_repl`.
-  //
-  // Parameters:
-  // - raw_key - the key to fetch the value for. Its type is const std::string&
-  //   to avoid unnecessary conversions to std::string. The std::string is
-  //   available at call site, and a reference to it can be passed to this
-  //   method.
-  // - timeout - the timeout for the query.
   absl::StatusOr<google::protobuf::Any> GetAnyWithRawKey(
       const std::string& raw_key, absl::Duration timeout);
 
-  // Polls the KVStore until the specified `key` converges to the given `value`.
+  // Polls the KVStore until the first non-empty query reply is received for
+  // `key`, skipping content verification. Wait loops use exponential backoff,
+  // failing if the operation takes longer than `timeout`.
+  absl::Status VerifyFirstReply(const std::string& prefixed_name,
+                                absl::string_view key, absl::Duration timeout);
+
+  // Polls the KVStore until the specified `key` converges to the given
+  // `serialized_value` using size and raw-byte comparison.
   // Wait loops use exponential backoff, failing if the operation takes longer
-  // than `kHighConsistencySetTimeout`.
+  // than `timeout`.
+  //
   // Aborts if the value changes to a value other than the newly-written
-  // `value`, detecting race conditions with other writers (using
-  // `initial_state` to know what value the key started with). Returns:
-  //  - absl::OkStatus() when the key's value successfully matches `value`.
-  //  - absl::AbortedError if another process wrote a different value during the
-  //  wait.
-  //  - absl::DeadlineExceededError if the value did not converge in time.
-  //  - Other internal errors if zenoh queries fail non-transiently.
-  absl::Status WaitForHighConsistency(
-      absl::string_view key, const google::protobuf::Any& value,
-      const std::optional<google::protobuf::Any>& initial_state);
+  // `serialized_value`, detecting race conditions with other writers (using
+  // `initial_state` to know what value the key started with).
+  absl::Status VerifyHighConsistency(
+      const std::string& prefixed_name, absl::string_view key,
+      absl::string_view serialized_value,
+      std::optional<absl::string_view> initial_state, absl::Duration timeout);
 
   template <typename T>
   absl::StatusOr<T> ExtractFromAny(absl::string_view key,

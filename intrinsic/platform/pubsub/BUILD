@@ -133,6 +133,7 @@ cc_library(
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_helpers",
         "//intrinsic/util/status:status_macros",
+        "//intrinsic/util/time:deadline_timeout",
         "@abseil-cpp//absl/container:flat_hash_map",
         "@abseil-cpp//absl/flags:flag",
         "@abseil-cpp//absl/log",

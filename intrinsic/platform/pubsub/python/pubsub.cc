@@ -41,6 +41,7 @@
 #include "intrinsic/platform/pubsub/python/gil_aware_pubsub.h"
 #include "intrinsic/platform/pubsub/subscription.h"
 #include "pybind11/cast.h"
+#include "pybind11/native_enum.h"
 #include "pybind11_abseil/absl_casters.h"
 #include "pybind11_abseil/no_throw_status.h"
 #include "pybind11_abseil/status_casters.h"
@@ -509,10 +510,51 @@ PYBIND11_MODULE(pubsub, m) {
 
   pybind11::class_<KVQuery>(m, "KVQuery");
 
+  pybind11::class_<KeyValueStore::SetWithVerificationOptions> set_options(
+      m, "SetWithVerificationOptions");
+
+  pybind11::native_enum<
+      KeyValueStore::SetWithVerificationOptions::VerificationMode>(
+      set_options, "VerificationMode", "enum.Enum")
+      .value("FIRST_REPLY", KeyValueStore::SetWithVerificationOptions::
+                                VerificationMode::kFirstReply)
+      .value("HIGH_CONSISTENCY", KeyValueStore::SetWithVerificationOptions::
+                                     VerificationMode::kHighConsistency)
+      .finalize();
+
+  set_options.def(pybind11::init<>())
+      .def_readwrite("mode", &KeyValueStore::SetWithVerificationOptions::mode)
+      .def_property(
+          "timeout",
+          [](const KeyValueStore::SetWithVerificationOptions& opt) {
+            return absl::ToDoubleSeconds(opt.timeout);
+          },
+          [](KeyValueStore::SetWithVerificationOptions& opt, double s) {
+            opt.timeout = absl::Seconds(s);
+          });
+
   pybind11::class_<KeyValueStore>(m, "KeyValueStore")
-      .def("Set", &KeyValueStore::Set<google::protobuf::Message>,
+      .def("Set",
+           static_cast<absl::Status (KeyValueStore::*)(
+               absl::string_view, const google::protobuf::Message&,
+               std::optional<bool>)>(
+               &KeyValueStore::Set<const google::protobuf::Message&>),
            pybind11::arg("key"), pybind11::arg("value"),
-           pybind11::arg("high_consistency") = false)
+           pybind11::arg("high_consistency"))
+      .def("Set",
+           static_cast<absl::Status (KeyValueStore::*)(
+               absl::string_view, const google::protobuf::Message&)>(
+               &KeyValueStore::Set<const google::protobuf::Message&>),
+           pybind11::arg("key"), pybind11::arg("value"))
+      .def("SetWithVerification",
+           static_cast<absl::Status (KeyValueStore::*)(
+               absl::string_view, const google::protobuf::Message&,
+               const KeyValueStore::SetWithVerificationOptions&)>(
+               &KeyValueStore::SetWithVerification<
+                   const google::protobuf::Message&>),
+           pybind11::arg("key"), pybind11::arg("value"),
+           pybind11::arg("options") =
+               KeyValueStore::SetWithVerificationOptions())
       .def("Get", &Get, pybind11::arg("key"), pybind11::arg("timeout") = 10)
       .def("GetAll", &GetAll)
       .def("GetAllSynchronous", &GetAllSynchronous, pybind11::arg("keyexpr"),

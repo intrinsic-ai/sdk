@@ -40,7 +40,18 @@ TEST_F(FakeKeyValueStoreTest, SetAndGetSuccess) {
 
   EXPECT_OK(kv_store_.Set("my/key", val));
 
-  ASSERT_OK_AND_ASSIGN(auto retrieved,
+  ASSERT_OK_AND_ASSIGN(google::protobuf::StringValue retrieved,
+                       kv_store_.Get<google::protobuf::StringValue>("my/key"));
+  EXPECT_EQ(retrieved.value(), "test_value");
+}
+
+TEST_F(FakeKeyValueStoreTest, SetWithVerificationAndGetSuccess) {
+  google::protobuf::StringValue val;
+  val.set_value("test_value");
+
+  EXPECT_OK(kv_store_.SetWithVerification("my/key", val, {}));
+
+  ASSERT_OK_AND_ASSIGN(google::protobuf::StringValue retrieved,
                        kv_store_.Get<google::protobuf::StringValue>("my/key"));
   EXPECT_EQ(retrieved.value(), "test_value");
 }

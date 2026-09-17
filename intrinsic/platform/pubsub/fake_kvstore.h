@@ -45,10 +45,16 @@ class FakeKeyValueStore : public KeyValueStore {
   ~FakeKeyValueStore() override = default;
 
   using KeyValueStore::Set;
+  using KeyValueStore::SetWithVerification;
 
-  absl::Status Set(
+  // Stores the key-value pair in memory.
+  absl::Status Set(absl::string_view key,
+                   const google::protobuf::Any& value) override;
+
+  // Stores the key-value pair in memory, satisfying verification immediately.
+  absl::Status SetWithVerification(
       absl::string_view key, const google::protobuf::Any& value,
-      std::optional<bool> high_consistency = std::nullopt) override;
+      const SetWithVerificationOptions& options) override;
 
   absl::Status Delete(absl::string_view key) override;
 

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Tests for the KeyValueStore Python bindings."""
+
 from absl.testing import absltest
 
 from intrinsic.platform.pubsub.python import pubsub
@@ -42,6 +44,21 @@ class KVStoreTest(absltest.TestCase):
     self.assertEqual(
         pubsub.KeyValueStore.MakeKey("foo/bar", "baz"), "foo/bar/baz"
     )
+
+  def test_set_with_verification_options(self):
+    mode = pubsub.SetWithVerificationOptions.VerificationMode
+    self.assertCountEqual(
+        [m.name for m in mode], ["FIRST_REPLY", "HIGH_CONSISTENCY"]
+    )
+
+    options = pubsub.SetWithVerificationOptions()
+    self.assertEqual(options.mode, mode.HIGH_CONSISTENCY)
+    self.assertEqual(options.timeout, 30.0)
+
+    options.mode = mode.FIRST_REPLY
+    options.timeout = 5.0
+    self.assertEqual(options.mode, mode.FIRST_REPLY)
+    self.assertEqual(options.timeout, 5.0)
 
 
 if __name__ == "__main__":

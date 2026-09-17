@@ -24,11 +24,16 @@
 namespace intrinsic {
 
 absl::Status FakeKeyValueStore::Set(absl::string_view key,
-                                    const google::protobuf::Any& value,
-                                    std::optional<bool> high_consistency) {
+                                    const google::protobuf::Any& value) {
   absl::MutexLock lock(&mutex_);
   store_[std::string(key)] = value;
   return absl::OkStatus();
+}
+
+absl::Status FakeKeyValueStore::SetWithVerification(
+    absl::string_view key, const google::protobuf::Any& value,
+    const SetWithVerificationOptions& /*options*/) {
+  return Set(key, value);
 }
 
 absl::Status FakeKeyValueStore::Delete(absl::string_view key) {
