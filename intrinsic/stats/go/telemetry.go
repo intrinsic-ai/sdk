@@ -23,10 +23,8 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 
-	"contrib.go.opencensus.io/exporter/ocagent"
 	"contrib.go.opencensus.io/exporter/prometheus"
 	traceexporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	log "github.com/golang/glog"
@@ -38,6 +36,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/bridge/opencensus"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -242,7 +241,6 @@ func WithViews(Views []*view.View) ConfigOption {
 // Telemetry is an object to configure tracing and metrics export in services.
 type Telemetry struct {
 	tp            *sdktrace.TracerProvider
-	exporter      *trace.Exporter
 	metricsServer *http.Server
 }
 
@@ -270,17 +268,39 @@ func (f filterErrorHandler) Handle(err error) {
 	log.Warningf("OpenTelemetry error: %v", err)
 }
 
+func initTracerProvider(ctx context.Context, exporter sdktrace.SpanExporter, serviceName string, probability float64) *sdktrace.TracerProvider {
+	otel.SetErrorHandler(filterErrorHandler{})
+
+	var attrs []attribute.KeyValue
+	if serviceName != "" {
+		attrs = append(attrs, semconv.ServiceName(serviceName))
+	}
+
+	res, err := resource.New(ctx,
+		resource.WithAttributes(attrs...),
+		resource.WithTelemetrySDK(),
+		resource.WithHost(),
+	)
+	if err != nil {
+		// resource.New returns partial resource on failure. It's also safe to pass nil resource to WithResource.
+		log.Warningf("Failed to create telemetry resource: %v", err)
+	}
+
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(res),
+		sdktrace.WithSampler(LocalBased(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(probability)))),
+	)
+
+	otel.SetTracerProvider(tp)
+	opencensus.InstallTraceBridge()
+
+	return tp
+}
+
 func (t *Telemetry) createCloudTracerProvider(project string, serviceName string, probability float64) error {
 	if project == "" {
 		return fmt.Errorf("project must be specified")
-	}
-	otel.SetErrorHandler(filterErrorHandler{})
-
-	defaultAttributes := []attribute.KeyValue{
-		semconv.ServiceNameKey.String(serviceName),
-	}
-	if h, err := os.Hostname(); err == nil { // no error
-		defaultAttributes = append(defaultAttributes, attribute.String("hostname", h))
 	}
 	log.Info("Creating Google Cloud Trace exporter for tracing.")
 
@@ -289,32 +309,26 @@ func (t *Telemetry) createCloudTracerProvider(project string, serviceName string
 		return fmt.Errorf("create trace exporter: %w", err)
 	}
 
-	res, err := resource.New(context.Background(),
-		resource.WithAttributes(defaultAttributes...),
-	)
-	if err != nil {
-		return fmt.Errorf("create resource: %w", err)
-	}
-
-	t.tp = sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(exporter),
-		sdktrace.WithResource(res),
-		sdktrace.WithSampler(LocalBased(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(probability)))),
-	)
-
-	otel.SetTracerProvider(t.tp)
-	opencensus.InstallTraceBridge()
+	t.tp = initTracerProvider(context.Background(), exporter, serviceName, probability)
 
 	return nil
 }
 
-func (t *Telemetry) createTraceExporter(serviceName string) (trace.Exporter, error) {
-	log.Info("Creating OpenCensus Agent exporter for tracing.")
-	return ocagent.NewExporter(
-		ocagent.WithInsecure(),
-		ocagent.WithAddress("oc-agent.app-intrinsic-base.svc.cluster.local:55678"),
-		ocagent.WithServiceName(serviceName),
+func (t *Telemetry) createOnPremTracerProvider(serviceName string, probability float64) error {
+	log.Info("Creating OTLP trace exporter for tracing.")
+
+	ctx := context.Background()
+	exporter, err := otlptracegrpc.New(ctx,
+		otlptracegrpc.WithInsecure(),
+		otlptracegrpc.WithEndpoint("oc-agent.app-intrinsic-base.svc.cluster.local:4317"),
 	)
+	if err != nil {
+		return fmt.Errorf("create trace exporter: %w", err)
+	}
+
+	t.tp = initTracerProvider(ctx, exporter, serviceName, probability)
+
+	return nil
 }
 
 // init initializes the telemetry instance.
@@ -343,9 +357,6 @@ func (t *Telemetry) Shutdown(ctx context.Context) error {
 	if t.tp != nil {
 		err = errors.Join(err, t.tp.Shutdown(ctx))
 	}
-	if t.exporter != nil {
-		trace.UnregisterExporter(*t.exporter)
-	}
 	if t.metricsServer != nil {
 		err = errors.Join(err, t.metricsServer.Shutdown(ctx))
 	}
@@ -364,16 +375,10 @@ func (t *Telemetry) enableTracing(c tracingConfig) {
 		}
 		return
 	}
-	exp, err := t.createTraceExporter(c.ServiceName)
+	err := t.createOnPremTracerProvider(c.ServiceName, c.Probability)
 	if err != nil {
 		log.Warningf("Tracing is disabled! Tracing setup failed: %v", err)
-		return
 	}
-	t.exporter = &exp
-	trace.RegisterExporter(exp)
-	trace.ApplyConfig(trace.Config{
-		DefaultSampler: trace.ProbabilitySampler(c.Probability),
-	})
 }
 
 // enableMetrics enables metrics for the current telemetry instance.
@@ -566,4 +571,16 @@ func (s localSampler) ShouldSample(p sdktrace.SamplingParameters) sdktrace.Sampl
 // https://opentelemetry.io/docs/concepts/sampling/#tail-sampling
 func WithLocalSampler(ctx context.Context, sampler sdktrace.Sampler) context.Context {
 	return context.WithValue(ctx, localSamplerKey{}, sampler)
+}
+
+// WithAlwaysSample returns a copy of ctx that forces sampling of every span started from this context.
+// Discouraged for general use, see [WithLocalSampler].
+func WithAlwaysSample(ctx context.Context) context.Context {
+	return WithLocalSampler(ctx, sdktrace.AlwaysSample())
+}
+
+// WithNeverSample returns a copy of ctx that prevents sampling of any span started from this context.
+// Discouraged for general use, see [WithLocalSampler].
+func WithNeverSample(ctx context.Context) context.Context {
+	return WithLocalSampler(ctx, sdktrace.NeverSample())
 }
