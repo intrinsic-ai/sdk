@@ -1,0 +1,73 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+edition = "2023";
+
+package intrinsic_proto.intrinsic_os.connectivity_diagnostics.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/longrunning/operations.proto";
+import "google/protobuf/timestamp.proto";
+import "intrinsic/kubernetes/intrinsic_os/connectivity_diagnostics/proto/v1/connectivity_diagnostics.proto";
+
+option go_package = "intrinsic/kubernetes/intrinsic_os/connectivity_diagnostics/proto/v1/connectivity_diagnostics_service_go_proto";
+
+// Service for inspecting and executing network connectivity diagnostics on IPC
+service IpcConnectivityDiagnosticsService {
+  // Retrieves the latest connectivity diagnostics report
+  rpc GetConnectivityDiagnostics(GetConnectivityDiagnosticsRequest)
+      returns (ConnectivityReport) {
+    option (google.api.http) = {
+      get: "/ipcConnectivityDiagnostics/v1/diagnostics"
+    };
+  }
+
+  // Asynchronously runs a new connectivity diagnostic and returns the resulting
+  // report upon completion
+  rpc RunConnectivityDiagnostics(RunConnectivityDiagnosticsRequest)
+      returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/ipcConnectivityDiagnostics/v1/diagnostics:run"
+      body: "*"
+    };
+    option (google.longrunning.operation_info) = {
+      metadata_type: "intrinsic_proto.intrinsic_os.connectivity_diagnostics.v1.RunConnectivityDiagnosticsMetadata"
+      response_type: "intrinsic_proto.intrinsic_os.connectivity_diagnostics.v1.ConnectivityReport"
+    };
+  }
+}
+
+// Request message for retrieving the latest connectivity diagnostics report
+message GetConnectivityDiagnosticsRequest {}
+
+// Request message for running a new connectivity diagnostic
+message RunConnectivityDiagnosticsRequest {}
+
+// Metadata message for tracking the progress of an asynchronous connectivity
+// diagnostic
+message RunConnectivityDiagnosticsMetadata {
+  // Timestamp when the diagnostic was initiated
+  google.protobuf.Timestamp start_time = 1
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Total number of connectivity checks to be executed in this run
+  int32 total_checks = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Human-readable display name of the currently executing check
+  string current_check_display_name = 3
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Incremental snapshot of the connectivity diagnostics report.
+  // Contains only the checks completed so far (pending checks are omitted).
+  ConnectivityReport partial_report = 4
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+}

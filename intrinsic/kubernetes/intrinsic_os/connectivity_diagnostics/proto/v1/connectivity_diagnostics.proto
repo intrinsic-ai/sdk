@@ -1,0 +1,391 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+edition = "2023";
+
+package intrinsic_proto.intrinsic_os.connectivity_diagnostics.v1;
+
+import "google/api/field_behavior.proto";
+import "google/api/field_info.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "intrinsic/kubernetes/intrinsic_os/connectivity_diagnostics/proto/v1/connectivity_diagnostics_go_proto";
+
+// Overall evaluation status of the connectivity diagnostics report
+enum ReportStatus {
+  REPORT_STATUS_UNSPECIFIED = 0;
+  // All checks completed successfully
+  REPORT_STATUS_HEALTHY = 1;
+  // All checks completed without failure, but at least one reported a warning
+  REPORT_STATUS_WARNING = 2;
+  // At least one check failed
+  REPORT_STATUS_FAILED = 3;
+}
+
+// Execution status of an individual connectivity check
+enum ConnectivityCheckStatus {
+  CONNECTIVITY_CHECK_STATUS_UNSPECIFIED = 0;
+  // All assertions passed
+  CONNECTIVITY_CHECK_STATUS_HEALTHY = 1;
+  // Completed with non-fatal warnings
+  CONNECTIVITY_CHECK_STATUS_WARNING = 2;
+  // Check failed
+  CONNECTIVITY_CHECK_STATUS_FAILED = 3;
+  // Check execution was skipped (e.g. due to unmet prerequisites). When
+  // skipped, `skipped_reason` is populated and `check_details` is omitted.
+  CONNECTIVITY_CHECK_STATUS_SKIPPED = 4;
+}
+
+// Status of the underlying network transport connection
+enum TransportStatus {
+  TRANSPORT_STATUS_UNSPECIFIED = 0;
+  TRANSPORT_STATUS_OK = 1;
+  // Dropped packets or socket timeout
+  TRANSPORT_STATUS_TIMEOUT = 2;
+  // Host reachable, but port not listening
+  TRANSPORT_STATUS_CONNECTION_REFUSED = 3;
+  // No route to host
+  TRANSPORT_STATUS_NETWORK_UNREACHABLE = 4;
+  // Received unexpected TCP RST
+  TRANSPORT_STATUS_CONNECTION_RESET = 5;
+  TRANSPORT_STATUS_OTHER_ERROR = 6;
+}
+
+// Structured status details for a check failure or warning. Aligned with
+// Intrinsic ExtendedStatus.
+message StatusDetail {
+  message StatusCode {
+    string component = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+    // Numeric status code mapped to Flowstate troubleshooting documentation.
+    // Zero value means unspecified.
+    uint32 code = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  message UserReport {
+    string message = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+    string instructions = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  // Debug details for engineering triage. Might be very verbose.
+  message DebugReport {
+    string message = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  StatusCode status_code = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string title = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  UserReport user_report = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  DebugReport debug_report = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// Complete connectivity diagnostics report containing all executed checks
+message ConnectivityReport {
+  google.protobuf.Timestamp start_time = 1
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Duration duration = 2
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+  ReportStatus status = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  repeated ConnectivityCheck checks = 4
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// An individual connectivity check item
+message ConnectivityCheck {
+  string display_name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  ConnectivityCheckStatus status = 2
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Reason check was skipped. Populated when status is
+  // CONNECTIVITY_CHECK_STATUS_SKIPPED; check_details is omitted for skipped
+  // checks.
+  string skipped_reason = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Structured status report populated when status is WARNING or FAILED
+  StatusDetail status_detail = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  google.protobuf.Timestamp start_time = 5
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Duration duration = 6
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Detailed payload for the specific check type.
+  // Omitted when status is CONNECTIVITY_CHECK_STATUS_SKIPPED.
+  oneof check_details {
+    NetworkInterfaceCheck network_interface_check = 7
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    GatewayCheck gateway_check = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+    DnsCheck dns_check = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+    NtpCheck ntp_check = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+    ProxyCheck proxy_check = 11 [(google.api.field_behavior) = OUTPUT_ONLY];
+    DomainReachabilityCheck domain_reachability_check = 12
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    WebRtcCheck web_rtc_check = 13 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+}
+
+// Operating system network interface configuration and link status check
+message NetworkInterfaceCheck {
+  // Operational state of the network interface
+  enum OperationalState {
+    OPERATIONAL_STATE_UNSPECIFIED = 0;
+    // Administratively UP and carrier signal detected
+    OPERATIONAL_STATE_UP = 1;
+    // Administratively DOWN
+    OPERATIONAL_STATE_DOWN = 2;
+    // Administratively UP, but carrier signal missing (unplugged)
+    OPERATIONAL_STATE_NO_CARRIER = 3;
+  }
+
+  // Ethernet duplex mode
+  enum DuplexMode {
+    DUPLEX_MODE_UNSPECIFIED = 0;
+    DUPLEX_MODE_FULL = 1;
+    DUPLEX_MODE_HALF = 2;
+    DUPLEX_MODE_UNKNOWN = 3;
+  }
+
+  // IP address assignment and conflict detection details
+  message IpAddressInfo {
+    // Address assignment method
+    enum AssignmentMethod {
+      ASSIGNMENT_METHOD_UNSPECIFIED = 0;
+      ASSIGNMENT_METHOD_DHCP = 1;
+      ASSIGNMENT_METHOD_STATIC = 2;
+      // APIPA (169.254.x.x) or IPv6 fe80::/10
+      ASSIGNMENT_METHOD_LINK_LOCAL = 3;
+      // IPv6 stateless address autoconfiguration
+      ASSIGNMENT_METHOD_SLAAC = 4;
+    }
+
+    string ip_address = 1 [
+      (google.api.field_behavior) = OUTPUT_ONLY,
+      (google.api.field_info).format = IPV4_OR_IPV6
+    ];
+    AssignmentMethod assignment_method = 2
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    // Whether this is the primary address on the interface for its family
+    bool primary = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+    // Conflicting MAC addresses discovered on the local network
+    repeated string conflicting_mac_addresses = 4
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  // DHCPv4 lease information acquired from DHCP server
+  message Dhcpv4Lease {
+    string assigned_ip_address = 1 [
+      (google.api.field_behavior) = OUTPUT_ONLY,
+      (google.api.field_info).format = IPV4
+    ];
+    string subnet_mask = 2 [
+      (google.api.field_behavior) = OUTPUT_ONLY,
+      (google.api.field_info).format = IPV4
+    ];
+    string server_ip_address = 3 [
+      (google.api.field_behavior) = OUTPUT_ONLY,
+      (google.api.field_info).format = IPV4
+    ];
+    string gateway_ip_address = 4 [
+      (google.api.field_behavior) = OUTPUT_ONLY,
+      (google.api.field_info).format = IPV4
+    ];
+    repeated string dns_servers = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+    repeated string ntp_servers = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+    google.protobuf.Duration lease_duration = 7
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    google.protobuf.Timestamp expiration_time = 8
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  message DhcpLogEntry {
+    google.protobuf.Timestamp timestamp = 1
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    string message = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Human-readable configured display name
+  string display_name = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string mac_address = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  OperationalState operational_state = 4
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+  int32 mtu = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+  int32 speed_mbps = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+  DuplexMode duplex_mode = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  repeated IpAddressInfo ip_addresses = 8
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+  repeated string default_gateway_ips = 9 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_info).format = IPV4_OR_IPV6
+  ];
+  repeated string dns_servers = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Active DHCPv4 lease if interface is configured via DHCP
+  Dhcpv4Lease dhcpv4_lease = 11 [(google.api.field_behavior) = OUTPUT_ONLY];
+  repeated DhcpLogEntry dhcp_logs = 12
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// Gateway reachability and ARP resolution check
+message GatewayCheck {
+  string gateway_ip_address = 1 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_info).format = IPV4_OR_IPV6
+  ];
+  string gateway_mac_address = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// DNS resolution check
+message DnsCheck {
+  message DnsServerCheck {
+    enum DnsResolutionStatus {
+      DNS_RESOLUTION_STATUS_UNSPECIFIED = 0;
+      DNS_RESOLUTION_STATUS_OK = 1;
+      DNS_RESOLUTION_STATUS_NXDOMAIN = 2;
+      DNS_RESOLUTION_STATUS_OTHER_ERROR = 3;
+    }
+
+    message DnsResolutionCheck {
+      string domain = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+      repeated string resolved_ips = 2 [
+        (google.api.field_behavior) = OUTPUT_ONLY,
+        (google.api.field_info).format = IPV4_OR_IPV6
+      ];
+      DnsResolutionStatus resolution_status = 3
+          [(google.api.field_behavior) = OUTPUT_ONLY];
+      string resolution_error = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+    }
+
+    // DNS server address (can be an IP, IP#SNI or host:port)
+    string server_address = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+    // Transport connectivity status to the DNS server
+    TransportStatus transport_status = 2
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    string transport_error = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+    repeated DnsResolutionCheck resolution_checks = 4
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  repeated DnsServerCheck server_checks = 1
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// NTP synchronization check
+message NtpCheck {
+  message NtpServerCheck {
+    // Configured NTP server address (can be a domain name like
+    // "time.google.com" or an IP)
+    string server_address = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+    int32 stratum = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+    google.protobuf.Duration offset = 3
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    // Transport connectivity status to the NTP server
+    TransportStatus transport_status = 4
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    string transport_error = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  bool synchronized = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Duration clock_offset = 2
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+  repeated NtpServerCheck server_checks = 3
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// HTTP(S) proxy configuration and connectivity check.
+//
+// If no proxy is configured on the host, this check is still executed and
+// populated in `check_details` with `proxy_configured` set to false, check
+// status set to CONNECTIVITY_CHECK_STATUS_HEALTHY, and connection fields
+// omitted.
+message ProxyCheck {
+  enum ProxyStatus {
+    PROXY_STATUS_UNSPECIFIED = 0;
+    PROXY_STATUS_OK = 1;
+    PROXY_STATUS_AUTH_REQUIRED = 2;
+    PROXY_STATUS_FORBIDDEN = 3;
+    PROXY_STATUS_INVALID_CREDENTIALS = 4;
+    PROXY_STATUS_OTHER_ERROR = 5;
+  }
+
+  // Whether an HTTP(S) proxy is configured on the host.
+  // When false, no proxy connection is attempted and the check succeeds.
+  bool proxy_configured = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string proxy_uri = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Transport connectivity status to the proxy server
+  TransportStatus transport_status = 3
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+  string transport_error = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  ProxyStatus proxy_status = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string proxy_error = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// Domain reachability and TLS certificate verification check
+message DomainReachabilityCheck {
+  enum CertVerificationStatus {
+    CERT_VERIFICATION_STATUS_UNSPECIFIED = 0;
+    CERT_VERIFICATION_STATUS_OK = 1;
+    CERT_VERIFICATION_STATUS_UNKNOWN_AUTHORITY = 2;
+    CERT_VERIFICATION_STATUS_EXPIRED = 3;
+    CERT_VERIFICATION_STATUS_OTHER_ERROR = 4;
+  }
+
+  // X.509 Certificate summary information
+  message CertificateInfo {
+    string subject_cn = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+    string issuer_cn = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+    google.protobuf.Timestamp not_before = 3
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    google.protobuf.Timestamp not_after = 4
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  message EndpointCheck {
+    // Target endpoint URI
+    string uri = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+    TransportStatus transport_status = 2
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    string transport_error = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+    CertVerificationStatus cert_status = 4
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    string cert_error = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+    repeated CertificateInfo certificate_chain = 6
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  repeated EndpointCheck endpoints = 1
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// WebRTC connectivity check
+message WebRtcCheck {
+  message TurnServerCheck {
+    enum TurnTransportProtocol {
+      TURN_TRANSPORT_PROTOCOL_UNSPECIFIED = 0;
+      TURN_TRANSPORT_PROTOCOL_UDP = 1;
+      TURN_TRANSPORT_PROTOCOL_TCP = 2;
+    }
+
+    // Full TURN/STUN URI (e.g., "turn:turn.example.com:3478")
+    string uri = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+    // Server IP address or hostname
+    string server_address = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+    // Destination port number
+    int32 port = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+    TurnTransportProtocol transport_protocol = 4
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    TransportStatus transport_status = 5
+        [(google.api.field_behavior) = OUTPUT_ONLY];
+    string transport_error = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  repeated TurnServerCheck server_checks = 1
+      [(google.api.field_behavior) = OUTPUT_ONLY];
+}
