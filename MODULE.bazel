@@ -13,8 +13,8 @@
 # limitations under the License.
 
 module(
-    name = "ai_intrinsic_sdks",
-    version = "",
+    name = "insrc",  
+
 )
 
 non_module_deps = use_extension("//bazel:non_module_deps.bzl", "non_module_deps_ext")
@@ -60,58 +60,160 @@ go_deps_dev.gazelle_override(
 # https://github.com/bazelbuild/buildtools/blob/master/buildozer/README.md
 use_repo(
     go_deps,
+    "cat_dario_mergo",  
     "com_github_andydunstall_piko",
+    "com_github_argoproj_argo_workflows_v3",  
     "com_github_authzed_authzed_go",
+    "com_github_authzed_cel_go",  
+    "com_github_authzed_zed",  
     "com_github_bazelbuild_buildtools",
     "com_github_bazelbuild_remote_apis_sdks",
     "com_github_bits_and_blooms_bitset",
+    "com_github_caarlos0_env_v9",  
     "com_github_cenkalti_backoff_v4",
+    "com_github_containerd_containerd",  
+    "com_github_davecgh_go_spew",  
+    "com_github_dustin_go_humanize",  
+    "com_github_envoyproxy_go_control_plane_envoy",  
+    "com_github_fsnotify_fsnotify",  
+    "com_github_fsouza_fake_gcs_server",  
+    "com_github_gazebo_web_auth",  
+    "com_github_gazebo_web_gz_go_v10",  
+    "com_github_gdamore_tcell_v2",  
+    "com_github_go_logr_logr",  
+    "com_github_go_playground_validator_v10",  
+    "com_github_gobwas_glob",  
     "com_github_golang_glog",
     "com_github_golang_jwt_jwt_v4",
     "com_github_golang_jwt_jwt_v5",
+    "com_github_google_brotli_go_cbrotli",  
     "com_github_google_gnostic",
     "com_github_google_go_cmp",
     "com_github_google_go_containerregistry",
     "com_github_google_safearchive",
+    "com_github_google_safehtml",  
+    "com_github_google_safetext",  
     "com_github_google_subcommands",
+    "com_github_google_uuid",  
+    "com_github_googleapis_gax_go_v2",  
     "com_github_googlecloudplatform_opentelemetry_operations_go_exporter_trace",
+    "com_github_googlecloudrobotics_core_src",  
+    "com_github_googlecloudrobotics_ilog",  
     "com_github_gorilla_websocket",
+    "com_github_grpc_ecosystem_go_grpc_middleware_v2",  
+    "com_github_hashicorp_golang_lru_v2",  
+    "com_github_hashicorp_terraform_json",  
+    "com_github_instrumenta_kubeval",  
+    "com_github_jedib0t_go_pretty_v6",  
+    "com_github_jhump_protoreflect_v2",  
+    "com_github_kballard_go_shellquote",  
+    "com_github_kylelemons_godebug",  
+    "com_github_manifoldco_promptui",  
     "com_github_masterminds_semver",
+    "com_github_masterminds_semver_v3",  
+    "com_github_masterminds_sprig_v3",  
+    "com_github_minio_highwayhash",  
     "com_github_mwitkow_grpc_proxy",
     "com_github_netresearch_go_cron",
+    "com_github_onsi_ginkgo",  
+    "com_github_onsi_gomega",  
+    "com_github_opencontainers_go_digest",  
+    "com_github_opencontainers_image_spec",  
+    "com_github_paul_mannino_go_fuzzywuzzy",  
     "com_github_pborman_uuid",
+    "com_github_pion_ice_v4",  
+    "com_github_pion_rtcp",  
+    "com_github_pion_transport_v4",  
+    "com_github_pion_turn_v4",  
+    "com_github_pion_webrtc_v4",  
     "com_github_pkg_errors",
+    "com_github_prometheus_client_golang",  
+    "com_github_prometheus_otlptranslator",  
     "com_github_protocolbuffers_txtpbfmt",
+    "com_github_rhysd_actionlint",  
+    "com_github_rivo_tview",  
     "com_github_robfig_cron_v3",
+    "com_github_rs_cors",  
     "com_github_rs_xid",
+    "com_github_sendgrid_rest",  
+    "com_github_sendgrid_sendgrid_go",  
+    "com_github_shirou_gopsutil",  
     "com_github_spf13_cobra",
     "com_github_spf13_pflag",
     "com_github_spf13_viper",
     "com_github_stoewer_go_strcase",
     "com_github_stretchr_testify",
+    "com_github_stripe_stripe_go_v74",  
+    "com_github_stripe_stripe_go_v79",  
+    "com_github_tdewolff_parse",  
+    "com_github_toqueteos_webbrowser",  
+    "com_github_traviswt_gke_auth_plugin",  
+    "com_google_cloud_go_ai",  
+    "com_google_cloud_go_asset",  
+    "com_google_cloud_go_bigquery",  
+    "com_google_cloud_go_cloudtasks",  
+    "com_google_cloud_go_compute_metadata",  
+    "com_google_cloud_go_firestore",  
+    "com_google_cloud_go_logging",  
     "com_google_cloud_go_longrunning",
+    "com_google_cloud_go_monitoring",  
+    "com_google_cloud_go_pubsub",  
+    "com_google_cloud_go_secretmanager",  
+    "com_google_cloud_go_spanner",  
+    "com_google_cloud_go_storage",  
+    "com_google_firebase_go",  
+    "com_google_firebase_go_v4",  
     "in_gopkg_xmlpath_v2",
     "in_gopkg_yaml_v3",
+    "io_etcd_go_bbolt",  
+    "io_gorm_gorm",  
+    "io_k8s_api",  
+    "io_k8s_apimachinery",  
+    "io_k8s_client_go",  
+    "io_k8s_code_generator",  
+    "io_k8s_kube_openapi",  
+    "io_k8s_kubelet",  
+    "io_k8s_metrics",  
+    "io_k8s_sigs_controller_runtime",  
+    "io_k8s_sigs_controller_tools",  
+    "io_k8s_sigs_structured_merge_diff_v6",  
+    "io_k8s_sigs_yaml",  
     "io_opencensus_go",
     "io_opencensus_go_contrib_exporter_prometheus",
     "io_opentelemetry_go_contrib_instrumentation_google_golang_org_grpc_otelgrpc",
+    "io_opentelemetry_go_contrib_instrumentation_net_http_otelhttp",  
     "io_opentelemetry_go_contrib_propagators_b3",
     "io_opentelemetry_go_contrib_propagators_opencensus",
     "io_opentelemetry_go_otel",
     "io_opentelemetry_go_otel_bridge_opencensus",
     "io_opentelemetry_go_otel_exporters_otlp_otlptrace_otlptracegrpc",
+    "io_opentelemetry_go_otel_exporters_prometheus",  
+    "io_opentelemetry_go_otel_metric",  
     "io_opentelemetry_go_otel_sdk",
+    "io_opentelemetry_go_otel_sdk_metric",  
+    "io_opentelemetry_go_otel_trace",  
     "io_opentelemetry_go_proto_otlp",
+    "org_golang_google_api",  
     "org_golang_google_genproto",
     "org_golang_google_genproto_googleapis_api",
     "org_golang_google_genproto_googleapis_rpc",
     "org_golang_google_grpc",
+    "org_golang_google_grpc_cmd_protoc_gen_go_grpc",  
     "org_golang_google_protobuf",
+    "org_golang_x_crypto",  
     "org_golang_x_exp",
     "org_golang_x_net",
+    "org_golang_x_oauth2",  
     "org_golang_x_sync",
+    "org_golang_x_sys",  
+    "org_golang_x_term",  
     "org_golang_x_text",
+    "org_golang_x_time",  
+    "org_golang_x_tools",  
+    "org_gonum_v1_gonum",  
     "org_uber_go_atomic",
+    "org_uber_go_zap",  
+    "sh_helm_helm_v3",  
 )
 
 ##########
@@ -120,6 +222,7 @@ use_repo(
 PYTHON_VERSION = "3.11"
 
 bazel_dep(name = "rules_python", version = "1.9.2")
+bazel_dep(name = "rules_python_gazelle_plugin", version = "2.3.3")  
 bazel_dep(name = "rules_uv", version = "0.89.2")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
@@ -131,12 +234,13 @@ python.toolchain(
 bazel_dep(name = "pybind11_bazel", version = "3.0.1")
 bazel_dep(name = "pybind11_abseil", version = "202402.0")
 bazel_dep(name = "pybind11_protobuf", version = "0.0.0-20250210-f02a2b7")
+bazel_dep(name = "aspect_rules_lint", version = "2.9.0")  
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
     hub_name = "ai_intrinsic_sdks_pip_deps",
     python_version = PYTHON_VERSION,
-    requirements_lock = "//:requirements.txt",
+    requirements_lock = "//:requirements.txt",  
     target_platforms = [
         "linux_x86_64",
     ],
@@ -152,7 +256,16 @@ bazel_dep(name = "toolchains_llvm", version = "1.7.0")
 # Inspect supported toolchains at https://github.com/bazel-contrib/toolchains_llvm/blob/master/toolchain/internal/llvm_distributions.bzl
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", dev_dependency = True)
 
+# When you upgrade this, also upgrade llvm-project and its archive_override below 
+# https://intrinsic/blob/main/incode/intrinsic_control/intrinsic/icon/testing/static_analysis/README.md#llvm-upgrade. 
 llvm.toolchain(
+
+    fastbuild_compile_flags = {
+        "linux-x86_64": [
+            "-O1",
+        ],
+    },
+
     llvm_version = "21.1.0",
 )
 
@@ -165,6 +278,7 @@ llvm.sysroot(
 use_repo(
     llvm,
     "llvm_toolchain",
+    "llvm_toolchain_llvm",  
 )
 
 register_toolchains(
@@ -173,6 +287,83 @@ register_toolchains(
 )
 
 bazel_dep(name = "rules_cc", version = "0.2.22")
+bazel_dep(name = "rules_foreign_cc", version = "0.15.1")  
+
+
+########
+# Java #
+########
+
+bazel_dep(name = "rules_java", version = "9.9.0")
+
+########
+# CUDA #
+########
+
+bazel_dep(name = "rules_cuda", version = "0.3.0")
+
+cuda = use_extension("@rules_cuda//cuda:extensions.bzl", "toolchain")
+cuda.redist_json(
+    name = "cuda_12_8_1",
+    components = [
+        "cccl",
+        "cudart",
+        "nvcc",
+        "curand",
+    ],
+    version = "12.8.1",
+)
+cuda.toolkit(
+    name = "cuda",
+)
+use_repo(
+    cuda,
+    "cuda",
+)
+
+# NVIDIA prebuilt shared libraries and binaries used for TensorFlow.
+# These are separate from rules_cuda as the former is primarily for building C++
+# targets, whereas these prebuilt targets are dynamically loaded into TensorFlow
+# and contain extra libraries not included in rules_cuda, e.g. cudnn and nccl.
+nvidia_libs_ext = use_extension(
+    "//intrinsic/production/external/nvidia_libs:extensions.bzl",
+    "nvidia_libs_ext",
+)
+nvidia_libs_ext.cuda_libs(
+    name = "cuda_redist_for_tf",
+    components = [
+        "cuda_cudart",
+        "cuda_nvcc",
+        "libcublas",
+        "libcufft",
+        "libcusolver",
+        "libcusparse",
+        "libnvjitlink",
+    ],
+    cuda_version = "12.5.1",
+    manifest_sha256 = "7ab9c76014ae4907fa1b51738af599607a5fd8ca3a5c4bb4c3b31338cc642a93",
+)
+nvidia_libs_ext.cudnn_libs(
+    name = "cudnn_redist_for_tf",
+    components = ["cudnn"],
+    cudnn_cuda_version = "12",
+    cudnn_version = "9.3.0",
+    manifest_sha256 = "d17d9a7878365736758550294f03e633a0b023bec879bf173349bfb34781972e",
+)
+nvidia_libs_ext.nccl_libs(
+    name = "nccl_redist_for_tf",
+    cuda_version = "12.4",
+    nccl_version = "2.27.7",
+    sha256 = "944e1ba3a5ca9bbd449bbaed9796626122670e58dea3031837a3910a90ffd5ee",
+)
+use_repo(
+    nvidia_libs_ext,
+    "cuda_redist_for_tf",
+    "cudnn_redist_for_tf",
+    "nccl_redist_for_tf",
+)
+
+
 
 ########
 # Rust #
@@ -229,20 +420,61 @@ use_repo(js_rules, "intrinsic_js_rules")
 
 bazel_dep(name = "abseil-cpp", version = "20250814.2")
 bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "com_google_absl_py")
+bazel_dep(name = "aom", version = "3.13.3.bcr.1")  
+bazel_dep(name = "aravis", version = "0.9.2-20251111063445-57983d013883")  
 bazel_dep(name = "assimp", version = "6.0.5")
 bazel_dep(name = "bazel_lib", version = "3.7.2")
 bazel_dep(name = "bazel_skylib", version = "1.9.2")
+bazel_dep(name = "boost.bimap", version = "1.90.0.bcr.1")  
+bazel_dep(name = "boost.container", version = "1.90.0.bcr.1")  
+bazel_dep(name = "boost.filesystem", version = "1.90.0.bcr.1")  # used by coal 
+bazel_dep(name = "boost.format", version = "1.90.0.bcr.1")  # used by cgal 
+bazel_dep(name = "boost.functional", version = "1.90.0.bcr.1")  # used by cgal 
+bazel_dep(name = "boost.graph", version = "1.90.0.bcr.1")  
+bazel_dep(name = "boost.heap", version = "1.90.0.bcr.1")  # used by cgal 
+bazel_dep(name = "boost.iterator", version = "1.90.0.bcr.1")  
+bazel_dep(name = "boost.logic", version = "1.90.0.bcr.1")  # used by cgal 
+bazel_dep(name = "boost.math", version = "1.90.0.bcr.1")  
+bazel_dep(name = "boost.multiprecision", version = "1.90.0.bcr.1")  # used by cgal 
+bazel_dep(name = "boost.regex", version = "1.90.0.bcr.1")  
 bazel_dep(name = "boringssl", version = "0.20260813.0")
+bazel_dep(name = "brotli_go", version = "1.2.0", repo_name = "org_brotli_go")  
+bazel_dep(name = "brotli", version = "1.2.0.bcr.3", repo_name = "org_brotli")  
 bazel_dep(name = "cel-cpp", version = "0.14.0", repo_name = "com_google_cel_cpp")
 bazel_dep(name = "cel-spec", version = "0.25.3", repo_name = "com_google_cel_spec")
 bazel_dep(name = "ceres-solver", version = "2.2.0", repo_name = "com_google_ceres_solver")
+bazel_dep(name = "clarabel", version = "0.11.1.bcr.1")  
+bazel_dep(name = "cli11", version = "2.6.2")  
+bazel_dep(name = "coacd", version = "1.0.13")  
 bazel_dep(name = "com_github_mvukov_rules_ros2", version = "0.0.0-20260118-78d85ff")
+bazel_dep(name = "cpp-httplib", version = "0.46.0")  
+bazel_dep(name = "cppitertools", version = "2.2")  
+bazel_dep(name = "cppregpattern", version = "1.0.1")  
+bazel_dep(name = "curl", version = "8.12.0.bcr.1", repo_name = "com_github_curl_curl")  
 bazel_dep(name = "dumb-init", version = "1.2.5")
+bazel_dep(name = "egl-registry", version = "0.0.0-20250527", repo_name = "egl_registry")  
 bazel_dep(name = "eigen", version = "5.0.1.bcr.2", repo_name = "com_gitlab_libeigen_eigen")
 bazel_dep(name = "etherlab-ethercat", version = "1.6.7.bcr.1")
+bazel_dep(name = "ffmpeg", version = "7.1.1.bcr.beta.10")  
 bazel_dep(name = "flatbuffers", version = "25.12.19", repo_name = "com_github_google_flatbuffers")
 bazel_dep(name = "fmt", version = "12.2.0")
+bazel_dep(name = "freeimage", version = "3.19.10.bcr.6")  
 bazel_dep(name = "fuzztest", version = "20250805.0", repo_name = "com_google_fuzztest")
+bazel_dep(name = "glib", version = "2.82.2.bcr.9")  
+
+
+bazel_dep(name = "gloop", version = "20260828.0")
+archive_override(
+    module_name = "gloop",
+    patch_strip = 1,
+    patches = ["//intrinsic/production/external/patches:gloop.patch"],
+    sha256 = "c4a32e9b582b2155dffa56867792a9d4d4931aa5575ade505a7672fce31d354d",
+    strip_prefix = "gloop-20260828.0",
+    urls = [
+        "https://github.com/abseil/gloop/releases/download/20260828.0/gloop-20260828.0.tar.gz",
+    ],
+)
+
 
 bazel_dep(name = "google_benchmark", version = "1.9.5", repo_name = "com_google_benchmark")
 bazel_dep(name = "google_cloud_cpp", version = "3.0.0-rc1")
@@ -254,34 +486,98 @@ bazel_dep(name = "googleapis", version = "0.0.0-20260825-d10ac924", repo_name = 
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2", repo_name = "com_google_googletest")
 bazel_dep(name = "grpc_ecosystem_grpc_gateway", version = "2.29.0.bcr.3", repo_name = "com_github_grpc_ecosystem_grpc_gateway_v2")
 bazel_dep(name = "grpc", version = "1.74.0", repo_name = "com_github_grpc_grpc")
+bazel_dep(name = "gz-common", version = "7.4.0")  
 bazel_dep(name = "gz-math", version = "9.3.0")
 bazel_dep(name = "gz-msgs", version = "12.0.2")
+bazel_dep(name = "gz-physics", version = "9.4.0")  
+bazel_dep(name = "gz-plugin", version = "4.0.0.bcr.1")  
+bazel_dep(name = "gz-rendering", version = "10.0.2")  
+bazel_dep(name = "gz-sim", version = "10.5.0")  
 bazel_dep(name = "gz-transport", version = "15.1.0")
+bazel_dep(name = "intrinsic-clips", version = "0.1.0")  
+bazel_dep(name = "jq.bzl", version = "0.6.2")  
+bazel_dep(name = "jwt-cpp", version = "0.7.0.bcr.1", repo_name = "jwt-cpp")  
+bazel_dep(name = "libarchive", version = "3.8.1.bcr.2", repo_name = "com_github_libarchive")  
+bazel_dep(name = "libjpeg_turbo", version = "3.1.3.bcr.6")  
+bazel_dep(name = "libmodbus", version = "3.1.12")  
 bazel_dep(name = "libxml2-go", version = "0.0.0-20250331-c934e3f.bcr.1")
 bazel_dep(name = "libxml2", version = "2.14.4.bcr.1")
+bazel_dep(name = "libyuv", version = "1787")  
 bazel_dep(name = "libzip", version = "1.11.4.bcr.3")
+bazel_dep(name = "llvm-project", version = "17.0.3", repo_name = "com_github_llvm_llvm-project")  
+bazel_dep(name = "magic_enum", version = "0.9.8")  
+bazel_dep(name = "mcap", version = "2.1.3")  
+bazel_dep(name = "nanopb", version = "0.3.9.10")  
 bazel_dep(name = "nlohmann_json", version = "3.12.0.bcr.2", repo_name = "com_github_nlohmann_json")
+bazel_dep(name = "nlopt", version = "2.10.1.bcr1")  
+bazel_dep(name = "octomap", version = "1.10.0")  # used by coal 
+bazel_dep(name = "ogre-next", version = "2.3.3.bcr.6")  
 bazel_dep(name = "onetbb", version = "2022.3.0")
+bazel_dep(name = "open-inference-protocol", version = "0.0.0-20250512-d49cc23.bcr.1", repo_name = "open_inference_protocol")  
+bazel_dep(name = "open62541", version = "1.4.14.bcr.1")  
 bazel_dep(name = "opencensus-cpp", version = "0.0.0-20230502-50eb5de.bcr.2", repo_name = "io_opencensus_cpp")
+bazel_dep(name = "opencv", version = "4.12.0.bcr.5")  
+bazel_dep(name = "opengl-registry", version = "0.0.0-20250707", repo_name = "opengl_registry")  
+bazel_dep(name = "openmesh", version = "11.0")  
+bazel_dep(name = "opentelemetry-cpp", version = "1.19.0", repo_name = "io_opentelemetry_cpp")  
+bazel_dep(name = "opentelemetry-proto", version = "1.8.0", repo_name = "opentelemetry_proto")  
+bazel_dep(name = "openusd", version = "25.11.bcr.3")  
 bazel_dep(name = "or-tools", version = "9.15", repo_name = "or_tools")
+bazel_dep(name = "osqp-cpp", version = "0.0.0-20231004-4343373.bcr.2")  
+bazel_dep(name = "pcl", version = "1.15.1.bcr.4", repo_name = "com_github_pcl")  
+bazel_dep(name = "pinocchio", version = "2.6.21.bcr.7")  
 bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "plthook", version = "0.2.0")  
+bazel_dep(name = "pocketfft", version = "0.0.2.bcr.1")  
+bazel_dep(name = "poco", version = "1.14.2-20250528.bcr.1")  
+bazel_dep(name = "postgres", version = "18.4", repo_name = "postgres")  
+bazel_dep(name = "prometheus-cpp", version = "1.3.0.bcr.2", repo_name = "com_github_jupp0r_prometheus_cpp")  
 bazel_dep(name = "protobuf-matchers", version = "0.1.1", repo_name = "com_github_inazarenko_protobuf_matchers")
 bazel_dep(name = "protobuf", version = "32.1", repo_name = "com_google_protobuf")
+bazel_dep(name = "qhull", version = "8.0.2.bcr.2")  
 bazel_dep(name = "re2", version = "2024-07-02.bcr.1", repo_name = "com_googlesource_code_re2")
 bazel_dep(name = "riegeli", version = "0.0.0-20250822-9f2744d", repo_name = "com_google_riegeli")
+bazel_dep(name = "roboticslibrary.rl", version = "0.0.0-20250723-5bbd773.bcr.4")  
+bazel_dep(name = "rules_jsonnet", version = "0.7.2")  
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_pkg", version = "1.3.0")
+bazel_dep(name = "rules_qt", version = "0.0.7")  
+bazel_dep(name = "rules_shell", version = "0.8.0")  
 bazel_dep(name = "rules_swift", version = "2.9.0")  # bumping transitive dependency to resolve compatibility level conflict with flatbuffers
 bazel_dep(name = "sdformat", version = "16.1.0")
 bazel_dep(name = "soplex", version = "7.1.4.bcr.5")  # bumping transitive dependency to update boost to 1.89.0
 bazel_dep(name = "stb", version = "0.0.0-20251026-f1c79c0")
+bazel_dep(name = "stardoc", version = "0.8.1")  
 bazel_dep(name = "tar.bzl", version = "0.10.9")
 bazel_dep(name = "tcmalloc", version = "0.0.0-20250927-12f2552")
+bazel_dep(name = "tink_cc", version = "2.4.0")  
 bazel_dep(name = "tinygltf", version = "2.9.6")
 bazel_dep(name = "tinyxml2", version = "10.0.0")
+bazel_dep(name = "tl-expected", version = "1.3.1")  
+bazel_dep(name = "toybox", version = "0.8.12.bcr.1")  
+bazel_dep(name = "triton-inference-server-common", version = "0.0.0-20260505-ecb874c")  
+bazel_dep(name = "universal-robots-client-library", version = "2.4.0")  
+bazel_dep(name = "versor", version = "0.1.0.bcr.1")  
 bazel_dep(name = "websocketpp", version = "0.8.2.bcr.6")  # bumping transitive dependency to update boost to 1.89.0
+bazel_dep(name = "wsg32", version = "0.0.0-20250117-f73c045")  
+bazel_dep(name = "xacro", version = "2.0.12")  
+bazel_dep(name = "yaml-cpp", version = "0.9.0.bcr.1")  
 bazel_dep(name = "zenoh-c", version = "1.7.2.bcr.1")
 bazel_dep(name = "zenoh-cpp", version = "1.7.2.bcr.1")
+bazel_dep(name = "zlib", version = "1.3.2")  
+
+
+# To upgrade to a newer version of llvm-project, follow
+# https://intrinsic/blob/main/incode/intrinsic_control/intrinsic/icon/testing/static_analysis/README.md#llvm-upgrade
+# If no upstream solution is available and ICON team does not timely help with the upgrade,
+# remove //intrinsic/icon:realtime_static_analyzer_test from presubmit and proceed.
+archive_override(
+    module_name = "llvm-project",
+    integrity = "sha256-toK2+mj29Z2awL7QT8FZtkkLM5m7M3HEEbdHyeG2UcY=",
+    strip_prefix = "llvm-project-e0c6bb7b686cb67e47baedff6935f560746b861d",
+    url = "https://github.com/gaschler/llvm-project/archive/e0c6bb7b686cb67e47baedff6935f560746b861d.zip",
+)
+
 
 
 # We require an override to support a single patch for compatibility with aspect_rules_js v3. The
@@ -298,13 +594,172 @@ archive_override(
 )
 
 
+
+
+# This is a temporary workaround to include the latest friction compensation updates provided by UR
+# This should be removed once the changes are included into a released version which has been added
+# to BCR.
+archive_override(
+    module_name = "universal-robots-client-library",
+    sha256 = "a7823035d5b157035448874b8ee622c2cd20e68fb10a2322a6efea3ea7fb1732",
+    strip_prefix = "Universal_Robots_Client_Library-2.7.0-alpha-acceleration.0",
+    url = "https://github.com/FilipposSot/Universal_Robots_Client_Library/archive/refs/tags/2.7.0-alpha-acceleration.0.tar.gz",
+)
+
+use_repo(
+    non_module_deps,
+    "aic_gazebo",
+    "cgal",
+    "chrome_linux",
+    "coal",
+    "firestore_emulator",
+    "gperftools",
+    "kubebuilder_test_tools",
+    "kubernetes_json_schema",
+    "kythe_release",
+    "librealsense2",
+    "libusb",
+    "material_symbols_outlined",
+    "mosek",
+    "raft",
+    "sysroot_glvnd_stubs",
+    "systemd",
+    "taopq",
+    "ur_calibration",
+    "wasi_sdk",
+)
+
+
 ##############
 # Containers #
 ##############
 
 bazel_dep(name = "rules_oci", version = "2.3.0")
+bazel_dep(name = "rules_helm", version = "0.32.0")  
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+
+
+# How to build torchserve-xpu: see incode/ml/services/tools/docker
+oci.pull(
+    name = "torchserve-cpu",
+    digest = "sha256:fcf89cf93a868d7d2d57adeb99f9e7ecd43c71e4b06c86613b9e35a0b57931ea",
+    image = "gcr.io/giza-workcells/torchserve-cpu",
+    platforms = ["linux/amd64"],
+)
+oci.pull(
+    name = "torchserve-gpu",
+    digest = "sha256:95da7ab095930cbc9300dc7c3347a3ddecabe4f3c81e4f56bfd5c7ddc2a2288e",
+    image = "gcr.io/giza-workcells/torchserve-gpu",
+    platforms = ["linux/amd64"],
+)
+oci.pull(
+    name = "python3",
+    digest = "sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6",
+    image = "us-central1-docker.pkg.dev/intrinsic-mirror/intrinsic-mirror-dockerhub/library/python",
+    platforms = ["linux/amd64"],
+    tag = "3-slim",  # tag needs to be specified for renovatebot to sync the digest
+)
+oci.pull(
+    name = "tensorflow-gpu",
+    digest = "sha256:f325279f01a3e742a1285d8d736b7e600f72ccf8b55cc19ee0a90b8cbfce4c7a",
+    image = "us-central1-docker.pkg.dev/intrinsic-mirror/intrinsic-mirror-dockerhub/tensorflow/tensorflow",
+    platforms = ["linux/amd64"],
+    tag = "2.21.0",  # tag needs to be specified for renovatebot to sync the digest
+)
+oci.pull(
+    name = "tensorflow_serving",
+    digest = "sha256:67153005c5c5dea9cde7c4dddd69f96728412699e94a4d0e9893666084e1e944",
+    image = "us-central1-docker.pkg.dev/intrinsic-mirror/intrinsic-mirror-dockerhub/tensorflow/serving",
+    platforms = ["linux/amd64"],
+    tag = "2.20.0-gpu",  # tag needs to be specified for renovatebot to sync the digest
+)
+oci.pull(
+    name = "terraform_base",
+    digest = "sha256:c9a9d991c113f3bda5269de1506983d45ce1409dfe702df433acf10a5ea9f6bc",
+    image = "us-central1-docker.pkg.dev/intrinsic-mirror/intrinsic-mirror-dockerhub/hashicorp/terraform",
+    platforms = ["linux/amd64"],
+    tag = "1.16",  # tag needs to be specified for renovatebot to sync the digest
+)
+oci.pull(
+    name = "nginx_base",
+    digest = "sha256:78758a47dc59a81fc8354d83d17135d52cfaf6894c696886b807b9371c3648a4",
+    image = "us-central1-docker.pkg.dev/intrinsic-mirror/intrinsic-mirror-dockerhub/library/nginx",
+    platforms = ["linux/amd64"],
+    tag = "1.31.6",  # tag needs to be specified for renovatebot to sync the digest
+)
+oci.pull(
+    name = "distroless_static",
+    digest = "sha256:58133991db06659feaabe0f4e97a35cebf15ef4ea08f8a4c6d2ee5f75e4aa6a0",
+    image = "gcr.io/distroless/static",
+    platforms = ["linux/amd64"],
+    tag = "latest",  # tag needs to be specified for renovatebot to sync the digest
+)
+oci.pull(
+    name = "timescaledb",
+    digest = "sha256:19eb9276ee367411728e768217120e55300ac9c3bb5eadcf47aa5ded627f6db1",
+    image = "gcr.io/cloud-robotics-releases/timescaledb",
+    platforms = ["linux/amd64"],
+    tag = "pg14",
+)
+
+# Heavy multi-backend Triton image.
+oci.pull(
+    name = "tritonserver-onprem",
+    digest = "sha256:bf67746b6e8e06fcedf01ac228e47d64d74e3373eeaafeb2f5d8796e60864809",  # intrinsic:enable_inference_service:strip
+    image = "gcr.io/giza-workcells/tritonserver-onprem",  # intrinsic:enable_inference_service:replace image = "nvcr.io/nvidia/tritonserver",
+    platforms = ["linux/amd64"],
+    tag = "25.06-py3-tf-pyt-onnx-trt-v4",  # intrinsic:enable_inference_service:replace tag = "26.07-py3",
+)
+
+# Minimal Triton image for presubmits, validation and testing where inference backends and GPU access
+# are not required.
+oci.pull(
+    name = "tritonserver-cpu",
+    digest = "sha256:48ed7ee5f91189b4d98d90bffce503f1ac6127f9a234bad30511399102f5be4e",
+    image = "gcr.io/giza-workcells/tritonserver-input-validation",
+    platforms = ["linux/amd64"],
+    tag = "25.06-py3-cpu-v1",
+)
+
+# Minimal Triton image with TF support for presubmits, validation and testing with legacy TF models.
+oci.pull(
+    name = "tritonserver-cpu-tf",
+    digest = "sha256:e67bf3ea4667deb7f57e21c83b358d8629db96d59d4372ed904749b119856dd0",
+    image = "gcr.io/giza-workcells/tritonserver-base",
+    platforms = ["linux/amd64"],
+    tag = "25.06-py3-cpu-tf",
+)
+
+# IVM-specific tritonserver image used in cloud deployments.
+oci.pull(
+    name = "tritonserver-ivm",
+    digest = "sha256:1d285506a1da48af22d92c8103e13e32f9b24486f57f5c4a09e0057eee5f4d3a",
+    image = "gcr.io/giza-workcells/tritonserver-ivm",
+    platforms = ["linux/amd64"],
+    tag = "25.06-py3",
+)
+
+# This image is updated manually via //intrinsic/agent/agents/hmi/sandbox_runner/base_image:build_and_push.
+#
+# There's no Intrinsic IP in this base image.
+oci.pull(
+    name = "agent_hmi_sandbox_runner_base_image",
+    digest = "sha256:b097f98d80c1aad9b7f42bfbfa6bdd58bfa3b384ce86eb3c30ed2eb392e2a3b6",
+    image = "gcr.io/giza-workcells/agent-hmi-sandbox-runner-base",
+    platforms = ["linux/amd64"],
+)
+
+# This image is built with the Dockerfile in lab/ssh_certificate_provider.
+# The Dockerfile only uses upstream ubuntu as input. There's not Intrinsic IP in the base image.
+oci.pull(
+    name = "ssh_certificate_provider_base",
+    digest = "sha256:d0504473c91f263143d74598fb1dab13e9664cfead5bf13b10aaa0a4a1526849",
+    image = "us-central1-docker.pkg.dev/intrinsic-os-build/intrinsic-edge/ssh-certificate-provider-base",
+    platforms = ["linux/amd64"],
+)
+
+
 
 oci.pull(
     name = "distroless_base",
@@ -344,6 +799,8 @@ oci.pull(
 # BUG: https://github.com/bazel-contrib/rules_oci/issues/727
 use_repo(
     oci,
+    "agent_hmi_sandbox_runner_base_image",  
+    "agent_hmi_sandbox_runner_base_image_linux_amd64",  
     "distroless_base",
     "distroless_base_bookworm",
     "distroless_base_bookworm_linux_amd64",
@@ -352,6 +809,36 @@ use_repo(
     "distroless_cc_linux_amd64",
     "distroless_python3",
     "distroless_python3_linux_amd64",
+    "distroless_static",  
+    "distroless_static_linux_amd64",  
+    "nginx_base",  
+    "nginx_base_linux_amd64",  
+    "python3",  
+    "python3_linux_amd64",  
+    "ssh_certificate_provider_base",  
+    "ssh_certificate_provider_base_linux_amd64",  
+    "tensorflow-gpu",  
+    "tensorflow-gpu_linux_amd64",  
+    "tensorflow_serving",  
+    "tensorflow_serving_linux_amd64",  
+    "terraform_base",  
+    "terraform_base_linux_amd64",  
+    "timescaledb",  
+    "timescaledb_linux_amd64",  
+    "torchserve-cpu",  
+    "torchserve-cpu_linux_amd64",  
+    "torchserve-gpu",  
+    "torchserve-gpu_linux_amd64",  
+    "tritonserver-cpu",  
+    "tritonserver-cpu-tf",  
+    "tritonserver-cpu-tf_linux_amd64",  
+    "tritonserver-cpu_linux_amd64",  
+    "tritonserver-ivm",  
+    "tritonserver-ivm_linux_amd64",  
+    "tritonserver-onprem",  
+    "tritonserver-onprem_linux_amd64",  
+    "zenohd",  
+    "zenohd_linux_amd64",  
 )
 
 ############################
@@ -360,7 +847,116 @@ use_repo(
 
 use_repo(
     non_module_deps,
+    "com_google_glog_googleinit_h",  
+    "com_google_s2geometry_bit_interleave_cc",  
+    "com_google_s2geometry_bit_interleave_h",  
+    "com_googlecloudplatform_perfkitbenchmarker_tests_matchers_py",  
+    "libkmsp11",  
+    "oss_licenses",  
 )
+
+
+
+############
+# Copybara #
+############
+
+http_jar = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
+
+# The Bazel central registry has an older version of Copybara, but it appears to be
+# non-functional: https://github.com/google/copybara/issues/220
+# This uses a pre-built version of copybara instead as documented here:
+# https://github.com/google/copybara?tab=readme-ov-file#using-pre-built-copybara-in-bazel
+http_jar(
+    name = "com_github_google_copybara",
+    sha256 = "74ca2af1d983a88d060637bfc35d1e32d68922793bc6b1063c4d5b4a57bc0346",
+    urls = ["https://github.com/google/copybara/releases/download/v20260727/copybara_deploy.jar"],
+)
+
+##########
+# Others #
+##########
+
+# For cloud/alertmanager
+helm_import_repository = use_repo_rule("@rules_helm//helm:defs.bzl", "helm_import_repository")
+
+helm_import_repository(
+    name = "alertmanager",
+    chart_name = "alertmanager",
+    repository = "https://prometheus-community.github.io/helm-charts",
+    version = "1.13.1",
+)
+
+bazel_dep(name = "rules_distroless", version = "0.8.0")
+
+apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
+apt.install(
+    name = "bookworm",
+    lock = "//bazel/debian_snapshot:bookworm.lock.json",
+    manifest = "//bazel/debian_snapshot:bookworm.yaml",
+)
+apt.install(
+    name = "bullseye_mesa",
+    lock = "//bazel/debian_snapshot:bullseye_mesa.lock.json",
+    manifest = "//bazel/debian_snapshot:bullseye_mesa.yaml",
+)
+apt.install(
+    name = "weston_chromium",
+    lock = "//third_party/chromium:chromium.lock.json",
+    manifest = "//third_party/chromium:chromium.yaml",
+)
+use_repo(apt, "bookworm", "bullseye_mesa", "weston_chromium")
+
+bazel_dep(
+    name = "rules_bazel_integration_test",
+    version = "0.37.1",
+    dev_dependency = True,
+)
+
+bazel_binaries = use_extension(
+    "@rules_bazel_integration_test//:extensions.bzl",
+    "bazel_binaries",
+    dev_dependency = True,
+)
+bazel_binaries.download(version_file = "//:.bazelversion")
+use_repo(bazel_binaries, "bazel_binaries", "bazel_binaries_bazelisk", "build_bazel_bazel_.bazelversion")
+
+jq_toolchains = use_extension("@jq.bzl//jq:extensions.bzl", "toolchains")
+use_repo(jq_toolchains, "jq_toolchains")
+
+register_toolchains("@jq_toolchains//:all")
+
+# Fetch a prebuilt version of Qt 6.8.3 from the distribution CDN. This
+# allows us to build OpenCV on linux x86_64 with Qt6 support.
+rules_qt_fetch = use_extension("@rules_qt//extension:qt.bzl", "fetch")
+use_repo(rules_qt_fetch, "qt_linux_x86_64")
+
+# ffmpeg@7.1.1.bcr.beta.7 depends on opencv@4.13.0.bcr.2, which doesn't have patches
+# yet for webp or Qt6. So, we'll force a downgrade until the patches land in the BCR.
+single_version_override(
+    module_name = "opencv",
+    version = "4.12.0.bcr.5",
+)
+
+# ffmpeg@7.1.1.bcr.beta.7 depends on libxml2@2.15.1.bcr.1, which is incompatible with
+# insrc. We must force 2.14.4.bcr.1 until we have fixed this incompatibility.
+single_version_override(
+    module_name = "libxml2",
+    version = "2.14.4.bcr.1",
+)
+
+# The upstream maintainer of libvpx didn't want to add includes = ["."] to their BUILD file.
+# They arrived at a solution that worked for the BCR CI but does not appear to work for us.
+# See: https://github.com/bazelbuild/bazel-central-registry/pull/9883   Attempt #1
+#      https://github.com/bazelbuild/bazel-central-registry/pull/10000  Attempt #2
+#      https://github.com/bazelbuild/bazel-central-registry/pull/10005  Attempt #3 (problem)
+single_version_override(
+    module_name = "libvpx",
+    patch_strip = 0,
+    patches = ["//third_party/libvpx:includes.patch"],
+)
+
+
 
 # Needed to build rules_ros2 messages and tf2
 extension_for_rules_ros2 = use_extension("@com_github_mvukov_rules_ros2//ros2:extensions.bzl", "non_module_deps")
@@ -413,3 +1009,12 @@ pnpm.pnpm(pnpm_version_from = "//intrinsic/frontend/sdk:package.json")
 use_repo(pnpm, "pnpm")
 
 register_toolchains("//intrinsic/frontend/sdk:gen_es_toolchain_toolchain", dev_dependency = True)
+
+
+# Intrinsic APIs bazel module (this will become an external module outside of insrc in the future)
+bazel_dep(name = "intrinsic_apis", version = "0.0.1")
+local_path_override(
+    module_name = "intrinsic_apis",
+    path = "intrinsic/intrinsic_apis",
+)
+
