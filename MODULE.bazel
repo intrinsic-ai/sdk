@@ -280,7 +280,7 @@ bazel_dep(name = "stb", version = "0.0.0-20251026-f1c79c0")
 bazel_dep(name = "tar.bzl", version = "0.10.9")
 bazel_dep(name = "tcmalloc", version = "0.0.0-20250927-12f2552")
 bazel_dep(name = "tinygltf", version = "2.9.6")
-bazel_dep(name = "tinyxml2", version = "10.0.0")
+bazel_dep(name = "tinyxml2", version = "11.0.0")
 bazel_dep(name = "websocketpp", version = "0.8.2.bcr.6")  # bumping transitive dependency to update boost to 1.89.0
 bazel_dep(name = "zenoh-c", version = "1.7.2.bcr.1")
 bazel_dep(name = "zenoh-cpp", version = "1.7.2.bcr.1")
