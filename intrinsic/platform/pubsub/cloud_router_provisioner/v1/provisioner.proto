@@ -66,9 +66,9 @@ message ProvisionLineRouterRequest {
   string line_id = 1;
 }
 
-// LineRouterProvisionResponse is the response from
+// ProvisionLineRouterResponse is the response from
 // LineRouterProvisioner.Provision
-message LineRouterProvisionResponse {}
+message ProvisionLineRouterResponse {}
 
 // DeleteLineRouterRequest is the request to LineRouterProvisioner.Delete
 message DeleteLineRouterRequest {
@@ -84,7 +84,7 @@ service LineRouterProvisioner {
   // Provision provisions a router for the given line.
   // No-op if the router is already provisioned.
   rpc Provision(ProvisionLineRouterRequest)
-      returns (LineRouterProvisionResponse) {}
+      returns (ProvisionLineRouterResponse) {}
 
   // Delete deletes a router for the given line.
   // No-op if the router is not provisioned.

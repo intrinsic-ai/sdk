@@ -25,7 +25,7 @@ type FakeLineRouterProvisionerServer struct {
 	provisionerpb.UnimplementedLineRouterProvisionerServer
 
 	// ProvisionFn is called from the server's Provision method.
-	ProvisionFn func(ctx context.Context, req *provisionerpb.ProvisionLineRouterRequest) (*provisionerpb.LineRouterProvisionResponse, error)
+	ProvisionFn func(ctx context.Context, req *provisionerpb.ProvisionLineRouterRequest) (*provisionerpb.ProvisionLineRouterResponse, error)
 }
 
 // NewFakeLineRouterProvisionerServer creates a new FakeLineRouterProvisionerServer.
@@ -34,7 +34,7 @@ func NewFakeLineRouterProvisionerServer() *FakeLineRouterProvisionerServer {
 }
 
 // Provision is the fake implementation of the API that provisions a line-level router.
-func (s *FakeLineRouterProvisionerServer) Provision(ctx context.Context, req *provisionerpb.ProvisionLineRouterRequest) (*provisionerpb.LineRouterProvisionResponse, error) {
+func (s *FakeLineRouterProvisionerServer) Provision(ctx context.Context, req *provisionerpb.ProvisionLineRouterRequest) (*provisionerpb.ProvisionLineRouterResponse, error) {
 	if s.ProvisionFn != nil {
 		return s.ProvisionFn(ctx, req)
 	}

@@ -541,9 +541,9 @@ func TestCreatingMixedNetwork(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			res := setupTestServer(t)
 			configureTestServerForSuccessfulOnpremInstallation(res)
-			res.provisionerServer.ProvisionFn = func(ctx context.Context, in *provisionerpb.ProvisionLineRouterRequest) (*provisionerpb.LineRouterProvisionResponse, error) {
+			res.provisionerServer.ProvisionFn = func(ctx context.Context, in *provisionerpb.ProvisionLineRouterRequest) (*provisionerpb.ProvisionLineRouterResponse, error) {
 				if tt.provisioningShouldSucceed {
-					return &provisionerpb.LineRouterProvisionResponse{}, nil
+					return &provisionerpb.ProvisionLineRouterResponse{}, nil
 				}
 
 				return nil, fmt.Errorf("simulated provisioning failure")
