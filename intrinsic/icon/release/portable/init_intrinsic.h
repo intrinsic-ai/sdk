@@ -16,6 +16,7 @@
 #define INTRINSIC_ICON_RELEASE_PORTABLE_INIT_INTRINSIC_H_
 
 // Initializes an application by parsing the command-line flags.
+// Calls `absl::ParseCommandLine(...)` and `absl::SetProgramUsageString(...)`.
 //
 void InitIntrinsic(const char* usage, int argc, char* argv[]);
 

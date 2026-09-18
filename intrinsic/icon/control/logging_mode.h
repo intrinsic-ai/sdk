@@ -33,7 +33,7 @@ enum class LoggingMode : char {
 // Regardless of the actual controller frequency, we will publish a throttled
 // version on a different topic that is always 50 Hz to simplify its use in
 // subscribers that do not need or want the full-rate (often >= 500 Hz) stream
-// of status messages. Details in go/intrinsic-robot-status-rate
+// of status messages.
 constexpr double kThrottledStatusRate = 50.0;
 
 LoggingMode FromProto(const intrinsic_proto::icon::LoggingMode& proto);

@@ -151,7 +151,7 @@ class CycleTimeHistogram {
   }
 
   // Adds a positive duration to the histogram.
-  // Returns an error if the duration is negative or zero see go/httat.
+  // Returns an error if the duration is negative or zero.
   RealtimeStatus Add(const absl::Duration duration)
       INTRINSIC_CHECK_REALTIME_SAFE {
     if (duration <= absl::ZeroDuration()) [[unlikely]] {

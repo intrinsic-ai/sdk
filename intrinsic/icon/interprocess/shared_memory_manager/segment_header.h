@@ -150,7 +150,6 @@ class alignas(64) SegmentHeader final {
   size_t Version() const { return kVersion; }
 
  private:
-  // See go/totw/135.
   friend class SegmentHeaderTestPeer;
 
   // Initializes a new shared memory segment with the expected version.
