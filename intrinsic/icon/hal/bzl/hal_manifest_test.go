@@ -25,8 +25,11 @@ import (
 )
 
 func TestServiceManifestTemplate_RunningEthercatOss(t *testing.T) {
-	partialManifest := `
-metadata {
+	// No leading newline. In an earlier iteration of this code, this
+	// would cause the template to squish the first line of
+	// `partialManifest` to merge with the previous line in the template.
+	// If that line was a comment, we'd end up with an invalid proto!
+	partialManifest := `metadata {
   id {
     package: "ai.intrinsic"
     name: "test_module"
