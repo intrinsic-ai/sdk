@@ -40,8 +40,6 @@ option go_package = "intrinsic/motion_planning/proto/v1/motion_planner_service_g
 // planning pipeline.
 message MotionPlannerFlags {
   reserved 1;
-  reserved "enable_jerk_limited_topp";
-
   reserved 2;
   reserved "enable_topp_structured_analytical_integrals";
 

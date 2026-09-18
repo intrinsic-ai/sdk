@@ -29,8 +29,8 @@ struct PointToPointMoveInfo {
   // PointToPointMove action type name and description
   static constexpr char kActionTypeName[] = "intrinsic.point_to_point_move";
   static constexpr char kActionDescription[] =
-      "Generates and executes a jerk-limited time-optimal trajectory to move "
-      "the part's joints to the desired target position. Uses Reflexxes for "
+      "Generates and executes a time-optimal trajectory to move the part's "
+      "joints to the desired target position. Uses Reflexxes for "
       "instantaneous real-time motion generation. For motions with zero "
       "initial and target joint velocity, or co-linear initial and final "
       "velocity, the resulting trajectory will typically be linear in "

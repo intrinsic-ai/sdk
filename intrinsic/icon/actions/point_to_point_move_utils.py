@@ -34,10 +34,10 @@ def create_point_to_point_move_action(
 ) -> actions.Action:
   """Creates a PointToPointMove action.
 
-  Generates and executes a jerk-limited time-optimal trajectory to move the
-  part's joints to the desired target position. Uses Reflexxes for instantaneous
-  real-time motion generation. For motions with zero initial and target joint
-  velocity, or co-linear initial and final velocity, the resulting trajectory
+  Generates and executes a time-optimal trajectory to move the part's joints to
+  the desired target position. Uses Reflexxes for instantaneous real-time
+  motion generation. For motions with zero initial and target joint velocity,
+  or co-linear initial and final velocity, the resulting trajectory
   will typically be linear in joint-space. Otherwise, there are no guarantees on
   the geometric shape of the joint move. Online trajectory execution will slow
   down/speed up according to the speed override factor in a differentially
