@@ -27,7 +27,7 @@ go_library(
         "templates/defaults.textproto.template",  #keep
     ],
     importpath = "intrinsic/assets/services/inctl/create/create",
-    visibility = ["//intrinsic/assets/services/inctl:__pkg__"],
+    visibility = ["//intrinsic/assets/services/inctl:__subpackages__"],
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/tools/inctl/cmd:root",

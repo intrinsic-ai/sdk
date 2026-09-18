@@ -43,9 +43,7 @@ filegroup(
     srcs = [
         "asset_tags.textproto",
     ],
-    visibility = [
-        "//intrinsic/assets:__subpackages__",
-    ],
+    visibility = ["//intrinsic/assets:__subpackages__"],
 )
 
 js_library(
@@ -115,6 +113,7 @@ js_library(
 js_library(
     name = "asset_deployment_jspb_proto",
     visibility = [
+        "//intrinsic/assets/proto:__pkg__",
         "//intrinsic/frontend:__subpackages__",
     ],
     deps = ["//intrinsic/assets/proto:asset_deployment_proto"],
@@ -228,6 +227,7 @@ js_library(
     visibility = [
         "//intrinsic/assets/dependencies:__pkg__",
         "//intrinsic/assets/dependencies/build_defs:__pkg__",
+        "//intrinsic/assets/proto:__pkg__",
         "//intrinsic/frontend:__subpackages__",
     ],
     deps = [":installed_assets_proto"],

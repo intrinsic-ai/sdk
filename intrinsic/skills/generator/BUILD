@@ -33,7 +33,10 @@ go_library(
         "skill_service_main_tmpl.cc",
     ],
     importpath = "intrinsic/skills/generator/gen",
-    visibility = ["//intrinsic/tools/inbuild:__subpackages__"],
+    visibility = [
+        "//intrinsic/skills/generator:__pkg__",
+        "//intrinsic/tools/inbuild:__subpackages__",
+    ],
     deps = ["//intrinsic/skills/proto:skill_manifest_go_proto"],
 )
 

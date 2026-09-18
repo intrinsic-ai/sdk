@@ -28,9 +28,6 @@ go_library(
         "ups.go",
     ],
     importpath = "intrinsic/tools/inctl/cmd/cluster/cluster",
-    visibility = [
-        "//intrinsic/tools/inctl:__subpackages__",
-    ],
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",

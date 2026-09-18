@@ -18,7 +18,7 @@ go_library(
     name = "share",
     srcs = ["share.go"],
     importpath = "intrinsic/tools/inctl/cmd/solution/share/share",
-    visibility = ["//intrinsic/tools/inctl/cmd/solution:__pkg__"],
+    visibility = ["//intrinsic/tools/inctl/cmd/solution:__subpackages__"],
     deps = [
         "//intrinsic/assets:cmdutils",
         "//intrinsic/solution_versions/proto/v1:solution_version_service_go_proto",

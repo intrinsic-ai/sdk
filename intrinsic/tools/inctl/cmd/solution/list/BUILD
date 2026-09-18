@@ -18,7 +18,7 @@ go_library(
     name = "list",
     srcs = ["list.go"],
     importpath = "intrinsic/tools/inctl/cmd/solution/list/list",
-    visibility = ["//intrinsic/tools/inctl/cmd/solution:__pkg__"],
+    visibility = ["//intrinsic/tools/inctl/cmd/solution:__subpackages__"],
     deps = [
         "//intrinsic/frontend/cloud/api/v1:clusterdiscovery_api_go_proto",
         "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_go_proto",

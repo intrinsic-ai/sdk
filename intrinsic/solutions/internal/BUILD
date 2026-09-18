@@ -19,7 +19,9 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 
-package(default_visibility = ["//intrinsic/solutions:__subpackages__"])
+package(default_visibility = [
+    "//intrinsic/solutions:__subpackages__",
+])
 
 py_library(
     name = "process_providing",

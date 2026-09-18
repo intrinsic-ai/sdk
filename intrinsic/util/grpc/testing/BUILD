@@ -22,7 +22,7 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
-package(default_visibility = ["//visibility:private"])
+package(default_visibility = ["//intrinsic/util/grpc:__subpackages__"])
 
 proto_library(
     name = "ping_proto",
@@ -42,7 +42,6 @@ cc_grpc_library(
     srcs = [":ping_proto"],
     generate_mocks = True,
     grpc_only = True,
-    visibility = ["//intrinsic/util/grpc:__subpackages__"],
     deps = [":ping_cc_proto"],
 )
 
@@ -54,7 +53,10 @@ go_proto_library(
     ],
     importpath = "intrinsic/util/grpc/testing/ping_go_proto",
     protos = [":ping_proto"],
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:__subpackages__",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = ["@org_golang_google_protobuf//types/known/emptypb"],
 )
 
@@ -67,6 +69,9 @@ py_grpc_library(
     name = "ping_proto_py_pb2_grpc",
     srcs = [":ping_proto"],
     grpc_library = requirement("grpcio"),
-    visibility = ["//intrinsic:intrinsic_internal"],
+    visibility = [
+        "//intrinsic:__subpackages__",
+        "//intrinsic:intrinsic_internal",
+    ],
     deps = [":ping_proto_py_pb2"],
 )

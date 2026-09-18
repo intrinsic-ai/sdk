@@ -60,17 +60,7 @@ func CollectImages(asset *acpb.Asset) []*ipb.Image {
 	var images []*ipb.Image
 	switch dd := asset.GetDeploymentData().GetAssetSpecificDeploymentData().(type) {
 	case *acpb.Asset_AssetDeploymentData_HardwareDeviceSpecificDeploymentData:
-		for _, asset := range dd.HardwareDeviceSpecificDeploymentData.GetManifest().GetAssets() {
-			switch asset.GetVariant().(type) {
-			case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Service:
-				images = append(images, collectServiceImages(asset.GetService())...)
-			case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Catalog:
-			case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Data:
-			case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_SceneObject:
-			default:
-				log.Fatalf("unknown asset type in HardwareDevice: %v", asset.GetVariant())
-			}
-		}
+		images = append(images, collectHardwareDeviceImages(dd.HardwareDeviceSpecificDeploymentData)...)
 	case *acpb.Asset_AssetDeploymentData_ServiceSpecificDeploymentData:
 		images = collectServiceImages(dd.ServiceSpecificDeploymentData.GetManifest())
 	case *acpb.Asset_AssetDeploymentData_SkillSpecificDeploymentData:
@@ -83,6 +73,22 @@ func CollectImages(asset *acpb.Asset) []*ipb.Image {
 	case *acpb.Asset_AssetDeploymentData_ProcessSpecificDeploymentData:
 	default:
 		log.Fatalf("unknown asset type: %v", asset.GetMetadata().GetAssetType())
+	}
+	return images
+}
+
+func collectHardwareDeviceImages(dd *acpb.Asset_HardwareDeviceDeploymentData) []*ipb.Image {
+	var images []*ipb.Image
+	for _, asset := range dd.GetManifest().GetAssets() {
+		switch asset.GetVariant().(type) {
+		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Service:
+			images = append(images, collectServiceImages(asset.GetService())...)
+		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Catalog:
+		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_Data:
+		case *hdmpb.ProcessedHardwareDeviceManifest_ProcessedAsset_SceneObject:
+		default:
+			log.Fatalf("unknown asset type in HardwareDevice: %v", asset.GetVariant())
+		}
 	}
 	return images
 }

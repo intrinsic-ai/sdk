@@ -40,6 +40,18 @@ go_library(
     ],
 )
 
+go_test(
+    name = "cookies_test",
+    srcs = ["cookies_test.go"],
+    embed = [":cookies"],
+    importpath = "intrinsic/kubernetes/acl/cookies_test",
+    deps = [
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+    ],
+)
+
 go_library(
     name = "clientcontext",
     srcs = ["clientcontext.go"],
@@ -81,6 +93,18 @@ go_library(
     ],
 )
 
+go_test(
+    name = "jwt_test",
+    srcs = ["jwt_test.go"],
+    embed = [":jwt"],
+    importpath = "intrinsic/kubernetes/acl/jwt_test",
+    deps = [
+        "//intrinsic/kubernetes/acl/testing:jwttesting",
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
+    ],
+)
+
 go_library(
     name = "org",
     srcs = ["org.go"],
@@ -89,6 +113,14 @@ go_library(
         "@com_github_golang_glog//:go_default_library",
         "@com_github_rs_xid//:go_default_library",
     ],
+)
+
+go_test(
+    name = "org_test",
+    srcs = ["org_test.go"],
+    embed = [":org"],
+    importpath = "intrinsic/kubernetes/acl/org_test",
+    deps = ["@com_github_google_go_cmp//cmp:go_default_library"],
 )
 
 go_library(
@@ -104,6 +136,24 @@ go_library(
         "//intrinsic/stats/go:telemetry",
         "@com_github_golang_glog//:go_default_library",
         "@io_opencensus_go//trace:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+    ],
+)
+
+go_test(
+    name = "identity_test",
+    srcs = ["identity_test.go"],
+    embed = [":identity"],
+    importpath = "intrinsic/kubernetes/acl/identity_test",
+    deps = [
+        ":cookies",
+        ":org",
+        "//intrinsic/kubernetes/acl/testing:jwttesting",
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
+        "@com_github_pkg_errors//:go_default_library",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//metadata:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",

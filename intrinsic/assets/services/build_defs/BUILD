@@ -22,7 +22,9 @@ package(
 bzl_library(
     name = "services_bzl",
     srcs = ["services.bzl"],
-    visibility = ["//visibility:private"],
+    visibility = [
+        "//intrinsic/assets/services/build_defs:__pkg__",
+    ],
     deps = [
         "//intrinsic/assets/build_defs:asset_bzl",
         "//intrinsic/util/proto/build_defs:descriptor_set",

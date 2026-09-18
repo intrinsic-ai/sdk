@@ -27,12 +27,19 @@ load("//intrinsic/skills/build_defs:skill.bzl", "py_skill", "skill_manifest")
 
 package(
     default_testonly = True,
+    default_visibility = [
+        "//intrinsic/skills/testing:__pkg__",
+        "//intrinsic/skills/testing:__subpackages__",
+    ],
 )
 
 py_library(
     name = "echo_skill_py",
     srcs = ["echo_skill.py"],
-    visibility = ["//intrinsic/skills/internal:__pkg__"],
+    visibility = [
+        "//intrinsic/skills/internal:__pkg__",
+        "//intrinsic/skills/testing:__pkg__",
+    ],
     deps = [
         "//intrinsic/skills/python:skill_interface",
         "//intrinsic/skills/python:skill_interface_utils",
@@ -58,7 +65,10 @@ cc_library(
     name = "echo_skill",
     srcs = ["echo_skill.cc"],
     hdrs = ["echo_skill.h"],
-    visibility = ["//intrinsic/skills/internal:__pkg__"],
+    visibility = [
+        "//intrinsic/skills/internal:__pkg__",
+        "//intrinsic/skills/testing:__pkg__",
+    ],
     deps = [
         "//intrinsic/skills/cc:skill_interface",
         "//intrinsic/skills/cc:skill_interface_utils",
@@ -78,6 +88,7 @@ skill_manifest(
         "//intrinsic/icon/release:__pkg__",
         "//intrinsic/skills/generator:__pkg__",
         "//intrinsic/skills/internal:__pkg__",
+        "//intrinsic/skills/testing:__pkg__",
     ],
     deps = ["//intrinsic/skills/testing:echo_skill_proto"],
 )
@@ -97,6 +108,7 @@ py_library(
     visibility = [
         "//intrinsic/skills/build_defs/tests:__pkg__",
         "//intrinsic/skills/internal:__pkg__",
+        "//intrinsic/skills/testing:__pkg__",
     ],
     deps = [
         "//intrinsic/skills/proto:footprint_py_pb2",
@@ -115,6 +127,7 @@ cc_library(
     visibility = [
         "//intrinsic/skills/build_defs/tests:__pkg__",
         "//intrinsic/skills/internal:__pkg__",
+        "//intrinsic/skills/testing:__pkg__",
     ],
     deps = [
         "//intrinsic/skills/cc:skill_interface",
@@ -131,7 +144,10 @@ py_library(
     name = "map_skill_repository_py",
     testonly = False,
     srcs = ["map_skill_repository.py"],
-    visibility = ["//intrinsic/skills/internal:__pkg__"],
+    visibility = [
+        "//intrinsic/skills/internal:__pkg__",
+        "//intrinsic/skills/testing:__pkg__",
+    ],
     deps = [
         "//intrinsic/skills/internal:runtime_data_py",
         "//intrinsic/skills/internal:single_skill_factory_py",

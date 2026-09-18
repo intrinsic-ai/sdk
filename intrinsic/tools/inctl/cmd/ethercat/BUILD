@@ -21,10 +21,10 @@ go_library(
         "ethercat.go",
         "upload_eni.go",
         "upload_esi.go",
-    ] + ["validation_syntax.go"],
-    embedsrcs = [],
+        "validation_syntax.go",
+    ],
     importpath = "intrinsic/tools/inctl/cmd/ethercat/ethercat",
-    visibility = ["//intrinsic/tools/inctl:__pkg__"],
+    visibility = ["//intrinsic/tools/inctl:__subpackages__"],
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",

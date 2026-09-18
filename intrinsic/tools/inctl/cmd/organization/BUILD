@@ -28,7 +28,7 @@ go_library(
         "users.go",
     ],
     importpath = "intrinsic/tools/inctl/cmd/organization/organization",
-    visibility = ["//intrinsic/tools/inctl:__pkg__"],
+    visibility = ["//intrinsic/tools/inctl:__subpackages__"],
     deps = [
         "//intrinsic/config:environments",
         "//intrinsic/kubernetes/accounts/service/api/accesscontrol/v1:accesscontrol_go_proto",
