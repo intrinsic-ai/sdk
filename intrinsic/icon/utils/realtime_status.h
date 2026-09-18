@@ -33,6 +33,7 @@
 //
 // Supports all absl::StatusCodes found in
 // "third_party/absl/status/status.h"
+
 namespace intrinsic {
 namespace icon {
 // Handles the mapping between Enum and char[]
