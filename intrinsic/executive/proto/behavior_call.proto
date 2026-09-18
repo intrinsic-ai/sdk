@@ -127,6 +127,8 @@ message BehaviorCall {
     // know what to expect.
     bytes internal_data = 2;
 
+    reserved 3;
+    reserved "prediction_outcomes";
   }
   // Deprecated: Do not fill or use this data.
   optional SkillExecutionData skill_execution_data = 8 [deprecated = true];
