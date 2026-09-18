@@ -16,10 +16,6 @@ load("//bazel:container.bzl", "container_image")
 load("//bazel:go_macros.bzl", "go_binary", "go_library", "go_test")
 load("//intrinsic/assets/services/build_defs:services.bzl", "intrinsic_service")
 
-package(default_visibility = [
-    "//intrinsic/assets/services/examples/volume_mount:__pkg__",
-])
-
 go_library(
     name = "volumemount",
     srcs = ["volumemount.go"],

@@ -19,7 +19,9 @@ exports_files(
     srcs = [
         "MODULE.bazel.template",
     ],
-    visibility = ["//intrinsic/tools/inctl/cmd/bazel:__subpackages__"],
+    visibility = [
+        "//intrinsic/tools/inctl/cmd/bazel:__subpackages__",
+    ],
 )
 
 genrule(

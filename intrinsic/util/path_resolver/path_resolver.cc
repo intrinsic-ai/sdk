@@ -16,16 +16,13 @@
 
 #include <unistd.h>
 
-#include <array>
 #include <cstdlib>
 #include <string>
-#include <vector>
 
 #include "absl/debugging/leak_check.h"
 #include "absl/log/log.h"
 #include "absl/strings/match.h"
 #include "absl/strings/string_view.h"
-#include "absl/strings/strip.h"
 #include "ortools/base/path.h"
 #include "tools/cpp/runfiles/runfiles.h"
 

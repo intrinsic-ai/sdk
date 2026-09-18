@@ -15,10 +15,6 @@
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("@rules_python//python:defs.bzl", "py_test")
 
-package(default_visibility = [
-    "//intrinsic/logging/utils/python/downsampler:__pkg__",
-])
-
 pybind_extension(
     name = "downsampler",
     srcs = [

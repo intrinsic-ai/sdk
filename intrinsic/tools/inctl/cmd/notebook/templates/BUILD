@@ -16,5 +16,7 @@ exports_files(
     srcs = [
         "empty_notebook.ipynb.template",
     ],
-    visibility = ["//intrinsic/tools/inctl/cmd/notebook:__subpackages__"],
+    visibility = [
+        "//intrinsic/tools/inctl/cmd/notebook:__subpackages__",
+    ],
 )

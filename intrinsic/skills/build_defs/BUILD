@@ -20,7 +20,6 @@ package(default_visibility = ["//visibility:public"])
 bzl_library(
     name = "manifest_bzl",
     srcs = ["manifest.bzl"],
-    visibility = ["//intrinsic/skills/build_defs:__pkg__"],
     deps = [
         "//intrinsic/util/proto/build_defs:descriptor_set",
     ],
@@ -29,7 +28,6 @@ bzl_library(
 bzl_library(
     name = "skill_bzl",
     srcs = ["skill.bzl"],
-    visibility = ["//intrinsic/skills/build_defs:__pkg__"],
     deps = [
         ":manifest_bzl",
         "//bazel:cc_oci_image_bzl",
@@ -95,10 +93,7 @@ go_library(
     name = "skillserviceconfiggen",
     srcs = ["skillserviceconfiggen.go"],
     importpath = "intrinsic/skills/build_defs/skillserviceconfiggen",
-    visibility = [
-        "//intrinsic/skills/build_defs:__pkg__",
-        "//intrinsic/tools/inbuild:__subpackages__",
-    ],
+    visibility = ["//intrinsic/tools/inbuild:__subpackages__"],
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/skills/proto:skill_manifest_go_proto",

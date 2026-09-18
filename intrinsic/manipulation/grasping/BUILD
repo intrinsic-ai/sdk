@@ -22,6 +22,7 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_python//python:defs.bzl", "py_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -59,7 +60,7 @@ py_proto_library(
 
 cc_proto_library(
     name = "grasp_execution_planner_params_cc_proto",
-    visibility = ["//intrinsic/manipulation/grasping:__pkg__"],
+    visibility = ["//visibility:private"],
     deps = [":grasp_execution_planner_params_proto"],
 )
 
@@ -83,7 +84,6 @@ py_library(
 py_library(
     name = "multi_axis_auto_annotator_client",
     srcs = ["multi_axis_auto_annotator_client.py"],
-    visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/manipulation/grasping:schmalz_multi_axis_grasp_py_pb2",
         "//intrinsic/manipulation/service:multi_axis_auto_annotator_service_py_pb2",

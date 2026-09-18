@@ -33,10 +33,7 @@ js_library(
 
 js_library(
     name = "referenced_data_jspb_proto",
-    visibility = [
-        "//intrinsic/assets/data/proto/v1:__pkg__",
-        "//intrinsic/frontend/onprem/pose_estimation:__pkg__",
-    ],
+    visibility = ["//intrinsic/frontend/onprem/pose_estimation:__pkg__"],
     deps = ["//intrinsic/assets/data/proto/v1:referenced_data_proto"],
 )
 

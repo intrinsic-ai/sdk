@@ -70,6 +70,11 @@ cc_library(
 )
 
 cc_library(
+    name = "invalid_until_set",
+    hdrs = ["invalid_until_set.h"],
+)
+
+cc_library(
     name = "macros",
     hdrs = ["macros.h"],
     deps = [

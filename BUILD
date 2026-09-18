@@ -18,6 +18,12 @@ exports_files(
     srcs = [
         ".bazelrc",
         ".bazelversion",
+    ],
+    visibility = ["//intrinsic/tools/inctl/cmd/bazel/templates:__subpackages__"],
+)
+
+exports_files(
+    srcs = [
         "MODULE.bazel",
         "requirements.in",
         "requirements.txt",
@@ -25,7 +31,6 @@ exports_files(
     visibility = [
         "//:__pkg__",
         "//intrinsic/production/external:__pkg__",
-        "//intrinsic/tools/inctl/cmd/bazel/templates:__subpackages__",
     ],
 )
 

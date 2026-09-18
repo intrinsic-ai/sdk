@@ -544,10 +544,7 @@ go_proto_library(
     ],
     importpath = "intrinsic/util/status/test_service_go_proto",
     protos = [":test_service_proto"],
-    visibility = [
-        ":__pkg__",
-        "//intrinsic/util/status:__pkg__",
-    ],
+    visibility = [":__pkg__"],
     deps = ["@org_golang_google_protobuf//types/known/emptypb"],
 )
 

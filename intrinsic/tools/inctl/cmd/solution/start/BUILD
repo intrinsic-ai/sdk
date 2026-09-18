@@ -18,7 +18,7 @@ go_library(
     name = "start",
     srcs = ["start.go"],
     importpath = "intrinsic/tools/inctl/cmd/solution/start/start",
-    visibility = ["//intrinsic/tools/inctl/cmd/solution:__subpackages__"],
+    visibility = ["//intrinsic/tools/inctl/cmd/solution:__pkg__"],
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",

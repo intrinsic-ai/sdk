@@ -18,7 +18,7 @@ go_library(
     name = "create",
     srcs = ["create.go"],
     importpath = "intrinsic/tools/inctl/cmd/solution/create/create",
-    visibility = ["//intrinsic/tools/inctl/cmd/solution:__subpackages__"],
+    visibility = ["//intrinsic/tools/inctl/cmd/solution:__pkg__"],
     deps = [
         "//intrinsic/assets:cmdutils",
         "//intrinsic/solution_versions/proto/v1:branch_go_proto",

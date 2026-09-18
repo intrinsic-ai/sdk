@@ -42,7 +42,7 @@ go_library(
     name = "gzffile",
     srcs = ["gzffile.go"],
     importpath = "intrinsic/assets/scene_objects/gzffile",
-    visibility = ["//intrinsic/assets/scene_objects:__pkg__"],
+    visibility = ["//visibility:private"],
     deps = [
         "//intrinsic/scene/proto/v1:scene_object_go_proto",
         "@org_golang_google_protobuf//proto",

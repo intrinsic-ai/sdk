@@ -18,7 +18,9 @@ go_library(
     name = "delete",
     srcs = ["delete.go"],
     importpath = "intrinsic/tools/inctl/cmd/solution/delete/delete",
-    visibility = ["//intrinsic/tools/inctl/cmd/solution:__subpackages__"],
+    visibility = [
+        "//intrinsic/tools/inctl/cmd/solution:__pkg__",
+    ],
     deps = [
         "//intrinsic/solution_versions/proto/v1:solution_version_service_go_proto",
         "//intrinsic/tools/inctl/auth",

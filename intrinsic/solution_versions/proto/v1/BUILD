@@ -27,7 +27,6 @@ js_library(
     visibility = [
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
-        "//intrinsic/solution_versions/proto/v1:__pkg__",
     ],
     deps = [":solution_version_service_proto"],
 )
@@ -37,7 +36,6 @@ js_library(
     visibility = [
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
-        "//intrinsic/solution_versions/proto/v1:__pkg__",
     ],
     deps = ["//intrinsic/solution_versions/proto/v1:snapshot_proto"],
 )
@@ -47,7 +45,6 @@ js_library(
     visibility = [
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
-        "//intrinsic/solution_versions/proto/v1:__pkg__",
     ],
     deps = ["//intrinsic/solution_versions/proto/v1:snapshot_source_proto"],
 )
@@ -56,7 +53,6 @@ js_library(
     name = "branch_jspb_proto",
     visibility = [
         "//intrinsic/frontend:__subpackages__",
-        "//intrinsic/solution_versions/proto/v1:__pkg__",
     ],
     deps = ["//intrinsic/solution_versions/proto/v1:branch_proto"],
 )
@@ -65,7 +61,6 @@ proto_library(
     name = "solution_version_service_proto",
     srcs = ["solution_version_service.proto"],
     visibility = [
-        "//intrinsic/solution_versions/proto/v1:__pkg__",
     ],
     deps = [
         "//intrinsic/solution_versions/proto/v1:branch_proto",
@@ -132,7 +127,6 @@ js_library(
     visibility = [
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
-        "//intrinsic/solution_versions/proto/v1:__pkg__",
     ],
     deps = ["//intrinsic/solution_versions/proto/v1:diff_mask_proto"],
 )
@@ -142,7 +136,6 @@ js_library(
     visibility = [
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
-        "//intrinsic/solution_versions/proto/v1:__pkg__",
     ],
     deps = ["//intrinsic/solution_versions/proto/v1:conflict_proto"],
 )
@@ -152,7 +145,6 @@ js_library(
     visibility = [
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
-        "//intrinsic/solution_versions/proto/v1:__pkg__",
     ],
     deps = ["//intrinsic/solution_versions/proto/v1:conflict_resolution_proto"],
 )
@@ -162,7 +154,6 @@ js_library(
     visibility = [
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
-        "//intrinsic/solution_versions/proto/v1:__pkg__",
     ],
     deps = ["//intrinsic/solution_versions/proto/v1:warning_proto"],
 )
@@ -171,7 +162,6 @@ proto_library(
     name = "solution_diff_proto",
     srcs = ["solution_diff.proto"],
     visibility = [
-        "//intrinsic/solution_versions/proto/v1:__pkg__",
     ],
     deps = [
         "//intrinsic/solution_versions/proto/v1:diff_mask_proto",
@@ -185,7 +175,6 @@ go_proto_library(
     visibility = [
         "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
         "//intrinsic/solution_versions:__subpackages__",
-        "//intrinsic/tools/inctl/cmd:__subpackages__",
         "//intrinsic/tools/inctl/cmd/solution_version:__pkg__",
     ],
     deps = [
@@ -204,7 +193,6 @@ js_library(
     visibility = [
         "//intrinsic/frontend:__subpackages__",
         "//intrinsic/portal/frontend/projects/portal:__pkg__",
-        "//intrinsic/solution_versions/proto/v1:__pkg__",
     ],
     deps = [":solution_diff_proto"],
 )
