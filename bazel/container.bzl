@@ -25,17 +25,22 @@ load("//bazel:container_structure_test.bzl", "container_structure_test")
 
 def _container_import_impl(ctx):
     output = ctx.actions.declare_directory(ctx.label.name)
-    ctx.actions.run(
-        arguments = [
-            "image",
-            "import",
-            "ocidir://%s" % output.path,
-            ctx.file.tarball.path,
-        ],
-        executable = ctx.toolchains["@rules_oci//oci:regctl_toolchain_type"].regctl_info.binary,
+    regctl = ctx.toolchains["@rules_oci//oci:regctl_toolchain_type"].regctl_info.binary
+    ctx.actions.run_shell(
+        command = """
+            set -euo pipefail
+            "{regctl}" image import "ocidir://{output}:latest" "{tarball}"
+            "{regctl}" image mod "ocidir://{output}:latest" --layer-compress "{compression}" --replace
+        """.format(
+            compression = ctx.attr.compression,
+            output = output.path,
+            regctl = regctl.path,
+            tarball = ctx.file.tarball.path,
+        ),
         inputs = [ctx.file.tarball],
         mnemonic = "ExtractContainerTarball",
         outputs = [output],
+        tools = [regctl],
     )
     return DefaultInfo(
         files = depset([output]),
@@ -44,6 +49,15 @@ def _container_import_impl(ctx):
 
 container_import = rule(
     attrs = {
+        "compression": attr.string(
+            default = "gzip",
+            doc = "Layer compression type for imported image layers (gzip, zstd, none).",
+            values = [
+                "gzip",
+                "zstd",
+                "none",
+            ],
+        ),
         "tarball": attr.label(
             allow_single_file = [".tar"],
         ),
