@@ -21,7 +21,7 @@ package(default_visibility = ["//visibility:public"])
 proto_library(
     name = "forwarding_service_proto",
     srcs = ["forwarding_service.proto"],
-    deps = ["//intrinsic/platform/pubsub/connect/onprem/relay_router_service/proto:endpoint_spec_proto"],
+    deps = ["//intrinsic/platform/pubsub/connect/common/proto/line_configuration/v1:endpoint_spec_proto"],
 )
 
 go_proto_library(
@@ -29,7 +29,7 @@ go_proto_library(
     importpath = "intrinsic/platform/pubsub/connect/onprem/forwarding_service/forwarding_service_go_proto",
     protos = [":forwarding_service_proto"],
     deps = [
-        "//intrinsic/platform/pubsub/connect/onprem/relay_router_service/proto:endpoint_spec_go_proto",
+        "//intrinsic/platform/pubsub/connect/common/proto/line_configuration/v1:endpoint_spec_go_proto",
     ],
 )
 

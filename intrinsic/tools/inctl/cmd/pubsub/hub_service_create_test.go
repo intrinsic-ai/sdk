@@ -34,7 +34,7 @@ import (
 	metadatapb "intrinsic/assets/proto/metadata_go_proto"
 	aigrpcpb "intrinsic/assets/proto/v1/asset_instances_go_proto"
 	provisionerpb "intrinsic/platform/pubsub/cloud_router_provisioner/v1/provisioner_go_proto"
-	endpointpb "intrinsic/platform/pubsub/connect/onprem/relay_router_service/endpoint_spec_go_proto"
+	endpointpb "intrinsic/platform/pubsub/connect/common/proto/line_configuration/v1/endpoint_spec_go_proto"
 	pubsubtesting "intrinsic/tools/inctl/cmd/pubsub/testing"
 )
 

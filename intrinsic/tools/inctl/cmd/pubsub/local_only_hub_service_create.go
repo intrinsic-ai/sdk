@@ -17,7 +17,7 @@ package pubsub
 import (
 	"context"
 
-	endpointpb "intrinsic/platform/pubsub/connect/onprem/relay_router_service/endpoint_spec_go_proto"
+	endpointpb "intrinsic/platform/pubsub/connect/common/proto/line_configuration/v1/endpoint_spec_go_proto"
 	relayrouterpb "intrinsic/platform/pubsub/connect/onprem/relay_router_service/relay_router_service_go_proto"
 )
 
