@@ -75,7 +75,6 @@ TEST(ExecuteSkillTest, ExecuteSkillNoResult) {
   std::unique_ptr<ExecuteContext> context =
       skill_test_factory.MakeExecuteContext({});
 
-  intrinsic_proto::skills::EchoSkillReturn result;
   ASSERT_OK(ExecuteSkill(skill, request, *context));
 }
 
@@ -87,7 +86,6 @@ TEST(ExecuteSkillTest, WrongResultTypeReturnsError) {
   EchoSkill skill;
   std::unique_ptr<ExecuteContext> context =
       skill_test_factory.MakeExecuteContext({});
-  intrinsic_proto::skills::EchoSkillReturn result;
 
   intrinsic_proto::skills::EchoSkillParams bad_result;
   EXPECT_THAT(ExecuteSkill(skill, request, *context, &bad_result),

@@ -47,8 +47,6 @@ GetSkillServiceConfigFromManifest(
     absl::string_view manifest_pbbin_filename,
     absl::string_view file_descriptor_set_pbbin_filename,
     std::optional<absl::string_view> version) {
-  intrinsic_proto::skills::SkillServiceConfig service_config;
-
   LOG(INFO) << "Loading manifest from " << manifest_pbbin_filename;
   INTR_ASSIGN_OR_RETURN(
       auto manifest,

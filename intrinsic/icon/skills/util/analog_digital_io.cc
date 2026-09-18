@@ -119,8 +119,6 @@ icon::Condition CreateWaitForInputValueCondition(
     absl::string_view adio_part_name, absl::string_view input_block_name,
     const IconAnalogDigitalIO::DigitalBlockMask& input_mask,
     const IconAnalogDigitalIO::DigitalBlockValues& values) {
-  icon::ADIOActionInfo::FixedParams action_parameters;
-  intrinsic_proto::icon::actions::proto::DigitalBlock block;
   std::vector<icon::Condition> literals;
   for (uint32_t input_index = 0; input_index < input_mask.size();
        ++input_index) {

@@ -68,7 +68,6 @@ absl::Status ResetSimulation(absl::string_view address) {
         "Could not create grpc stub to simulation server.");
   }
   grpc::ClientContext context;
-  google::protobuf::Empty empty;
   intrinsic_proto::simulation::v1::ResetSimulationResponse response;
   std::cout << "Starting resetting simulation." << std::endl;
   INTR_RETURN_IF_ERROR(intrinsic::ToAbslStatus(stub->ResetSimulation(
