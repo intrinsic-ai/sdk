@@ -315,7 +315,7 @@ oci.pull(
     platforms = ["linux/amd64"],
 )
 
-# Version pinned to last known version for EC-Engineer, due to b/478927987.
+# Version pinned due to b/478927987.
 oci.pull(
     name = "distroless_base_bookworm",
     digest = "sha256:9e9b50d2048db3741f86a48d939b4e4cc775f5889b3496439343301ff54cdba8",

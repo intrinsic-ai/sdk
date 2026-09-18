@@ -49,14 +49,6 @@ service_def {
             add: POSIX_CAPABILITY_IPC_LOCK # Lock memory (mlock(2), mlockall(2), mmap(2), shmctl(2)).
           }
         }
-        {{- if .RequiresAtemsys }}
-        resource_requirements {
-          limits {
-            key: "atemsys.acontis.com/ecat-driver"
-            value: "1"
-          }
-        }
-        {{- end }}
         requires_rtpc_node: {{ .RequiresRTPC }}
       }
     }

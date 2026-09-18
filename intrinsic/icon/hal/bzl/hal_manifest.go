@@ -44,9 +44,7 @@ var (
 	providesServiceInspection = flag.Bool("provides_service_inspection", false, "Whether or not the hardware module provides service inspection")
 	serviceProtoPrefixes      = intrinsicflag.MultiString("service_proto_prefix", nil, "Output file name")
 	requiresRTPCNode          = flag.Bool("requires_rtpc_node", false, "Whether or not the hardware module requires an RTPC Node")
-	requiresAtemsys           = flag.Bool("requires_atemsys", false, "Whether or not the hardware module requires an Atemsys Ethercat device")
 	runningEthercatOss        = flag.Bool("running_ethercat_oss", false, "Whether or not the hardware module is running ethercat oss")
-
 	//go:embed hal_service_manifest.textproto.tmpl
 	serviceManifestTemplateText string
 	serviceManifestTemplate     = template.Must(template.New("manifest").Parse(serviceManifestTemplateText))
@@ -132,7 +130,6 @@ func halManifest() error {
 		ImageSim                  string
 		ProvidesServiceInspection bool
 		RequiresRTPC              bool
-		RequiresAtemsys           bool
 		RunningEthercatOss        bool
 		ServiceProtoPrefixes      []string
 		IntrinsicIconPath         string
@@ -144,7 +141,6 @@ func halManifest() error {
 		PartialManifest:           string(partialManifest),
 		ProvidesServiceInspection: *providesServiceInspection,
 		RequiresRTPC:              *requiresRTPCNode,
-		RequiresAtemsys:           *requiresAtemsys,
 		RunningEthercatOss:        *runningEthercatOss,
 		ServiceProtoPrefixes:      *serviceProtoPrefixes,
 		IntrinsicIconPath:         intrinsicIconPath,

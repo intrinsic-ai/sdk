@@ -27,9 +27,6 @@ def _hal_manifest_impl(ctx):
         ctx.attr.requires_rtpc_node,
         format = "--requires_rtpc_node=%s",
     ).add(
-        ctx.attr.requires_atemsys,
-        format = "--requires_atemsys=%s",
-    ).add(
         ctx.attr.running_ethercat_oss,
         format = "--running_ethercat_oss=%s",
     ).add_all(
@@ -89,10 +86,6 @@ hardware_module_manifest = rule(
         "provides_service_inspection": attr.bool(
             default = False,
             doc = "Flag to indicate that the module provides service inspection",
-        ),
-        "requires_atemsys": attr.bool(
-            default = False,
-            doc = "If the hardware module requires a atemsys ethercat",
         ),
         "requires_rtpc_node": attr.bool(
             default = True,

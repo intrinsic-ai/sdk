@@ -66,7 +66,6 @@ metadata {
 				ImageSim                  string
 				ProvidesServiceInspection bool
 				RequiresRTPC              bool
-				RequiresAtemsys           bool
 				RunningEthercatOss        bool
 				ServiceProtoPrefixes      []string
 				IntrinsicIconPath         string
