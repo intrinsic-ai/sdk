@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"intrinsic/proto_tools/registry/protoregistryclient"
 	protoregistrypb "intrinsic/proto_tools/proto/proto_registry_go_proto"
+	"intrinsic/proto_tools/registry/protoregistryclient"
 	"intrinsic/tools/inctl/util/orgutil"
 
 	"github.com/pkg/errors"
