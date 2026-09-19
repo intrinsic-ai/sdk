@@ -30,3 +30,24 @@ go_proto_library(
     importpath = "intrinsic/platform/pubsub/connect/common/proto/line_configuration/v1/endpoint_spec_go_proto",
     protos = [":endpoint_spec_proto"],
 )
+
+proto_library(
+    name = "line_configuration_proto",
+    srcs = ["line_configuration.proto"],
+    deps = [
+        ":endpoint_spec_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/api:field_behavior_proto",
+        "@com_google_googleapis//google/api:resource_proto",
+    ],
+)
+
+go_proto_library(
+    name = "line_configuration_go_proto",
+    importpath = "intrinsic/platform/pubsub/connect/common/proto/line_configuration/v1/line_configuration_go_proto",
+    protos = [":line_configuration_proto"],
+    deps = [
+        ":endpoint_spec_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
+)
