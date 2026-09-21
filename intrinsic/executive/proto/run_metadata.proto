@@ -111,4 +111,5 @@ message RunMetadata {
   // call to CreateOperation this may generate diagnostics that could be
   // reported to the user.
   optional intrinsic_proto.status.ExtendedStatus diagnostics = 28;
+
 }
