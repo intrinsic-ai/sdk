@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sync"
 	"testing"
 
 	prpb "intrinsic/proto_tools/proto/proto_registry_go_proto"
@@ -40,10 +41,36 @@ const anyTypeUrl = "type.intrinsic.ai/google.protobuf.Any"
 type FakeServer struct {
 	iagrpcpb.UnimplementedInstalledAssetsServer
 	prpb.UnimplementedProtoRegistryServer
-	fds *descriptorpb.FileDescriptorSet
+	mu            sync.Mutex
+	version       string
+	batchGetCount int
+	fds           *descriptorpb.FileDescriptorSet
+}
+
+func (s *FakeServer) getVersionLocked() string {
+	if s.version != "" {
+		return s.version
+	}
+	return "1.0.0"
+}
+
+func (s *FakeServer) SetVersion(version string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.version = version
+}
+
+func (s *FakeServer) BatchGetCount() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.batchGetCount
 }
 
 func (s *FakeServer) ListInstalledAssets(ctx context.Context, req *iagrpcpb.ListInstalledAssetsRequest) (*iagrpcpb.ListInstalledAssetsResponse, error) {
+	s.mu.Lock()
+	version := s.getVersionLocked()
+	s.mu.Unlock()
+
 	return &iagrpcpb.ListInstalledAssetsResponse{
 		InstalledAssets: []*iagrpcpb.InstalledAsset{
 			{
@@ -53,7 +80,7 @@ func (s *FakeServer) ListInstalledAssets(ctx context.Context, req *iagrpcpb.List
 							Package: "com.example",
 							Name:    "Foobar",
 						},
-						Version: "1.0.0",
+						Version: version,
 					},
 				},
 			},
@@ -62,6 +89,11 @@ func (s *FakeServer) ListInstalledAssets(ctx context.Context, req *iagrpcpb.List
 }
 
 func (s *FakeServer) BatchGetInstalledAssets(ctx context.Context, req *iagrpcpb.BatchGetInstalledAssetsRequest) (*iagrpcpb.BatchGetInstalledAssetsResponse, error) {
+	s.mu.Lock()
+	s.batchGetCount++
+	version := s.getVersionLocked()
+	s.mu.Unlock()
+
 	fds := prototestutil.FileDescriptorSet(&anypb.Any{})
 	return &iagrpcpb.BatchGetInstalledAssetsResponse{
 		InstalledAssets: []*iagrpcpb.InstalledAsset{
@@ -72,7 +104,7 @@ func (s *FakeServer) BatchGetInstalledAssets(ctx context.Context, req *iagrpcpb.
 							Package: "com.example",
 							Name:    "Foobar",
 						},
-						Version: "1.0.0",
+						Version: version,
 					},
 					FileDescriptorSet: fds,
 				},
@@ -81,7 +113,7 @@ func (s *FakeServer) BatchGetInstalledAssets(ctx context.Context, req *iagrpcpb.
 	}, nil
 }
 
-func MustMakeFakeServer(t *testing.T) string {
+func MustMakeFakeServerWithServer(t *testing.T) (*FakeServer, string) {
 	t.Helper()
 	lis, err := net.Listen("tcp", "localhost:0")
 	if err != nil {
@@ -103,7 +135,12 @@ func MustMakeFakeServer(t *testing.T) string {
 		s.Stop()
 	})
 
-	return lis.Addr().String()
+	return fakeServer, lis.Addr().String()
+}
+
+func MustMakeFakeServer(t *testing.T) string {
+	_, addr := MustMakeFakeServerWithServer(t)
+	return addr
 }
 
 func (s *FakeServer) GetNamedFileDescriptorSet(ctx context.Context, req *prpb.GetNamedFileDescriptorSetRequest) (*prpb.NamedFileDescriptorSet, error) {

@@ -71,3 +71,47 @@ func TestInstalledAssetsResolver_FindExtension(t *testing.T) {
 		t.Errorf("FindExtensionByNumber: expected nil, NotFound; got %v, %v", ext, err)
 	}
 }
+
+func TestInstalledAssetsResolver_RefreshOnVersionChange(t *testing.T) {
+	server, serverURL := MustMakeFakeServerWithServer(t)
+
+	server.SetVersion("1.0.0+hash1")
+	resolver, err := NewInstalledAssetsResolver(serverURL)
+	if err != nil {
+		t.Fatalf("Failed to create resolver: %v", err)
+	}
+
+	// First refresh should fetch asset.
+	if err := resolver.RefreshInstalledAssets(); err != nil {
+		t.Fatalf("RefreshInstalledAssets failed: %v", err)
+	}
+	if got := server.BatchGetCount(); got != 1 {
+		t.Errorf("Expected BatchGetCount 1, got %d", got)
+	}
+
+	// Second refresh with same version (and hash) should not fetch.
+	if err := resolver.RefreshInstalledAssets(); err != nil {
+		t.Fatalf("RefreshInstalledAssets failed: %v", err)
+	}
+	if got := server.BatchGetCount(); got != 1 {
+		t.Errorf("Expected BatchGetCount 1, got %d", got)
+	}
+
+	// Third refresh with different hash should fetch.
+	server.SetVersion("1.0.0+hash2")
+	if err := resolver.RefreshInstalledAssets(); err != nil {
+		t.Fatalf("RefreshInstalledAssets failed: %v", err)
+	}
+	if got := server.BatchGetCount(); got != 2 {
+		t.Errorf("Expected BatchGetCount 2 after hash change, got %d", got)
+	}
+
+	// Fourth refresh with lower semver version should also fetch because version is different.
+	server.SetVersion("0.9.0")
+	if err := resolver.RefreshInstalledAssets(); err != nil {
+		t.Fatalf("RefreshInstalledAssets failed: %v", err)
+	}
+	if got := server.BatchGetCount(); got != 3 {
+		t.Errorf("Expected BatchGetCount 3 after version change, got %d", got)
+	}
+}

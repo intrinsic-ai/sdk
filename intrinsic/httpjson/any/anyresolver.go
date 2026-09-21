@@ -16,6 +16,8 @@ package any
 
 import (
 	"context"
+	"log/slog"
+	"math/rand/v2"
 	"sync"
 	"time"
 
@@ -26,8 +28,13 @@ import (
 const (
 	// Update cached data regularly for Solution Builders who are sideloading
 	// assets with new versions of proto messages as they build a solution.
-	cacheRefreshInterval = 30 * time.Second
+	cacheRefreshMinInterval = 30 * time.Second
+	cacheRefreshMaxInterval = 45 * time.Second
 )
+
+func cacheRefreshInterval() time.Duration {
+	return cacheRefreshMinInterval + rand.N(cacheRefreshMaxInterval-cacheRefreshMinInterval)
+}
 
 // AnyResolver implements the MessageTypeResolver and ExtensionTypeResolver interfaces.
 type AnyResolver struct {
@@ -78,15 +85,18 @@ func (a *AnyResolver) Close() {
 
 func (a *AnyResolver) backgroundLoop(ctx context.Context) {
 	defer a.wg.Done()
-	ticker := time.NewTicker(cacheRefreshInterval)
-	defer ticker.Stop()
+	timer := time.NewTimer(cacheRefreshInterval())
+	defer timer.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-ticker.C:
-			a.iaResolver.RefreshInstalledAssets()
+		case <-timer.C:
+			if err := a.iaResolver.RefreshInstalledAssets(); err != nil {
+				slog.ErrorContext(ctx, "Failed to refresh installed assets", "err", err)
+			}
+			timer.Reset(cacheRefreshInterval())
 		}
 	}
 }

@@ -43,7 +43,6 @@ go_library(
         "//intrinsic/resources/proto:runtime_context_go_proto",
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",
-        "@com_github_masterminds_semver//:semver",
         "@io_bazel_rules_go//go/runfiles:go_default_library",
         "@org_golang_google_grpc//:grpc",
         "@org_golang_google_grpc//codes:go_default_library",

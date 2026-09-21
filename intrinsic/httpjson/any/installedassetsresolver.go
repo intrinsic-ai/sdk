@@ -18,11 +18,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 
-	"github.com/Masterminds/semver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -38,7 +36,7 @@ import (
 
 // cacheEntry holds the resolved types and the version string for an asset.
 type cacheEntry struct {
-	version *semver.Version
+	version string
 	types   *protoregistry.Types
 }
 
@@ -146,14 +144,8 @@ func (r *InstalledAssetsResolver) RefreshInstalledAssets() error {
 			continue
 		}
 
-		// Fetch this asset if the InstalledAssets service has a newer version of it.
-		newVer, err := semver.NewVersion(newVersionStr)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to parse semantic version %s\n", newVersionStr)
-			continue
-		}
-
-		if existingEntry.version.LessThan(newVer) {
+		// Fetch this asset if the version is different.
+		if existingEntry.version != newVersionStr {
 			idsToFetch = append(idsToFetch, id)
 		}
 	}
@@ -186,13 +178,7 @@ func (r *InstalledAssetsResolver) RefreshInstalledAssets() error {
 			continue
 		}
 
-		newVer, err := semver.NewVersion(version)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to parse semantic version %s\n", version)
-			continue
-		}
-
-		_, err = r.setCachedAssetDescriptorLocked(idString, newVer, fds)
+		_, err = r.setCachedAssetDescriptorLocked(idString, version, fds)
 		if err != nil {
 			return fmt.Errorf("failed to set cached descriptor for asset %s: %w", id, err)
 		}
@@ -201,7 +187,7 @@ func (r *InstalledAssetsResolver) RefreshInstalledAssets() error {
 	return nil
 }
 
-func (r *InstalledAssetsResolver) setCachedAssetDescriptorLocked(id string, version *semver.Version, fileDescriptorSet *descriptorpb.FileDescriptorSet) (*protoregistry.Types, error) {
+func (r *InstalledAssetsResolver) setCachedAssetDescriptorLocked(id string, version string, fileDescriptorSet *descriptorpb.FileDescriptorSet) (*protoregistry.Types, error) {
 	files := new(protoregistry.Files)
 	types := new(protoregistry.Types)
 
