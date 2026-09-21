@@ -281,6 +281,14 @@ message GetAssignedVersionsResponse {
   UpdateVersions versions = 1;
 }
 
+message GetRollbackVersionsRequest {
+  string cluster_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetRollbackVersionsResponse {
+  UpdateVersions versions = 1;
+}
+
 message GetCurrentReleaseVersionsRequest {}
 
 message GetCurrentReleaseVersionsResponse {
@@ -854,6 +862,18 @@ service ClustersService {
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "GetAssignedVersions"
+    };
+    option (aclType) = "has_access";
+  }
+
+  // GetRollbackVersions returns the rollback versions of a cluster.
+  rpc GetRollbackVersions(GetRollbackVersionsRequest)
+      returns (GetRollbackVersionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/project/*/org/*/clusters/{cluster_id}/rollbackVersions"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "GetRollbackVersions"
     };
     option (aclType) = "has_access";
   }
