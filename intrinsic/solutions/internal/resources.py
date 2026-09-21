@@ -139,7 +139,7 @@ class Resources(providers.ResourceProvider):
     return self._resources[name]
 
   def __getattr__(self, name: str) -> provided.ResourceHandle:
-    return self._resources[name]
+    return getattr(self._resources, name)
 
   def __dir__(self) -> list[str]:
     return dir(self._resources)

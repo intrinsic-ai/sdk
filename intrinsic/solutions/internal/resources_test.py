@@ -58,6 +58,16 @@ class ResourcesTest(absltest.TestCase):
         'ResourceHandle.create(name="Foo", types=["type1", "type2"])',
     )
 
+  def test_hasattr_resources(self):
+    self._resource_registry_client.list_all_resource_handles.return_value = [
+        resource_handle_pb2.ResourceHandle(name='my_camera'),
+    ]
+    resources = resources_mod.Resources(self._resource_registry_client)
+
+    self.assertTrue(hasattr(resources, 'my_camera'))
+    self.assertFalse(hasattr(resources, '__contains__'))
+    self.assertFalse(hasattr(resources, 'nonexistent'))
+
 
 if __name__ == '__main__':
   absltest.main()
