@@ -128,10 +128,16 @@ intrinsic_asset_reference = rule(
 )
 
 def _intrinsic_asset_instance_impl(ctx):
+    if ctx.file.config and (ctx.attr.required_node_hostname or ctx.file.service_config):
+        fail("Cannot specify both 'config' and attributes to generate a config ('service_config', 'required_node_hostname')")
+
     name = ctx.attr.instance_name if ctx.attr.instance_name else ctx.label.name
     files = []
     config = None
-    if ctx.attr.required_node_hostname or ctx.file.service_config:
+    if ctx.file.config:
+        config = ctx.file.config
+        files.append(config)
+    elif ctx.attr.required_node_hostname or ctx.file.service_config:
         config = ctx.actions.declare_file(ctx.label.name + ".txtpb")
         files.append(config)
         args = ctx.actions.args().add(
@@ -173,6 +179,14 @@ intrinsic_asset_instance = rule(
     attrs = {
         "asset": attr.string(
             mandatory = True,
+        ),
+        "config": attr.label(
+            allow_single_file = [
+                ".txtpb",
+                ".textproto",
+                ".pbtxt",
+            ],
+            doc = "An InstanceConfig textproto file.",
         ),
         "instance_name": attr.string(
             doc = "Name of the instance, if it should be different than 'name'",
