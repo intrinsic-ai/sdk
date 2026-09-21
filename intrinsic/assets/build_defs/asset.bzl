@@ -41,8 +41,9 @@ AssetCatalogRefInfo = provider(
 AssetInstanceInfo = provider(
     "An asset instance.",
     fields = {
-        "instance_info": "An AssetInstanceInfo proto",
-        "service_config": "Optional any proto text file of the asset's configuration",
+        "asset": "The asset ID of the instance",
+        "config": "InstanceConfig textproto file",
+        "name": "The name of the asset instance",
     },
 )
 
@@ -128,44 +129,43 @@ intrinsic_asset_reference = rule(
 
 def _intrinsic_asset_instance_impl(ctx):
     name = ctx.attr.instance_name if ctx.attr.instance_name else ctx.label.name
-    asset_instance_output = ctx.actions.declare_file(ctx.label.name + ".binpb")
-    args = ctx.actions.args().add(
-        "--asset",
-        ctx.attr.asset,
-    ).add(
-        "--instance_name",
-        name,
-    ).add(
-        "--required_node_hostname",
-        ctx.attr.required_node_hostname,
-    ).add(
-        "--output_asset_instance",
-        asset_instance_output,
-    )
-    inputs = []
-    if ctx.file.service_config:
-        args.add(
-            "--config_path",
-            ctx.file.service_config,
+    files = []
+    config = None
+    if ctx.attr.required_node_hostname or ctx.file.service_config:
+        config = ctx.actions.declare_file(ctx.label.name + ".txtpb")
+        files.append(config)
+        args = ctx.actions.args().add(
+            "--output",
+            config,
+        ).add(
+            "--required_node_hostname",
+            ctx.attr.required_node_hostname,
         )
-        inputs.append(ctx.file.service_config)
+        inputs = []
+        if ctx.file.service_config:
+            args.add(
+                "--service_config",
+                ctx.file.service_config,
+            )
+            inputs.append(ctx.file.service_config)
 
-    ctx.actions.run(
-        arguments = [args],
-        executable = ctx.executable._assetinstancegen,
-        inputs = inputs,
-        mnemonic = "AssetInstance",
-        outputs = [asset_instance_output],
-        progress_message = "Writing %{output} for %{label}",
-    )
+        ctx.actions.run(
+            arguments = [args],
+            executable = ctx.executable._assetinstancegen,
+            inputs = inputs,
+            mnemonic = "AssetInstance",
+            outputs = [config],
+            progress_message = "Writing %{output} for %{label}",
+        )
+
     return [
         DefaultInfo(
-            executable = asset_instance_output,
-            files = depset([asset_instance_output]),
+            files = depset(files),
         ),
         AssetInstanceInfo(
-            instance_info = asset_instance_output,
-            service_config = ctx.file.service_config,
+            name = name,
+            asset = ctx.attr.asset,
+            config = config,
         ),
     ]
 

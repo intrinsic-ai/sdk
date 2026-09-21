@@ -16,10 +16,10 @@ syntax = "proto3";
 
 package intrinsic_proto.assets.build_defs;
 
-import "google/protobuf/any.proto";
 import "google/protobuf/descriptor.proto";
 import "intrinsic/assets/proto/asset_type.proto";
 import "intrinsic/assets/proto/id.proto";
+import "intrinsic/assets/proto/v1/instance_config.proto";
 
 option go_package = "intrinsic/assets/build_defs/asset_go_proto";
 
@@ -56,24 +56,18 @@ message AssetCatalogRefInfo {
 }
 
 message AssetInstanceInfo {
-  // The asset ID.
-  string asset = 1;
-  // The name of this assent instance.
-  string instance_name = 2;
-  // The name of the node in which the service asset must run on. This option is
-  // only valid for service assets.
-  optional string required_node_hostname = 4;
+  // The name of this asset instance.
+  string name = 1;
+  // The Asset backing the Asset instance.  This is the local name of the Asset
+  // as specified in the Assets map of the Solution.  By convention, this is the
+  // id of the Asset.
+  string asset = 2;
+  // This is the Bazel runfiles path to the config file.
+  string config_runfiles_path = 3;
+  // The parsed config of the asset instance.
+  intrinsic_proto.assets.v1.InstanceConfig parsed = 6;
 
-  // The asset instance's config will be a text proto until we can parse it with
-  // the asset's file descriptor set. The default config will be assigned if no
-  // config was given.
-  oneof config {
-    // The config as a text proto.
-    string text_proto = 5;
-    // The parsed config as an any proto.
-    google.protobuf.Any parsed = 6;
-  }
-
-  reserved 3, 7;
-  reserved "data_files";
+  reserved 4, 5, 7;
+  reserved "instance_name", "required_node_hostname", "text_proto",
+      "data_files", "config";
 }

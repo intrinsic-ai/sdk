@@ -32,7 +32,7 @@ proto_library(
     deps = [
         "//intrinsic/assets/proto:asset_type_proto",
         "//intrinsic/assets/proto:id_proto",
-        "@com_google_protobuf//:any_proto",
+        "//intrinsic/assets/proto/v1:instance_config_proto",
         "@com_google_protobuf//:descriptor_proto",
     ],
 )
@@ -49,6 +49,7 @@ go_proto_library(
     deps = [
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
+        "//intrinsic/assets/proto/v1:instance_config_go_proto",
     ],
 )
 
@@ -99,11 +100,15 @@ go_binary(
 go_binary(
     name = "assetinstancegen",
     srcs = ["assetinstancegen.go"],
+    embedsrcs = ["instance_config.textproto.tmpl"],
     importpath = "intrinsic/assets/build_defs/assetinstancegen",
     deps = [
-        ":asset_go_proto",
+        "//intrinsic/assets/proto/v1:instance_config_go_proto",
         "//intrinsic/production:intrinsic",
-        "//intrinsic/util/proto:protoio",
         "@com_github_golang_glog//:go_default_library",
+        "@org_golang_google_protobuf//encoding/prototext:go_default_library",
+        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
+        "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
+        "@org_golang_google_protobuf//types/known/emptypb",
     ],
 )
