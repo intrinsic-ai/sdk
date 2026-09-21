@@ -26,7 +26,7 @@ js_library(
     name = "solution_version_service_jspb_proto",
     visibility = [
         "//intrinsic/frontend:__subpackages__",
-        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+        "//intrinsic/portal/frontend:__pkg__",
     ],
     deps = [":solution_version_service_proto"],
 )
@@ -35,7 +35,7 @@ js_library(
     name = "snapshot_jspb_proto",
     visibility = [
         "//intrinsic/frontend:__subpackages__",
-        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+        "//intrinsic/portal/frontend:__pkg__",
     ],
     deps = ["//intrinsic/solution_versions/proto/v1:snapshot_proto"],
 )
@@ -44,7 +44,7 @@ js_library(
     name = "snapshot_source_jspb_proto",
     visibility = [
         "//intrinsic/frontend:__subpackages__",
-        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+        "//intrinsic/portal/frontend:__pkg__",
     ],
     deps = ["//intrinsic/solution_versions/proto/v1:snapshot_source_proto"],
 )
@@ -126,7 +126,7 @@ js_library(
     name = "diff_mask_jspb_proto",
     visibility = [
         "//intrinsic/frontend:__subpackages__",
-        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+        "//intrinsic/portal/frontend:__pkg__",
     ],
     deps = ["//intrinsic/solution_versions/proto/v1:diff_mask_proto"],
 )
@@ -135,7 +135,7 @@ js_library(
     name = "conflict_jspb_proto",
     visibility = [
         "//intrinsic/frontend:__subpackages__",
-        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+        "//intrinsic/portal/frontend:__pkg__",
     ],
     deps = ["//intrinsic/solution_versions/proto/v1:conflict_proto"],
 )
@@ -144,7 +144,7 @@ js_library(
     name = "conflict_resolution_jspb_proto",
     visibility = [
         "//intrinsic/frontend:__subpackages__",
-        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+        "//intrinsic/portal/frontend:__pkg__",
     ],
     deps = ["//intrinsic/solution_versions/proto/v1:conflict_resolution_proto"],
 )
@@ -153,7 +153,6 @@ js_library(
     name = "warning_jspb_proto",
     visibility = [
         "//intrinsic/frontend:__subpackages__",
-        "//intrinsic/portal/frontend/projects/portal:__pkg__",
     ],
     deps = ["//intrinsic/solution_versions/proto/v1:warning_proto"],
 )
@@ -192,7 +191,7 @@ js_library(
     name = "solution_diff_jspb_proto",
     visibility = [
         "//intrinsic/frontend:__subpackages__",
-        "//intrinsic/portal/frontend/projects/portal:__pkg__",
+        "//intrinsic/portal/frontend:__pkg__",
     ],
     deps = [":solution_diff_proto"],
 )
