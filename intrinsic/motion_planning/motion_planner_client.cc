@@ -164,6 +164,7 @@ MotionPlannerClient::PlanTrajectory(
   result.lock_motion_id = response.has_lock_motion_id()
                               ? std::optional(response.lock_motion_id())
                               : std::nullopt;
+  result.logging_id = response.logging_id();
   return result;
 }
 
@@ -189,6 +190,7 @@ MotionPlannerClient::PlanPath(
   result.swept_volume.insert(result.swept_volume.begin(),
                              response.swept_volume().begin(),
                              response.swept_volume().end());
+  result.logging_id = response.logging_id();
   return result;
 }
 
@@ -264,6 +266,7 @@ MotionPlannerClient::ComputeIk(
   ComputeIkResult result;
   result.solutions = ToVectorXds(response.solutions());
   result.ik_debug_information = response.ik_debug_information();
+  result.logging_id = response.logging_id();
   return result;
 }
 

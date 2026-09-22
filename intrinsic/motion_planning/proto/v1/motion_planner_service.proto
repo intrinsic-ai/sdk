@@ -177,6 +177,10 @@ message TrajectoryPlanningResponse {
   // for loading later. Note this field is not set if this response is from
   // loading a locked motion.
   optional string lock_motion_id = 3;
+
+  // Logging id generated for this request. Can be used to retrieve details
+  // about the request for debugging.
+  string logging_id = 4;
 }
 
 message PathPlanningResponse {
@@ -187,6 +191,10 @@ message PathPlanningResponse {
   // input robot performing the computed path.
   repeated intrinsic_proto.geometry.TransformedGeometryStorageRefs
       swept_volume = 2;
+
+  // Logging id generated for this request. Can be used to retrieve details
+  // about the request for debugging.
+  string logging_id = 3;
 }
 
 message IkRequest {
@@ -261,6 +269,11 @@ message IkResponse {
   // identify the objects in collision.
   intrinsic_proto.motion_planning.v1.ComputeIkDebugInformation
       ik_debug_information = 2;
+
+  // Logging id to correlate with the corresponding IkRequest log
+  // This field will only be set if the disable_logging field is set to
+  // false (default) in the corresponding IkRequest.
+  optional string logging_id = 3;
 }
 
 message FkRequest {
