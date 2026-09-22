@@ -21,6 +21,7 @@ import "intrinsic/assets/proto/field_metadata.proto";
 import "intrinsic/assets/proto/v1/resolved_dependency.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/perception/proto/v1/pattern_detection_config.proto";
+import "intrinsic/perception/proto/v1/camera_setup.proto";
 import "intrinsic/perception/proto/v1/camera_to_robot_calibration.proto";
 import "intrinsic/perception/proto/v1/distortion_params.proto";
 import "intrinsic/perception/proto/v1/intrinsic_params.proto";
@@ -152,22 +153,22 @@ message CalibrationRequest {
   bool calibrate_intrinsics = 1;
   // Whether to calibrate the camera(s)-to-robot pose.
   bool calibrate_camera_to_robot = 2;
-  // The type of camera-to-robot calibration to perform. Only used if
+  // The camera setup for camera-to-robot calibration. Only used if
   // calibrate_camera_to_robot is true. Needs to be one of the following:
-  // - STATIONARY_CAMERA
-  // - MOVING_CAMERA
-  // Note that we define a single calibration type for all
+  // - CAMERA_SETUP_STATIONARY
+  // - CAMERA_SETUP_MOVING
+  // Note that we define a single camera setup for all
   // cameras that participate in the camera-to-robot calibration. This way, we
   // enable parallel camera-to-robot calibrations, but restrict it to cameras
   // of the same type (moving or stationary). Mixing camera types would be
   // complicated and possibly unnecessary.
-  CameraToRobotCalibrationType camera_to_robot_calibration_type = 3;
+  CameraSetup camera_to_robot_calibration_type = 3;
   // Whether to calibrate the camera-to-camera(s) pose.
   bool calibrate_camera_to_camera = 4;
   // Whether to compute the transforms between all of the individual captures
   // made in the calibration process. The transforms will all be reported
   // relative to the first capture of the first camera. Typically only useful
-  // in the MOVING_CAMERA case.
+  // in the CAMERA_SETUP_MOVING case.
   bool calibrate_capture_to_capture = 5;
   // A list of capture IDs that should be excluded from calibration processing.
   // These captures will not be deleted from the server state, allowing them
@@ -180,11 +181,11 @@ message ValidateRequest {
   bool validate_intrinsics = 1;
   // Whether to validate the camera(s)-to-robot pose.
   bool validate_camera_to_robot = 2;
-  // The type of camera-to-robot calibration to perform. Only used if
+  // The camera setup for camera-to-robot calibration. Only used if
   // validate_camera_to_robot is true. Needs to be one of the following:
-  // - STATIONARY_CAMERA
-  // - MOVING_CAMERA
-  CameraToRobotCalibrationType camera_to_robot_calibration_type = 3;
+  // - CAMERA_SETUP_STATIONARY
+  // - CAMERA_SETUP_MOVING
+  CameraSetup camera_to_robot_calibration_type = 3;
   // Whether to validate the camera-to-camera(s) pose.
   bool validate_camera_to_camera = 4;
 }

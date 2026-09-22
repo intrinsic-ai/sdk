@@ -202,6 +202,12 @@ js_library(
 )
 
 js_library(
+    name = "camera_setup_jspb_proto",
+    visibility = ["//intrinsic:internal_api_users"],
+    deps = ["//intrinsic/perception/proto/v1:camera_setup_proto"],
+)
+
+js_library(
     name = "camera_to_robot_calibration_jspb_proto",
     visibility = ["//intrinsic:internal_api_users"],
     deps = ["//intrinsic/perception/proto/v1:camera_to_robot_calibration_proto"],
@@ -378,6 +384,7 @@ proto_library(
     name = "calibration_service_proto",
     srcs = ["calibration_service.proto"],
     deps = [
+        ":camera_setup_proto",
         ":camera_to_robot_calibration",
         ":distortion_params_proto",
         ":intrinsic_params_proto",
@@ -413,6 +420,7 @@ go_proto_library(
     importpath = "intrinsic/perception/proto/v1/calibration_service_go_proto",
     protos = [":calibration_service_proto"],
     deps = [
+        ":camera_setup_go_proto",
         ":camera_to_robot_calibration_go_proto",
         ":distortion_params_go_proto",
         ":intrinsic_params_go_proto",
@@ -875,10 +883,39 @@ py_grpc_library(
 )
 
 proto_library(
+    name = "camera_setup_proto",
+    srcs = ["camera_setup.proto"],
+    visibility = ["//visibility:public"],
+)
+
+cc_proto_library(
+    name = "camera_setup_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":camera_setup_proto"],
+)
+
+go_proto_library(
+    name = "camera_setup_go_proto",
+    importpath = "intrinsic/perception/proto/v1/camera_setup_go_proto",
+    protos = [":camera_setup_proto"],
+    visibility = ["//visibility:public"],
+)
+
+py_proto_library(
+    name = "camera_setup_py_pb2",
+    visibility = ["//visibility:public"],
+    deps = [":camera_setup_proto"],
+)
+
+proto_library(
     name = "camera_to_robot_calibration",
     srcs = ["camera_to_robot_calibration.proto"],
     visibility = ["//visibility:public"],
-    deps = ["//intrinsic/math/proto:pose_proto"],
+    exports = [":camera_setup_proto"],
+    deps = [
+        ":camera_setup_proto",
+        "//intrinsic/math/proto:pose_proto",
+    ],
 )
 
 cc_proto_library(
@@ -893,6 +930,7 @@ go_proto_library(
     protos = [":camera_to_robot_calibration"],
     visibility = ["//visibility:public"],
     deps = [
+        ":camera_setup_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
     ],
 )

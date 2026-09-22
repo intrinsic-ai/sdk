@@ -17,30 +17,9 @@ syntax = "proto3";
 package intrinsic_proto.perception.v1;
 
 import "intrinsic/math/proto/pose.proto";
+import public "intrinsic/perception/proto/v1/camera_setup.proto";
 
 option go_package = "intrinsic/perception/proto/v1/camera_to_robot_calibration_go_proto";
-
-// The type of camera-to-robot calibration.
-enum CameraToRobotCalibrationType {
-  CAMERA_TO_ROBOT_CALIBRATION_TYPE_UNSPECIFIED = 0;
-  // The camera is stationary (fixed in world-space/relative to the robot's
-  // base). An object is attached (typically a calibration plate) to the
-  // robot's flange and was detected in the camera image from varying robot
-  // flange positions.
-  //
-  // Object -?- Flange   "!": known poses (input)
-  //   !         !       "-?-": unknown poses (output)
-  // Camera -?- Base
-  CAMERA_TO_ROBOT_CALIBRATION_TYPE_STATIONARY_CAMERA = 1;
-  // The camera is attached to the robot's flange. A stationary object (fixed
-  // in world-space/relative to the robot' base) was detected in the camera
-  // image from varying robot flange positions.
-  //
-  // Camera -?- Flange   "!": known poses (input)
-  //   !         !       "-?-": unknown poses (output)
-  // Object -?- Base
-  CAMERA_TO_ROBOT_CALIBRATION_TYPE_MOVING_CAMERA = 2;
-}
 
 // Specifies a camera-to-robot-calibration setup to be solved for the missing,
 // unknown poses.
@@ -92,9 +71,9 @@ message CameraToRobotCalibrationRequest {
     DANIILIDIS = 8;
   }
 
-  // The type of calibration to perform. Depending on this type, the returned
+  // The camera setup for calibration. Depending on this type, the returned
   // CameraToRobotCalibrationResult will contain a corresponding result type.
-  CameraToRobotCalibrationType type = 1;
+  CameraSetup type = 1;
 
   // The pairs of input poses to be used for the camera-to-robot-calibration.
   // These have to cover all six degrees of freedom sufficiently so that the
