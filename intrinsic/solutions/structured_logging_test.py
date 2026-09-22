@@ -1662,6 +1662,24 @@ payload:<
     )
     self.assertListEqual(result, list(response.bags))
 
+  def test_sync_and_rotate_logs(self):
+    stub = mock.MagicMock()
+    response = logger_service_pb2.SyncResponse()
+    response.event_sources.append('skills.execution_summary')
+    stub.SyncAndRotateLogs.return_value = response
+
+    logs = structured_logging.StructuredLogs(stub)
+    result = logs.sync_and_rotate_logs(
+        event_sources=['skills.*'], wait_for_flush=True
+    )
+
+    stub.SyncAndRotateLogs.assert_called_once()
+    request = stub.SyncAndRotateLogs.call_args.args[0]
+    self.assertFalse(request.sync_all)
+    self.assertEqual(list(request.event_sources), ['skills.*'])
+    self.assertTrue(request.wait_for_flush)
+    self.assertEqual(result, response)
+
 
 if __name__ == '__main__':
   absltest.main()
