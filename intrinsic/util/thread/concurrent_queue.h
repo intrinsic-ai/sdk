@@ -81,7 +81,7 @@ class ConcurrentQueue {
       if (closed_ && queue_.empty()) {
         // The await condition is true because the queue is closed and all
         // values have been already dequeued.
-        return absl::UnavailableError("Queue is closed.");
+        return absl::UnavailableError("Queue is closed and empty.");
       }
       T element = std::move(queue_.front());
       queue_.pop_front();
@@ -101,9 +101,10 @@ class ConcurrentQueue {
     return queue_.size();
   }
 
-  // Closes the queue. No more items can be enqueued or dequeued after this
-  // call and all subsequent calls to Enqueue and Dequeue will return an
-  // UnavailableError.
+  // Closes the queue. No more items can be enqueued after this call and
+  // subsequent calls to Enqueue will return an UnavailableError. Existing items
+  // in the queue can still be dequeued until the queue is empty. Once empty,
+  // further calls to Dequeue will return an UnavailableError.
   void Close() ABSL_LOCKS_EXCLUDED(mutex_) {
     absl::MutexLock lock(mutex_);
     closed_ = true;
