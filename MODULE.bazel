@@ -243,7 +243,6 @@ bazel_dep(name = "dumb-init", version = "1.2.5")
 bazel_dep(name = "eigen", version = "5.0.1.bcr.2", repo_name = "com_gitlab_libeigen_eigen")
 bazel_dep(name = "etherlab-ethercat", version = "1.6.7.bcr.1")
 bazel_dep(name = "flatbuffers", version = "25.12.19", repo_name = "com_github_google_flatbuffers")
-bazel_dep(name = "fmt", version = "12.2.0")
 bazel_dep(name = "fuzztest", version = "20250805.0", repo_name = "com_google_fuzztest")
 
 bazel_dep(name = "google_benchmark", version = "1.9.5", repo_name = "com_google_benchmark")
@@ -273,7 +272,6 @@ bazel_dep(name = "re2", version = "2024-07-02.bcr.1", repo_name = "com_googlesou
 bazel_dep(name = "riegeli", version = "0.0.0-20250822-9f2744d", repo_name = "com_google_riegeli")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_pkg", version = "1.3.0")
-bazel_dep(name = "rules_swift", version = "2.9.0")  # bumping transitive dependency to resolve compatibility level conflict with flatbuffers
 bazel_dep(name = "sdformat", version = "16.1.0")
 bazel_dep(name = "soplex", version = "8.0.3")  # bumping transitive dependency to update boost to 1.89.0
 bazel_dep(name = "stb", version = "0.0.0-20251026-f1c79c0")
@@ -283,7 +281,6 @@ bazel_dep(name = "tinygltf", version = "2.9.6")
 bazel_dep(name = "tinyxml2", version = "11.0.0")
 bazel_dep(name = "websocketpp", version = "0.8.2.bcr.6")  # bumping transitive dependency to update boost to 1.89.0
 bazel_dep(name = "zenoh-c", version = "1.7.2.bcr.1")
-bazel_dep(name = "zenoh-cpp", version = "1.7.2.bcr.1")
 
 
 # We require an override to support a single patch for compatibility with aspect_rules_js v3. The
