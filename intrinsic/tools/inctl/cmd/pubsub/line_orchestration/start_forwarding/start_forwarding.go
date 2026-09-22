@@ -1,0 +1,150 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package pubsub
+
+import (
+	"context"
+	"fmt"
+
+	"intrinsic/assets/clientutils"
+	"intrinsic/assets/cmdutils"
+	pb "intrinsic/platform/pubsub/connect/onprem/forwarding_service/forwarding_service_go_proto"
+	"intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common"
+	pubsubcmd "intrinsic/tools/inctl/cmd/pubsub/pubsub_cmd"
+
+	"github.com/spf13/cobra"
+)
+
+const (
+	keyForwardedTopics       = "topic"
+	keyForwardedKvStorePaths = "kvstore-key"
+
+	keyForwardingServiceVersion = "forwarding-service-version"
+)
+
+// StartForwardingCmdRunner handles execution of the start-forwarding command.
+// That command installs or updates the forwarding service used for line orchestration.
+type StartForwardingCmdRunner struct {
+	common.ServiceInstallingCmdRunner
+
+	topics       []string
+	kvStorePaths []string
+}
+
+// makeConfig generates configuration of the forwarding service from command line flags.
+func (r *StartForwardingCmdRunner) makeConfig() *pb.ForwardingServiceConfig {
+	return &pb.ForwardingServiceConfig{
+		Topics:      r.topics,
+		KvStoreKeys: r.kvStorePaths,
+	}
+}
+
+func (r *StartForwardingCmdRunner) run(ctx context.Context) error {
+	if len(r.topics) == 0 && len(r.kvStorePaths) == 0 {
+		return fmt.Errorf("no topics or KV store keys specified to forward")
+	}
+
+	return r.UpdateInstalledServiceInstances(ctx, r.makeConfig())
+}
+
+// StartForwardingCmdEnvironment is the execution environment for the
+// start-forwarding command. That environment contains command line
+// flags and a connection to the gRPC service.
+type StartForwardingCmdEnvironment struct {
+	cmdFlags *cmdutils.CmdFlags
+}
+
+// RunE sets up the execution environment and invokes StartForwardingCmdRunner.run.
+func (e *StartForwardingCmdEnvironment) RunE(cmd *cobra.Command, _ []string) error {
+	ctx, conn, _, err := clientutils.DialClusterFromInctl(cmd.Context(), e.cmdFlags)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	_, cluster, _, err := e.cmdFlags.GetFlagsAddressClusterSolution()
+	if err != nil {
+		return fmt.Errorf("could not get flags: %w", err)
+	}
+
+	versionToInstall := e.cmdFlags.GetString(keyForwardingServiceVersion)
+	if len(versionToInstall) == 0 {
+		versionToInstall, err = common.GetDefaultVersion(
+			ctx,
+			e.cmdFlags,
+			cmd.OutOrStdout(),
+			common.ForwardingServicePackage,
+			common.ForwardingServiceName)
+		if err != nil {
+			return fmt.Errorf(
+				"failed to determine which version of %v to install: %w",
+				common.HubServiceName,
+				err)
+		}
+	}
+
+	runner := &StartForwardingCmdRunner{
+		ServiceInstallingCmdRunner: common.ServiceInstallingCmdRunner{
+			CmdRunnerBase: *common.NewCmdRunnerBase(
+				conn,
+				cmd.OutOrStdout(),
+				cluster,
+				common.ForwardingServicePackage,
+				common.ForwardingServiceName,
+			),
+			RequestedVersion: versionToInstall,
+		},
+		topics:       e.cmdFlags.GetStringSlice(keyForwardedTopics),
+		kvStorePaths: e.cmdFlags.GetStringSlice(keyForwardedKvStorePaths),
+	}
+	return runner.run(ctx)
+}
+
+// NewStartForwardingCmd returns the initialized cobra command for start-forwarding.
+func NewStartForwardingCmd() *cobra.Command {
+	flags := cmdutils.NewCmdFlags()
+	commandWrapper := &StartForwardingCmdEnvironment{cmdFlags: flags}
+
+	cmd := &cobra.Command{
+		Use:   "start-forwarding",
+		Short: "Starts forwarding of PubSub topics and KV store paths.",
+		Args:  cobra.NoArgs,
+		RunE:  commandWrapper.RunE,
+	}
+
+	flags.SetCommand(cmd)
+
+	flags.AddFlagsAddressClusterSolution()
+	flags.AddFlagsProjectOrg()
+
+	flags.StringSlice(
+		keyForwardedTopics,
+		[]string{},
+		"List of PubSub topics to forward")
+	flags.StringSlice(
+		keyForwardedKvStorePaths,
+		[]string{},
+		"List of KV store paths to forward")
+	flags.OptionalString(
+		keyForwardingServiceVersion,
+		"",
+		"Version of the service asset to install. If not specified, the current default version will be installed.")
+
+	return cmd
+}
+
+func init() {
+	pubsubcmd.PubsubCmd.AddCommand(NewStartForwardingCmd())
+}

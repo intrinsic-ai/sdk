@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package pubsub implements commands for managing pubsub network components.
-package pubsub
+package pubsubcmd
 
 import (
-	pubsubcmd "intrinsic/tools/inctl/cmd/pubsub/pubsub_cmd"
-
-	"intrinsic/tools/inctl/cmd/root"
+	"github.com/spf13/cobra"
 )
 
-func init() {
-	root.RootCmd.AddCommand(pubsubcmd.PubsubCmd)
+// PubsubCmd provides the parent command for all pubsub management commands.
+var PubsubCmd = &cobra.Command{
+	Use:        "pubsub",
+	Short:      "Manages Intrinsic PubSub connected services.",
+	Long:       "Manages Intrinsic PubSub connected services including Hub creation, deletion and traffic configuration.",
+	SuggestFor: []string{"pub-sub", "mq", "bus"},
 }

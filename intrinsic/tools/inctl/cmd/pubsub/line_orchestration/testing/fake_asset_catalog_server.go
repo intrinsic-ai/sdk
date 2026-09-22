@@ -12,15 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package pubsub implements commands for managing pubsub network components.
-package pubsub
+package pubsubtesting
 
 import (
-	pubsubcmd "intrinsic/tools/inctl/cmd/pubsub/pubsub_cmd"
+	"context"
 
-	"intrinsic/tools/inctl/cmd/root"
+	acgrpcpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 )
 
-func init() {
-	root.RootCmd.AddCommand(pubsubcmd.PubsubCmd)
+type FakeAssetCatalogServer struct {
+	acgrpcpb.UnimplementedAssetCatalogServer
+	GetAssetFn func(ctx context.Context, req *acgrpcpb.GetAssetRequest) (*acgrpcpb.Asset, error)
+}
+
+func NewFakeAssetCatalogServer() *FakeAssetCatalogServer {
+	return &FakeAssetCatalogServer{}
+}
+
+func (s *FakeAssetCatalogServer) GetAsset(ctx context.Context, req *acgrpcpb.GetAssetRequest) (*acgrpcpb.Asset, error) {
+	if s.GetAssetFn != nil {
+		return s.GetAssetFn(ctx, req)
+	}
+	return nil, nil
 }

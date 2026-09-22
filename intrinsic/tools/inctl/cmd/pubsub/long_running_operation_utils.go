@@ -1,0 +1,64 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// Package pubsub implements commands for managing pubsub network components.
+package lroutils
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"time"
+
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+)
+
+var OperationPollInterval = 2 * time.Second
+
+// WaitForOperation continuously polls the long running operation using client.GetOperation
+// until it reaches the completed state, per requirement.
+func WaitForOperation(ctx context.Context, client lropb.OperationsClient, op *lropb.Operation, out io.Writer) (*lropb.Operation, error) {
+	if op == nil {
+		return nil, fmt.Errorf("no operation to wait for")
+	}
+	if op.GetDone() {
+		if op.GetError() != nil {
+			return nil, fmt.Errorf("operation %q failed immediately: %v", op.GetName(), op.GetError())
+		}
+		return op, nil
+	}
+
+	ticker := time.NewTicker(OperationPollInterval)
+	defer ticker.Stop()
+
+	req := &lropb.GetOperationRequest{Name: op.GetName()}
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-ticker.C:
+			updatedOp, err := client.GetOperation(ctx, req)
+			if err != nil {
+				return nil, err
+			}
+			if updatedOp.GetDone() {
+				if updatedOp.GetError() != nil {
+					return nil, fmt.Errorf("operation %q failed: %v", updatedOp.GetName(), updatedOp.GetError())
+				}
+				return updatedOp, nil
+			}
+			fmt.Fprintf(out, "Waiting for operation %q to complete...\n", updatedOp.GetName())
+		}
+	}
+}

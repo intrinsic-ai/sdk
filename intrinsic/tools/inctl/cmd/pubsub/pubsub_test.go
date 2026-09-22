@@ -23,6 +23,8 @@ import (
 	"google.golang.org/grpc"
 
 	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+
+	lroutils "intrinsic/tools/inctl/cmd/pubsub/long_running_operation_utils"
 )
 
 type mockPubSubClient struct {
@@ -35,16 +37,16 @@ func (m *mockPubSubClient) GetOperation(ctx context.Context, in *lropb.GetOperat
 }
 
 func TestWaitForOperation(t *testing.T) {
-	origPoll := operationPollInterval
-	operationPollInterval = 1 * time.Millisecond
-	defer func() { operationPollInterval = origPoll }()
+	origPoll := lroutils.OperationPollInterval
+	lroutils.OperationPollInterval = 1 * time.Millisecond
+	defer func() { lroutils.OperationPollInterval = origPoll }()
 
 	ctx := context.Background()
 	out := &bytes.Buffer{}
 
 	t.Run("Immediate success", func(t *testing.T) {
 		op := &lropb.Operation{Done: true, Name: "op1"}
-		res, err := waitForOperation(ctx, &mockPubSubClient{}, op, out)
+		res, err := lroutils.WaitForOperation(ctx, &mockPubSubClient{}, op, out)
 		if err != nil {
 			t.Errorf("expected no error, got %v", err)
 		}
@@ -65,9 +67,9 @@ func TestWaitForOperation(t *testing.T) {
 			},
 		}
 		op := &lropb.Operation{Done: false, Name: "op2"}
-		res, err := waitForOperation(ctx, client, op, out)
+		res, err := lroutils.WaitForOperation(ctx, client, op, out)
 		if err != nil {
-			t.Fatalf("waitForOperation failed: %v", err)
+			t.Fatalf("WaitForOperation failed: %v", err)
 		}
 		if !res.GetDone() {
 			t.Error("expected operation to be done")

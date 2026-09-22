@@ -12,15 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package pubsub implements commands for managing pubsub network components.
-package pubsub
+package pubsubtesting
 
 import (
-	pubsubcmd "intrinsic/tools/inctl/cmd/pubsub/pubsub_cmd"
+	"context"
 
-	"intrinsic/tools/inctl/cmd/root"
+	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
 
-func init() {
-	root.RootCmd.AddCommand(pubsubcmd.PubsubCmd)
+type FakeOperationsServer struct {
+	lropb.UnimplementedOperationsServer
+	GetOperationFn func(ctx context.Context, req *lropb.GetOperationRequest) (*lropb.Operation, error)
+}
+
+func NewFakeOperationsServer() *FakeOperationsServer {
+	return &FakeOperationsServer{}
+}
+
+func (s *FakeOperationsServer) GetOperation(ctx context.Context, req *lropb.GetOperationRequest) (*lropb.Operation, error) {
+	if s.GetOperationFn != nil {
+		return s.GetOperationFn(ctx, req)
+	}
+	return nil, nil
 }
