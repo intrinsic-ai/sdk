@@ -102,20 +102,39 @@ def python_layers(name, binary, **kwargs):
         tags = kwargs.get("tags"),
     )
 
-    # Workaround unsupported "strip_prefix"
+    # Version-agnostic pattern matching the bundled rules_python interpreter directory in runfiles
+    # (e.g., `rules_python++python+python_3_11_x86_64-unknown-linux-gnu/`).
+    PY_INTERPRETER_DIR_REGEX = "rules_python\\S*_x86_64-unknown-linux-gnu/"
+
+    # In rules_python 2.0+, `bootstrap_impl=system_python` creates a venv interpreter entry in runfiles:
+    #   <runfiles_dir>/_main/<pkg>/_<bin>.venv/bin/python3 uid=0 ... type=file content=bazel-out/.../_<bin>.venv/bin/python3
+    # Because that file in `bazel-out` is a relative symlink that only resolves inside `.runfiles/`,
+    # archiving it as `type=file` fails in bsdtar.
+    # Instead, we extract the bundled interpreter path (`$PY_BIN`) from the manifest itself using
+    # `PY_INTERPRETER_DIR_REGEX` and replace `.venv/bin/python3 uid=.*` with a `type=link` entry.
+    venv_symlink_sed = "s|\\.venv/bin/python3 uid=.*|.venv/bin/python3 uid=0 gid=0 time=1672560000 mode=0777 type=link link='\"$$PY_BIN\"'|"
+
+    # Workaround unsupported "strip_prefix" (`s,^/,,`) and rewrite `.venv/bin/python3` to a symlink.
     native.genrule(
         name = name + "_tar_manifest",
         testonly = kwargs.get("testonly"),
         srcs = [":" + name + "_tar_manifest_prefix"],
         outs = [name + "_tar_manifest.spec"],
-        cmd = "sed -e 's,^/,,' $< >$@",
+        cmd = (
+            "PY_BIN=/$$(grep -m1 '{interp_dir}bin/python3 ' $< | sed -e 's,^/,,' -e 's, .*,,'); " +
+            "sed -e 's,^/,,' -e '{venv_symlink_sed}' $< >$@"
+        ).format(
+            interp_dir = PY_INTERPRETER_DIR_REGEX,
+            venv_symlink_sed = venv_symlink_sed,
+        ),
         compatible_with = kwargs.get("compatible_with"),
         tags = kwargs.get("tags"),
     )
 
     # One layer with only the python interpreter.
-    # Bzlmod: "runfiles/rules_python~0.27.1~python~python_3_11_x86_64-unknown-linux-gnu/"
-    PY_INTERPRETER_REGEX = "\\S*\\.runfiles/\\S*\\(rules_python\\S*_x86_64-unknown-linux-gnu/\\|.*rules_Upython++python+python.*libpython.*\\)"
+    PY_INTERPRETER_REGEX = "^\\S*\\.runfiles/\\S*\\({interp_dir}\\|.*rules_Upython++python+python.*libpython.*\\)".format(
+        interp_dir = PY_INTERPRETER_DIR_REGEX,
+    )
 
     native.genrule(
         name = name + "_interpreter_tar_manifest",
@@ -139,9 +158,12 @@ def python_layers(name, binary, **kwargs):
     )
     layers.append(":" + name + "_interpreter_layer")
 
-    # Attempt to match all external (3P) dependencies. Since these can come in as either
-    # `requirement` or native Bazel deps, do our best to guess the runfiles path.
-    PACKAGES_REGEX = "\\S*\\.runfiles/\\S*\\(site-packages\\|com_\\|pip_deps_\\)"
+    # Match all external (3P) repositories under `.runfiles/` (both `pip` wheels like
+    # `rules_python++pip+...` and Bzlmod deps like `protobuf+`, `abseil-py+`, etc.).
+    # In Bzlmod, first-party runfiles are always under `.runfiles/_main/` (plus `.runfiles/_repo_mapping`),
+    # whereas external repositories never start with `_`. This also avoids falsely matching
+    # `.runfiles/_main/.../_<bin>.venv/lib/python3.11/site-packages/bazel.pth` as a 3P package.
+    PACKAGES_REGEX = "^\\S*\\.runfiles/[^_ ]"
 
     # One layer with the third-party pip packages.
     # To make sure some dependencies with surprising paths are not included twice, exclude the interpreter from the site-packages layer.
