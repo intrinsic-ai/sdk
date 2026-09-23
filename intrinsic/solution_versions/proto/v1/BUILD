@@ -69,9 +69,14 @@ proto_library(
         "//intrinsic/solution_versions/proto/v1:snapshot_proto",
         "//intrinsic/solution_versions/proto/v1:snapshot_source_proto",
         "//intrinsic/solution_versions/proto/v1:warning_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/api:field_behavior_proto",
+        "@com_google_googleapis//google/api:resource_proto",
+        "@com_google_googleapis//google/longrunning:operations_proto",
         "@com_google_googleapis//google/rpc:status_proto",
         "@com_google_protobuf//:descriptor_proto",
         "@com_google_protobuf//:field_mask_proto",
+        "@com_google_protobuf//:timestamp_proto",
     ],
 )
 
@@ -116,8 +121,12 @@ go_proto_library(
         "//intrinsic/solution_versions/proto/v1:snapshot_go_proto",
         "//intrinsic/solution_versions/proto/v1:snapshot_source_go_proto",
         "//intrinsic/solution_versions/proto/v1:warning_go_proto",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@io_bazel_rules_go//proto/wkt:field_mask_go_proto",
+        "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
+        "@org_golang_google_genproto//googleapis/longrunning",
+        "@org_golang_google_genproto_googleapis_api//annotations",
         "@org_golang_google_genproto_googleapis_rpc//status",
     ],
 )

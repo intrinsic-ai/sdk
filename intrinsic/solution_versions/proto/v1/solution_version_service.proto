@@ -16,6 +16,7 @@ syntax = "proto3";
 
 package intrinsic_proto.solution_versions.v1;
 
+import "google/longrunning/operations.proto";
 import "google/protobuf/descriptor.proto";
 import "google/protobuf/field_mask.proto";
 import "google/rpc/status.proto";
