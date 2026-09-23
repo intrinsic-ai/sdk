@@ -34,8 +34,18 @@ from intrinsic.util.status import status_exception
 
 
 def running_in_ipython() -> bool:
-  """Returns true if we are running in an IPython environment."""
-  return hasattr(builtins, '__IPYTHON__')
+  """Returns True if running in an IPython environment with rich display.
+
+  Returns True if we are running in an IPython environment which supports rich
+  display for things like HTML or images. E.g., returns True in Jupyter
+  Notebook, JupyterLab, and VS Code notebooks and returns False in a CLI
+  'ipython' shell and regular Python interpreter.
+  """
+  get_ipython = getattr(builtins, 'get_ipython', None)
+  if get_ipython is None:
+    return False
+  # pylint:disable-next=not-callable
+  return hasattr(get_ipython(), 'kernel')
 
 
 def _display_html(html: str, newline_after_html: bool = False) -> None:
