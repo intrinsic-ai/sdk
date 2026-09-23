@@ -371,6 +371,19 @@ message CreateOperationMetadata {
     CREATE_OPERATION_PROGRESS_SETUP_CLUSTER = 5;
   }
   CreateOperationProgress progress = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // The initial IntrinsicOS version detected on the device during registration.
+  //
+  // Sem
+  string initial_os_version = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Whether the initial OS installer image is older than the most recent
+  // baseline, requiring additional updates and causing registration delays.
+  //
+  // Although we issue new installer RCs multiple times a year with fixes or new
+  // features, this will only show as "old" when the installer is from a
+  // previous branch (eg 20241114.RCxx is an older branch than 20260416.RCxx).
+  bool old_installer = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // NameserverConfig represents the DNS servers in the simple way
