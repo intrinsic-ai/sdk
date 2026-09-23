@@ -26,16 +26,23 @@ from google.protobuf import empty_pb2
 import grpc
 import numpy as np
 
+from intrinsic.assets import interface_utils
+from intrinsic.assets.dependencies import utils as asset_utils
+from intrinsic.assets.proto.v1 import resolved_dependency_pb2
 from intrinsic.math.python import pose3
 from intrinsic.perception.client.v1.python.camera import _camera_utils
 from intrinsic.perception.client.v1.python.camera import camera_client
 from intrinsic.perception.client.v1.python.camera import data_classes
+from intrinsic.perception.proto.v1 import camera_config_pb2
+from intrinsic.perception.proto.v1 import camera_config_service_pb2
+from intrinsic.perception.proto.v1 import camera_config_service_pb2_grpc
 from intrinsic.perception.proto.v1 import settings_pb2
 from intrinsic.resources.client import resource_registry_client
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.skills.proto import equipment_pb2
 from intrinsic.skills.python import skill_interface
 from intrinsic.util.grpc import connection
+from intrinsic.util.grpc import error_handling
 from intrinsic.world.python import object_world_client
 from intrinsic.world.python import object_world_resources
 
@@ -52,6 +59,23 @@ def make_camera_resource_selector() -> equipment_pb2.ResourceSelector:
       capability_names=[
           _camera_utils.CAMERA_RESOURCE_CAPABILITY,
       ]
+  )
+
+
+def _camera_config_service_interface_uri() -> str:
+  """Returns the gRPC interface URI for the CameraConfigService."""
+  return (
+      f"{interface_utils.GRPC_URI_PREFIX}"
+      f"{camera_config_service_pb2.DESCRIPTOR.services_by_name['CameraConfigService'].full_name}"
+  )
+
+
+@error_handling.retry_on_grpc_unavailable
+def _get_camera_config(
+    config_stub: camera_config_service_pb2_grpc.CameraConfigServiceStub,
+) -> camera_config_pb2.CameraConfig:
+  return config_stub.GetCameraConfig(
+      camera_config_service_pb2.GetCameraConfigRequest()
   )
 
 
@@ -109,8 +133,9 @@ class Camera:
 
   _client: camera_client.CameraClient
   _world_client: Optional[object_world_client.ObjectWorldClient]
-  _resource_handle: resource_handle_pb2.ResourceHandle
+  _resource_handle: Optional[resource_handle_pb2.ResourceHandle]
   _world_object: Optional[object_world_resources.WorldObject]
+  _display_name: str
   _sensor_id_to_name: Mapping[int, str]
   _sensor_name_to_id: Mapping[str, int]
 
@@ -137,6 +162,50 @@ class Camera:
     world_client = context.object_world
     return cls.create_from_resource_handle(
         resource_handle=resource_handle,
+        world_client=world_client,
+    )
+
+  @classmethod
+  def create_from_resolved_dependency(
+      cls,
+      dep: resolved_dependency_pb2.ResolvedDependency,
+      world_client: Optional[object_world_client.ObjectWorldClient] = None,
+  ) -> Camera:
+    """Creates a Camera object from a ResolvedDependency.
+
+    Args:
+      dep: The resolved dependency for the camera.
+      world_client: Optional. The current world client, for camera pose
+        information.
+
+    Returns:
+      A connected Camera object with sensor information cached. If no world
+      client is available, an identity pose will be used for
+      world_t_camera and all the world update methods will be a no-op.
+
+    Raises:
+      ValueError: If the camera object name is not set in `dep`.
+    """
+    if not dep.HasField("object") or not dep.object.name:
+      raise ValueError("Camera object.name must be set in dep.")
+
+    with asset_utils.connect(
+        dep,
+        _camera_config_service_interface_uri(),
+        grpc_options=[("grpc.max_receive_message_length", -1)],
+    ) as config_channel:
+      config_stub = camera_config_service_pb2_grpc.CameraConfigServiceStub(
+          config_channel
+      )
+      camera_config = _get_camera_config(config_stub)
+
+    client = camera_client.CameraClient.create_from_resolved_dependency(
+        dep, camera_config.identifier
+    )
+    return cls(
+        client=client,
+        camera_config=camera_config,
+        asset_instance=dep,
         world_client=world_client,
     )
 
@@ -197,64 +266,92 @@ class Camera:
       A connected Camera object with sensor information cached. If no object or
       world information is available, an identity pose will be used for
       world_t_camera and all the world update methods will be a no-op.
+
+    Raises:
+      RuntimeError: The camera's config could not be parsed from the
+        resource handle.
     """
     if channel is None:
       channel = _camera_utils.initialize_camera_grpc_channel(
           resource_handle,
           channel_creds,
       )
+    camera_config = _camera_utils.unpack_camera_config(resource_handle)
+    if not camera_config:
+      raise RuntimeError(
+          "Could not parse camera config from resource handle: %s."
+          % resource_handle.name
+      )
+    grpc_info = resource_handle.connection_info.grpc
+    connection_params = connection.ConnectionParams(
+        grpc_info.address, grpc_info.server_instance, grpc_info.header
+    )
+    client = camera_client.CameraClient(
+        channel, connection_params, camera_config.identifier
+    )
     return cls(
-        channel=channel,
-        resource_handle=resource_handle,
+        client=client,
+        camera_config=camera_config,
+        asset_instance=resource_handle,
         world_client=world_client,
     )
 
   def __init__(
       self,
-      channel: grpc.Channel,
-      resource_handle: resource_handle_pb2.ResourceHandle,
+      client: camera_client.CameraClient,
+      camera_config: camera_config_pb2.CameraConfig,
+      asset_instance: Union[
+          resolved_dependency_pb2.ResolvedDependency,
+          resource_handle_pb2.ResourceHandle,
+      ],
       world_client: Optional[object_world_client.ObjectWorldClient] = None,
   ):
-    """Creates a Camera object from the given camera equipment and world.
+    """Creates a Camera object from the given camera client, config and world.
 
     Args:
-      channel: The gRPC channel to the camera service.
-      resource_handle: The resource handle with which to connect to the camera.
+      client: The CameraClient to communicate with the camera service.
+      camera_config: The CameraConfig proto.
+      asset_instance: The ResolvedDependency or ResourceHandle for the camera.
       world_client: Optional. The current world client, for camera pose
         information.
 
     Raises:
-      RuntimeError: The camera's config could not be parsed from the
-        resource handle.
+      TypeError: If `asset_instance` is neither a `ResolvedDependency` nor a
+        `ResourceHandle`.
+      ValueError: If the camera display name is not set in `asset_instance`.
     """
+    self._client = client
     self._world_client = world_client
-    self._resource_handle = resource_handle
+    if isinstance(asset_instance, resource_handle_pb2.ResourceHandle):
+      if not asset_instance.name:
+        raise ValueError("Camera name must be set in asset_instance.")
+      self._resource_handle = asset_instance
+      self._display_name = asset_instance.name
+      world_target = asset_instance
+    elif isinstance(asset_instance, resolved_dependency_pb2.ResolvedDependency):
+      if (
+          not asset_instance.HasField("object")
+          or not asset_instance.object.name
+      ):
+        raise ValueError("Camera object.name must be set in asset_instance.")
+      self._resource_handle = None
+      self._display_name = asset_instance.object.name
+      world_target = self._display_name
+    else:
+      raise TypeError(
+          "asset_instance must be a ResolvedDependency or ResourceHandle."
+      )
+
     self._world_object = (
-        self._world_client.get_object(resource_handle)
-        if self._world_client
+        self._world_client.get_object(world_target)
+        if self._world_client is not None
         else None
     )
     self._sensor_id_to_name = {}
     self._sensor_name_to_id = {}
 
-    # parse config
-    camera_config = _camera_utils.unpack_camera_config(self._resource_handle)
-    if not camera_config:
-      raise RuntimeError(
-          "Could not parse camera config from resource handle: %s."
-          % self.display_name
-      )
     self.config = data_classes.CameraConfig(camera_config)
     self.factory_sensor_info = {}
-
-    # create camera client
-    grpc_info = resource_handle.connection_info.grpc
-    connection_params = connection.ConnectionParams(
-        grpc_info.address, grpc_info.server_instance, grpc_info.header
-    )
-    self._client = camera_client.CameraClient(
-        channel, connection_params, camera_config.identifier
-    )
 
     # attempt to describe cameras to get factory configurations
     try:
@@ -286,11 +383,17 @@ class Camera:
   @property
   def display_name(self) -> str:
     """Camera display name."""
-    return self._resource_handle.name
+    return self._display_name
 
   @property
   def resource_handle(self) -> resource_handle_pb2.ResourceHandle:
-    """Camera resource handle."""
+    """Camera resource handle.
+
+    Raises:
+      ValueError: If the camera was not created from a resource handle.
+    """
+    if self._resource_handle is None:
+      raise ValueError("Camera was not created from a resource handle.")
     return self._resource_handle
 
   @property
@@ -406,8 +509,10 @@ class Camera:
   @property
   def world_t_camera(self) -> pose3.Pose3:
     """Camera world pose."""
-    if self._world_client is None:
-      logging.warning("World client is None, returning identity pose.")
+    if self._world_client is None or self._world_object is None:
+      logging.warning(
+          "World client or world object is None, returning identity pose."
+      )
       return pose3.Pose3()
     return self._world_client.get_transform(
         node_a=self._world_client.root,
@@ -452,7 +557,7 @@ class Camera:
     Args:
       world_t_camera: The new world_t_camera pose.
     """
-    if self._world_client is None:
+    if self._world_client is None or self._world_object is None:
       return
     self._world_client.update_transform(
         node_a=self._world_client.root,
@@ -472,7 +577,7 @@ class Camera:
       other: The other object.
       camera_t_other: The relative transform.
     """
-    if self._world_client is None:
+    if self._world_client is None or self._world_object is None:
       return
     self._world_client.update_transform(
         node_a=self._world_object,
@@ -492,7 +597,7 @@ class Camera:
       other: The other object.
       other_t_camera: The relative transform.
     """
-    if self._world_client is None:
+    if self._world_client is None or self._world_object is None:
       return
     self._world_client.update_transform(
         node_a=other,
@@ -572,8 +677,8 @@ class Camera:
       camera_config = self.config
     elif camera_config.identifier != self.config.identifier:
       raise ValueError(
-          "The identifier in camera_config does not match the identifier found"
-          " in the resource handle this camera was instantiated with."
+          "The identifier in camera_config does not match the identifier"
+          " this camera was instantiated with."
       )
     try:
       if sensor_names is not None:

@@ -23,6 +23,9 @@ from typing import Optional
 
 import grpc
 
+from intrinsic.assets import interface_utils
+from intrinsic.assets.dependencies import utils as asset_utils
+from intrinsic.assets.proto.v1 import resolved_dependency_pb2
 from intrinsic.perception.proto.v1 import camera_config_pb2
 from intrinsic.perception.proto.v1 import camera_identifier_pb2
 from intrinsic.perception.proto.v1 import camera_service_pb2
@@ -34,6 +37,14 @@ from intrinsic.util.grpc import error_handling
 from intrinsic.util.grpc import interceptor
 
 
+def _camera_service_interface_uri() -> str:
+  """Returns the gRPC interface URI for the CameraService."""
+  return (
+      f"{interface_utils.GRPC_URI_PREFIX}"
+      f"{camera_service_pb2.DESCRIPTOR.services_by_name['CameraService'].full_name}"
+  )
+
+
 class CameraClient:
   """Base camera class wrapping gRPC connection and calls.
 
@@ -43,22 +54,41 @@ class CameraClient:
 
   camera_identifier: camera_identifier_pb2.CameraIdentifier
   _camera_stub: camera_service_pb2_grpc.CameraServiceStub
+  @classmethod
+  def create_from_resolved_dependency(
+      cls,
+      dep: resolved_dependency_pb2.ResolvedDependency,
+      camera_identifier: camera_identifier_pb2.CameraIdentifier,
+  ) -> CameraClient:
+    """Creates a CameraClient object from a ResolvedDependency."""
+    channel = asset_utils.connect(
+        dep,
+        _camera_service_interface_uri(),
+        grpc_options=[("grpc.max_receive_message_length", -1)],
+    )
+    return cls(
+        camera_channel=channel,
+        connection_params=None,
+        camera_identifier=camera_identifier,
+    )
+
   def __init__(
       self,
       camera_channel: grpc.Channel,
-      connection_params: connection.ConnectionParams,
+      connection_params: Optional[connection.ConnectionParams],
       camera_identifier: camera_identifier_pb2.CameraIdentifier,
   ):
     """Creates a CameraClient object."""
     self.camera_identifier = camera_identifier
 
     # Create stub.
-    intercepted_camera_channel = grpc.intercept_channel(
-        camera_channel,
-        interceptor.HeaderAdderInterceptor(connection_params.headers),
-    )
+    if connection_params is not None:
+      camera_channel = grpc.intercept_channel(
+          camera_channel,
+          interceptor.HeaderAdderInterceptor(connection_params.headers),
+      )
     self._camera_stub = camera_service_pb2_grpc.CameraServiceStub(
-        intercepted_camera_channel
+        camera_channel
     )
 
   @error_handling.retry_on_grpc_unavailable
