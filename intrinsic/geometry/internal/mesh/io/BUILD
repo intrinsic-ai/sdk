@@ -15,6 +15,7 @@
 """ Intrinsic package geometry/internal/legacy/mesh/io. """
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 cc_library(
     name = "ai_scene_to_mesh",
@@ -44,6 +45,7 @@ cc_library(
         "//intrinsic/geometry/internal/mesh:__pkg__",
     ],
     deps = [
+        ":restrict_importer",
         "//intrinsic/eigenmath",
         "//intrinsic/geometry/internal/point_cloud:pts_to_ai_scene",
         "//intrinsic/util/status:status_macros",
@@ -51,6 +53,19 @@ cc_library(
         "@abseil-cpp//absl/log:check",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@assimp",
+    ],
+)
+
+cc_library(
+    name = "restrict_importer",
+    srcs = ["restrict_importer.cc"],
+    hdrs = ["restrict_importer.h"],
+    visibility = [
+        "//intrinsic/geometry:__subpackages__",
+    ],
+    deps = [
         "@abseil-cpp//absl/strings",
         "@assimp",
     ],
@@ -68,6 +83,7 @@ cc_library(
         "//intrinsic/geometry/internal/mesh:__pkg__",
     ],
     deps = [
+        ":restrict_importer",
         "//intrinsic/eigenmath",
         "//intrinsic/geometry/internal/point_cloud:pts_to_ai_scene",
         "//intrinsic/util/status:status_macros",
@@ -124,5 +140,15 @@ cc_library(
         "@abseil-cpp//absl/strings",
         "@assimp",
         "@com_gitlab_libeigen_eigen//:eigen",
+    ],
+)
+
+cc_test(
+    name = "restrict_importer_test",
+    srcs = ["restrict_importer_test.cc"],
+    deps = [
+        ":restrict_importer",
+        "@assimp",
+        "@com_google_googletest//:gtest_main",
     ],
 )
