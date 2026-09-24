@@ -78,6 +78,7 @@ use_repo(
     "com_github_google_subcommands",
     "com_github_googlecloudplatform_opentelemetry_operations_go_exporter_trace",
     "com_github_gorilla_websocket",
+    "com_github_klauspost_compress",
     "com_github_masterminds_semver",
     "com_github_mwitkow_grpc_proxy",
     "com_github_netresearch_go_cron",
@@ -272,6 +273,7 @@ bazel_dep(name = "re2", version = "2025-11-05.bcr.1", repo_name = "com_googlesou
 bazel_dep(name = "riegeli", version = "0.0.0-20250822-9f2744d", repo_name = "com_google_riegeli")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_pkg", version = "1.3.0")
+bazel_dep(name = "rules_shell", version = "0.8.0")
 bazel_dep(name = "sdformat", version = "16.1.0")
 bazel_dep(name = "soplex", version = "8.0.3")  # bumping transitive dependency to update boost to 1.89.0
 bazel_dep(name = "stb", version = "0.0.0-20251026-f1c79c0")
@@ -301,7 +303,11 @@ archive_override(
 # Containers #
 ##############
 
+bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
 bazel_dep(name = "rules_oci", version = "2.3.0")
+
+aspect_toolchains = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
+use_repo(aspect_toolchains, "zstd_linux_amd64")
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 

@@ -50,7 +50,7 @@ def _container_import_impl(ctx):
 container_import = rule(
     attrs = {
         "compression": attr.string(
-            default = "gzip",
+            default = "zstd",
             doc = "Layer compression type for imported image layers (gzip, zstd, none).",
             values = [
                 "gzip",
@@ -103,9 +103,10 @@ def _container_tarball(name, image, **kwargs):
 def container_layer(name, **kwargs):
     pkg_tar(
         name = name,
-        compressor_args = "--fast",
+        compressor = Label("//bazel:zstd"),
+        compressor_args = "-3 -q",
         deps = kwargs.pop("tars", None),
-        extension = "tar.gz",
+        extension = "tar.zst",
         package_dir = kwargs.pop("directory", None),
         strip_prefix = kwargs.pop("data_path", None),
         srcs = kwargs.pop("files", None),

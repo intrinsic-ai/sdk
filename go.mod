@@ -86,6 +86,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.6.7
 	github.com/jhump/protoreflect/v2 v2.0.0-beta.2
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
+	github.com/klauspost/compress v1.18.0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lestrrat-go/libxml2 v0.0.0-20240905100032-c934e3fcb9d3
 	github.com/manifoldco/promptui v0.9.0
@@ -371,7 +372,6 @@ require (
 	github.com/jszwec/csvutil v1.9.0 // indirect
 	github.com/jzelinskie/cobrautil/v2 v2.0.0-20240819150235-f7fe73942d0f // indirect
 	github.com/jzelinskie/stringz v0.0.3 // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
