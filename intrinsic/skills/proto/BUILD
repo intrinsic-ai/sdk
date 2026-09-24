@@ -44,6 +44,7 @@ proto_library(
     srcs = ["behavior_tree_registry.proto"],
     deps = [
         ":skill_registry_config_proto",
+        "//intrinsic/skills/proto:skills_proto",
         "@com_google_protobuf//:empty_proto",
     ],
 )

@@ -18,6 +18,7 @@ package intrinsic_proto.skills;
 
 import "google/protobuf/empty.proto";
 import "intrinsic/skills/proto/skill_registry_config.proto";
+import "intrinsic/skills/proto/skills.proto";
 
 option go_package = "intrinsic/skills/proto/behavior_tree_registry_go_proto";
 
@@ -33,6 +34,13 @@ message UnregisterBehaviorTreeRequest {
   string id = 1;
 }
 
+message ListBehaviorTreeSkillsRequest {}
+
+message ListBehaviorTreeSkillsResponse {
+  // The skill descriptions of all registered pBTs.
+  repeated intrinsic_proto.skills.Skill skills = 1;
+}
+
 service BehaviorTreeRegistry {
 
   // Register a BehaviorTree skill in the skill registry.
@@ -42,4 +50,6 @@ service BehaviorTreeRegistry {
   // Unregister a BehaviorTree skill from the skill registry.
   rpc UnregisterBehaviorTree(UnregisterBehaviorTreeRequest)
       returns (google.protobuf.Empty) {}
+  rpc ListBehaviorTreeSkills(ListBehaviorTreeSkillsRequest)
+      returns (ListBehaviorTreeSkillsResponse) {}
 }
