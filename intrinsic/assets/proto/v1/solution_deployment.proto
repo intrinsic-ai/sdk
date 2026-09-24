@@ -90,6 +90,13 @@ message SolutionDeployment {
   Solution solution = 1;
   string solution_id = 2;
   intrinsic_proto.config.OperationMode operation_mode = 3;
+
+  // A server-assigned UUID that persists across updates from creation to
+  // deletion. This can be set during updates to enforce that the underlying
+  // solution deployment has not changed in the interim; if the specified name
+  // does not match the currently running deployment (or if no deployment is
+  // running), the update fails with FAILED_PRECONDITION.
+  string name = 4;
 }
 
 message CreateSolutionDeploymentFromVersionedSolutionRequest {
@@ -106,7 +113,10 @@ message UpdateSolutionDeploymentMetadata {
 message UpdateSolutionDeploymentRequest {
   SolutionDeployment solution_deployment = 1;
 
-  // If set to true, and no solution deployment is running, one will be created.
+  // If set to true, and no solution deployment is running, one will be created
+  // with a newly generated `solution_deployment.name` (provided
+  // `solution_deployment.name` in the request is empty; setting a non-empty
+  // `name` when no deployment is running fails with FAILED_PRECONDITION).
   bool allow_missing = 3;
 }
 
