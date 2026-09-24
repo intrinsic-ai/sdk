@@ -24,6 +24,23 @@ go_library(
 )
 
 go_library(
+    name = "set",
+    srcs = ["set.go"],
+    importpath = "intrinsic/util/go/set",
+    visibility = ["//intrinsic:internal_api_users"],
+)
+
+go_test(
+    name = "set_test",
+    srcs = ["set_test.go"],
+    embed = [":set"],
+    importpath = "intrinsic/util/go/set_test",
+    deps = [
+        "@com_github_google_go_cmp//cmp:go_default_library",
+    ],
+)
+
+go_library(
     name = "validate",
     srcs = ["validate.go"],
     importpath = "intrinsic/util/go/validate",
