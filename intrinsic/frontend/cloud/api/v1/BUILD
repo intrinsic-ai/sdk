@@ -38,6 +38,7 @@ proto_library(
     name = "clustermanager_api_proto",
     srcs = ["clustermanager_api.proto"],
     deps = [
+        "//intrinsic/config/proto:operation_mode_proto",
         "//intrinsic/kubernetes/intrinsic_os/protos/v1:cluster_proto",
         "//intrinsic/kubernetes/intrinsic_os/protos/v1:dhcp_leases_proto",
         "//intrinsic/util/status:extended_status_proto",
@@ -70,6 +71,7 @@ go_proto_library(
     importpath = "intrinsic/frontend/cloud/api/v1/clustermanager_api_go_proto",
     protos = [":clustermanager_api_proto"],
     deps = [
+        "//intrinsic/config/proto:operation_mode_go_proto",
         "//intrinsic/kubernetes/intrinsic_os/protos/v1:cluster_go_proto",
         "//intrinsic/kubernetes/intrinsic_os/protos/v1:dhcp_leases_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",

@@ -24,6 +24,7 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
+import "intrinsic/config/proto/operation_mode.proto";
 import "intrinsic/kubernetes/intrinsic_os/protos/v1/cluster.proto";
 import "intrinsic/kubernetes/intrinsic_os/protos/v1/dhcp_leases.proto";
 import "intrinsic/util/status/extended_status.proto";
@@ -114,6 +115,8 @@ message UpdateProgress {
 
 message ActiveSolution {
   string branch_id = 1 [(google.api.field_behavior) = OPTIONAL];
+  intrinsic_proto.config.OperationMode operation_mode = 2
+      [(google.api.field_behavior) = OPTIONAL];
 }
 
 message HttpService {
@@ -207,6 +210,8 @@ message SolutionVersion {
   // During the deployment it will look up the tip of the branch
   // and deploy it to the IPC.
   string branch_id = 1 [(google.api.field_behavior) = OPTIONAL];
+  intrinsic_proto.config.OperationMode operation_mode = 2
+      [(google.api.field_behavior) = OPTIONAL];
 }
 
 message UpdateVersions {
