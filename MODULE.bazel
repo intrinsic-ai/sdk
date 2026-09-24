@@ -239,7 +239,7 @@ bazel_dep(name = "boringssl", version = "0.20260813.0")
 bazel_dep(name = "cel-cpp", version = "0.14.0", repo_name = "com_google_cel_cpp")
 bazel_dep(name = "cel-spec", version = "0.25.3", repo_name = "com_google_cel_spec")
 bazel_dep(name = "ceres-solver", version = "2.2.0", repo_name = "com_google_ceres_solver")
-bazel_dep(name = "com_github_mvukov_rules_ros2", version = "0.0.0-20260118-78d85ff")
+bazel_dep(name = "com_github_mvukov_rules_ros2", version = "0.0.0-20260718-352a8e3")
 bazel_dep(name = "dumb-init", version = "1.2.5")
 bazel_dep(name = "eigen", version = "5.0.1.bcr.2", repo_name = "com_gitlab_libeigen_eigen")
 bazel_dep(name = "etherlab-ethercat", version = "1.6.7.bcr.1")
@@ -380,16 +380,6 @@ use_repo(
     "ros2_rmw",
     "ros2_rosbag2",
     "ros2_rosidl",
-    "ros2_rosidl_typesupport",
-)
-
-# Temporary patch to make rclpy compatible with our LLVM toolchain.
-# Can be removed when https://github.com/bazelbuild/bazel-central-registry/pull/9746
-# is merged and the new version is available in the BCR.
-single_version_override(
-    module_name = "com_github_mvukov_rules_ros2",
-    patch_strip = 1,
-    patches = ["//third_party/rules_ros2:rules_ros2_atomic.patch"],
 )
 
 single_version_override(
