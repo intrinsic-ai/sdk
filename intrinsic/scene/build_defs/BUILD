@@ -32,3 +32,13 @@ bzl_library(
         "//intrinsic/util/proto/build_defs:descriptor_set",
     ],
 )
+
+bzl_library(
+    name = "usd_scene_object_bzl",
+    srcs = ["usd_scene_object.bzl"],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":scene_object_bzl",
+        "//intrinsic/util/proto/build_defs:descriptor_set",
+    ],
+)
