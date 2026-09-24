@@ -17,17 +17,6 @@ load("//bazel:go_macros.bzl", "go_library", "go_test")
 package(default_visibility = ["//visibility:public"])
 
 go_library(
-    name = "service_deletion_utils",
-    srcs = [
-        "service_deletion_utils.go",
-    ],
-    importpath = "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/service_deletion_utils",
-    deps = [
-        "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common",
-    ],
-)
-
-go_library(
     name = "hub_service_delete",
     srcs = [
         "hub_service_delete.go",
@@ -35,7 +24,6 @@ go_library(
     ],
     importpath = "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/hub_service_delete",
     deps = [
-        ":service_deletion_utils",
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
@@ -54,6 +42,8 @@ go_library(
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd/pubsub:pubsub_cmd",
         "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common",
+        "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common:line_config_utils",
+        "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common:service_deletion_utils",
         "//intrinsic/tools/inctl/util:agents",
         "//intrinsic/tools/inctl/util:orgutil",
         "@com_github_spf13_cobra//:go_default_library",
@@ -84,6 +74,7 @@ go_test(
         "//intrinsic/assets/proto/v1:asset_instances_go_proto",
         "//intrinsic/platform/pubsub/cloud_router_provisioner/v1:provisioner_go_proto",
         "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common",
+        "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common:service_deletion_utils",
         "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/testing",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_grpc//:go_default_library",
@@ -91,24 +82,5 @@ go_test(
         "@org_golang_google_grpc//status:go_default_library",
         "@org_golang_google_grpc//test/bufconn:go_default_library",
         "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
-    ],
-)
-
-go_test(
-    name = "service_deletion_utils_test",
-    srcs = [
-        "service_deletion_utils_test.go",
-    ],
-    embed = [":service_deletion_utils"],
-    importpath = "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/service_deletion_utils_test",
-    deps = [
-        "//intrinsic/assets/proto:asset_deployment_go_proto",
-        "//intrinsic/assets/proto:installed_assets_go_proto",
-        "//intrinsic/assets/proto/v1:asset_instances_go_proto",
-        "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common",
-        "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/testing",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "@org_golang_google_grpc//codes:go_default_library",
-        "@org_golang_google_grpc//status:go_default_library",
     ],
 )

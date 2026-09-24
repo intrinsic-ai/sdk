@@ -27,6 +27,8 @@ import (
 	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	servicedeletionutils "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common/service_deletion_utils"
+
 	adgrpcpb "intrinsic/assets/proto/asset_deployment_go_proto"
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_proto"
 	aigrpcpb "intrinsic/assets/proto/v1/asset_instances_go_proto"
@@ -228,8 +230,8 @@ func TestDeletionOfEntireNetwork(t *testing.T) {
 			ignoreOnpremErrors:        true,
 			expectFinalError:          false,
 			expectedOutput: []string{
-				"Failed to delete \"onprem_to_line_router_relay\" from \"node-hub\", but the '--ignore-onprem-errors' flag is present. Moving on.",
-				"Failed to delete \"onprem_to_line_router_relay\" from \"vmp-spoke\", but the '--ignore-onprem-errors' flag is present. Moving on.",
+				"Failed to delete \"onprem_to_line_router_relay\" from \"node-hub\": failed to uninstall onprem_to_line_router_relay service asset: rpc error: code = Unknown desc = test onprem error, but the '--ignore-onprem-errors' flag is present. Moving on",
+				"Failed to delete \"onprem_to_line_router_relay\" from \"vmp-spoke\": failed to uninstall onprem_to_line_router_relay service asset: rpc error: code = Unknown desc = test onprem error, but the '--ignore-onprem-errors' flag is present. Moving on",
 				"Uninstalling cloud router",
 				"Deleting line configuration stored in the cloud",
 				"Line orchestration network with the hub at \"node-hub\" (line id \"test-org-node-hub\") has been deleted",
@@ -282,21 +284,24 @@ func TestDeletionOfEntireNetwork(t *testing.T) {
 			ctx := t.Context()
 			var buf bytes.Buffer
 			runner := &HubServiceDeleteRunner{
-				project:                     "test-project",
-				org:                         "test-org",
-				hubEndpoint:                 tt.hubEndpoint,
-				forceLocalOnly:              tt.forceLocalOnly,
-				ignoreOnpremErrors:          tt.ignoreOnpremErrors,
-				shouldUninstallServiceAsset: true,
-				dialOnpremCluster: func(ctx context.Context, project string, org string, cluster string) (context.Context, *grpc.ClientConn, string, error) {
-					conn, err := pubsubtesting.DialTestServer(ctx, res.Listener)
-					if err != nil {
-						t.Fatalf("Failed to connect to the test server: %v", err)
-					}
-					// Not closing the connection here because it will be closed by the calling code.
-					return ctx, conn, "", err
+				ServiceDeleter: servicedeletionutils.ServiceDeleter{
+					ProjectID:                "test-project",
+					OrgID:                    "test-org",
+					IgnoreOnpremErrors:       tt.ignoreOnpremErrors,
+					ShouldRetainServiceAsset: false,
+					DialOnpremCluster: func(ctx context.Context, project string, org string, cluster string) (context.Context, *grpc.ClientConn, string, error) {
+						conn, err := pubsubtesting.DialTestServer(ctx, res.Listener)
+						if err != nil {
+							t.Fatalf("Failed to connect to the test server: %v", err)
+						}
+						// Not closing the connection here because it will be closed by the calling code.
+						return ctx, conn, "", err
+					},
 				},
-				dialCloudCluster: func(ctx context.Context) (*grpc.ClientConn, error) {
+				HubEndpoint:    tt.hubEndpoint,
+				ForceLocalOnly: tt.forceLocalOnly,
+
+				DialCloudCluster: func(ctx context.Context) (*grpc.ClientConn, error) {
 					conn, err := pubsubtesting.DialTestServer(ctx, res.Listener)
 					if err != nil {
 						t.Fatalf("Failed to connect to the test server: %v", err)
@@ -306,7 +311,7 @@ func TestDeletionOfEntireNetwork(t *testing.T) {
 				},
 			}
 
-			err := runner.run(ctx, &buf)
+			err := runner.Run(ctx, &buf)
 			pubsubtesting.VerifyExpectedOutputAndError(t, &buf, err, tt.expectFinalError, tt.expectFinalErrorContains, tt.expectedOutput)
 			pubsubtesting.EnsureNoUnexpectedOutput(t, &buf, tt.unexpectedOutput)
 		})

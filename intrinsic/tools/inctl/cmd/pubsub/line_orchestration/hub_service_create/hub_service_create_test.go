@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -29,6 +30,7 @@ import (
 	"intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common"
 
 	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	adgrpcpb "intrinsic/assets/proto/asset_deployment_go_proto"
 	idpb "intrinsic/assets/proto/id_go_proto"
@@ -45,6 +47,10 @@ import (
 const (
 	testHubServiceVersion = "0.0.1"
 )
+
+type testState struct {
+	currentOnpremCluster string
+}
 
 func configureTestServerForSuccessfulOnpremInstallation(res *pubsubtesting.TestServerResources) {
 	res.InstServer.ListAssetInstancesFn = func(ctx context.Context, in *aigrpcpb.ListAssetInstancesRequest) (*aigrpcpb.ListAssetInstancesResponse, error) {
@@ -277,6 +283,17 @@ func TestInstallationAndUpdateOfOnpremService(t *testing.T) {
 			expectErrContains: "operation failed",
 		},
 		{
+			name:           "Failure to fetch line config aborts creation",
+			spokeWorkcells: []string{"spoke1@local"},
+			setupLineConfigStorage: func(s *pubsubtesting.FakeLineConfigurationStorageServer) {
+				s.GetFn = func(context.Context, *lineconfigstoragepb.GetLineConfigurationRequest) (*lineconfigpb.LineConfiguration, error) {
+					return nil, fmt.Errorf("test error")
+				}
+			},
+			expectErr:         true,
+			expectErrContains: "test error",
+		},
+		{
 			name:           "Failure to save line config aborts creation",
 			spokeWorkcells: []string{"spoke1@local"},
 			setupLineConfigStorage: func(s *pubsubtesting.FakeLineConfigurationStorageServer) {
@@ -291,7 +308,7 @@ func TestInstallationAndUpdateOfOnpremService(t *testing.T) {
 			name:           "Unimplemented error prompts user to create local-only network",
 			spokeWorkcells: []string{"spoke1@local"},
 			setupLineConfigStorage: func(s *pubsubtesting.FakeLineConfigurationStorageServer) {
-				s.SetFn = func(context.Context, *lineconfigstoragepb.UpdateLineConfigurationRequest) (*lineconfigpb.LineConfiguration, error) {
+				s.GetFn = func(context.Context, *lineconfigstoragepb.GetLineConfigurationRequest) (*lineconfigpb.LineConfiguration, error) {
 					return nil, grpcstatus.Errorf(codes.Unimplemented, "")
 				}
 			},
@@ -754,6 +771,419 @@ func TestGetHubEndpoint(t *testing.T) {
 				t.Errorf("Unexpected hub endpoint: got %q, want %q", got, tt.expectedResult)
 			}
 			pubsubtesting.VerifyExpectedOutputAndError(t, &buf, err, tt.expectError, tt.expectErrorContains, tt.expectedOutput)
+		})
+	}
+}
+
+func TestCleaningUpExistingNetwork(t *testing.T) {
+	tests := []struct {
+		name                      string
+		hubEndpoint               string
+		spokeEndpoints            []string
+		onpremServiceName         string
+		lineConfig                *lineconfigpb.LineConfiguration
+		getLineConfigError        error
+		deleteInstalledAssetError error
+		deleteCloudServerError    error
+		ignoreOnpremErrors        bool
+		forceLocalOnly            bool
+		expectedCleanedUpClusters []string
+		expectedOutput            []string
+		unexpectedOutput          []string
+		expectFinalError          bool
+		expectFinalErrorContains  string
+	}{
+		{
+			name:               "No cleanup when network is created from scratch",
+			hubEndpoint:        "node-123@local",
+			spokeEndpoints:     []string{"vmp-123@remote"},
+			getLineConfigError: grpcstatus.Errorf(codes.NotFound, ""),
+			expectedOutput: []string{
+				"Connecting to the cloud API endpoint",
+				"Checking if the line orchestration network with the hub at \"node-123\" already exists",
+				"Line with the hub at \"node-123\" not found, will create a new one",
+				"Line-level router has been provisioned. Will install relay routers on each of the 2 clusters",
+				"Installing the relay router on \"node-123\"",
+				"Installing the relay router on \"vmp-123\"",
+				"All relay routers have been installed, the line orchestration network is ready.",
+			},
+			unexpectedOutput: []string{
+				"Line orchestration network with the hub at \"node-123\" found",
+			},
+		},
+		{
+			name:               "Unimplemented error prompts user to use force-local-only flag",
+			hubEndpoint:        "node-123@local",
+			spokeEndpoints:     []string{"vmp-123@remote"},
+			getLineConfigError: grpcstatus.Errorf(codes.Unimplemented, ""),
+			expectedOutput: []string{
+				"Checking if the line orchestration network with the hub at \"node-123\" already exists",
+				"Got the 'Unimplemented' error from the configuration storage",
+				"Try running the command with the '--force-local-only' flag",
+			},
+			unexpectedOutput: []string{
+				"Line orchestration network with the hub at \"node-123\" found",
+			},
+			expectFinalError:         true,
+			expectFinalErrorContains: "line configuration storage is not implemented",
+		},
+		{
+			name:           "No cleanup when local-only network is recreated",
+			hubEndpoint:    "node-123@local",
+			spokeEndpoints: []string{"node-234@local"},
+			lineConfig: &lineconfigpb.LineConfiguration{
+				HubEndpoint: &endpointpb.EndpointSpec{
+					WorkcellName: "node-123",
+					ConnectionSpec: &endpointpb.EndpointSpec_Local{
+						Local: &endpointpb.LocalConnectionSpec{},
+					},
+				},
+				SpokeEndpoints: []*endpointpb.EndpointSpec{
+					{
+						WorkcellName: "node-345",
+						ConnectionSpec: &endpointpb.EndpointSpec_Local{
+							Local: &endpointpb.LocalConnectionSpec{},
+						},
+					},
+				},
+			},
+			expectedOutput: []string{
+				"Line orchestration network with the hub at \"node-123\" found",
+				"Network topology remains local-only, nothing to clean up",
+				"Saving line configuration",
+				"Creating a local-only line orchestration network with the hub at \"node-123\"",
+				"Successfully added an instance of the line_orchestration_relay service",
+			},
+			unexpectedOutput: []string{
+				"Cleanup of the existing network complete",
+			},
+		},
+		{
+			name:           "Hub uninstalled when local-only network changes to mixed",
+			hubEndpoint:    "node-123@local",
+			spokeEndpoints: []string{"vmp-456@remote"},
+			lineConfig: &lineconfigpb.LineConfiguration{
+				HubEndpoint: &endpointpb.EndpointSpec{
+					WorkcellName: "node-123",
+					ConnectionSpec: &endpointpb.EndpointSpec_Local{
+						Local: &endpointpb.LocalConnectionSpec{},
+					},
+				},
+				SpokeEndpoints: []*endpointpb.EndpointSpec{
+					{
+						WorkcellName: "node-345",
+						ConnectionSpec: &endpointpb.EndpointSpec_Local{
+							Local: &endpointpb.LocalConnectionSpec{},
+						},
+					},
+				},
+			},
+			expectedCleanedUpClusters: []string{"node-123"},
+			expectedOutput: []string{
+				"Line orchestration network with the hub at \"node-123\" found",
+				"Topology of the line orchestration network is changing from local-only to mixed",
+				"Uninstalling line_orchestration_relay from node-123",
+				"Cleanup of the existing network complete",
+				"Saving line configuration",
+				"Creating a mixed line orchestration network. Line id: \"intrinsic-node-123\"",
+				"Line-level router has been provisioned. Will install relay routers on each of the 2 clusters",
+				"All relay routers have been installed, the line orchestration network is ready",
+			},
+			unexpectedOutput: []string{
+				"The retain-service-asset option is enabled, won't try to uninstall the line_orchestration_relay service asset",
+			},
+		},
+		{
+			name:           "The entire network is torn down when mixed network changes to local",
+			hubEndpoint:    "node-123@local",
+			spokeEndpoints: []string{"node-234@local"},
+			lineConfig: &lineconfigpb.LineConfiguration{
+				HubEndpoint: &endpointpb.EndpointSpec{
+					WorkcellName: "node-123",
+					ConnectionSpec: &endpointpb.EndpointSpec_Local{
+						Local: &endpointpb.LocalConnectionSpec{},
+					},
+				},
+				SpokeEndpoints: []*endpointpb.EndpointSpec{
+					{
+						WorkcellName: "vmp-456",
+						ConnectionSpec: &endpointpb.EndpointSpec_Remote{
+							Remote: &endpointpb.RemoteConnectionSpec{},
+						},
+					},
+				},
+			},
+			expectedCleanedUpClusters: []string{"node-123", "vmp-456"},
+			expectedOutput: []string{
+				"Topology of the line orchestration network is changing from mixed to local-only",
+				"Tearing down the existing network now",
+				"Uninstalling ai.intrinsic.onprem_to_line_router_relay from node-123",
+				"Uninstalling ai.intrinsic.onprem_to_line_router_relay from vmp-456",
+				"Uninstalling cloud router",
+				"The existing line orchestration network has been torn down",
+				"Saving line configuration",
+				"Creating a local-only line orchestration network with the hub at \"node-123\"",
+				"Successfully installed line_orchestration_relay service asset",
+				"Successfully added an instance of the line_orchestration_relay service",
+			},
+		},
+		{
+			name:           "Abort on teardown error",
+			hubEndpoint:    "node-123@local",
+			spokeEndpoints: []string{"node-234@local"},
+			lineConfig: &lineconfigpb.LineConfiguration{
+				HubEndpoint: &endpointpb.EndpointSpec{
+					WorkcellName: "node-123",
+					ConnectionSpec: &endpointpb.EndpointSpec_Local{
+						Local: &endpointpb.LocalConnectionSpec{},
+					},
+				},
+				SpokeEndpoints: []*endpointpb.EndpointSpec{
+					{
+						WorkcellName: "vmp-456",
+						ConnectionSpec: &endpointpb.EndpointSpec_Remote{
+							Remote: &endpointpb.RemoteConnectionSpec{},
+						},
+					},
+				},
+			},
+			deleteCloudServerError:    fmt.Errorf("test error"),
+			expectedCleanedUpClusters: []string{"node-123", "vmp-456"},
+			expectedOutput: []string{
+				"Topology of the line orchestration network is changing from mixed to local-only",
+				"Tearing down the existing network now",
+				"Uninstalling cloud router",
+			},
+			unexpectedOutput: []string{
+				"The existing line orchestration network has been torn down",
+				"Saving line configuration",
+				"Creating a local-only line orchestration network with the hub at \"node-123\"",
+			},
+			expectFinalError:         true,
+			expectFinalErrorContains: "test error",
+		},
+		{
+			name:           "Relay is uninstalled from clusters when they are removed from network",
+			hubEndpoint:    "node-123@local",
+			spokeEndpoints: []string{"vmp-234@remote"},
+			lineConfig: &lineconfigpb.LineConfiguration{
+				HubEndpoint: &endpointpb.EndpointSpec{
+					WorkcellName: "node-123", // Will stay
+					ConnectionSpec: &endpointpb.EndpointSpec_Local{
+						Local: &endpointpb.LocalConnectionSpec{},
+					},
+				},
+				SpokeEndpoints: []*endpointpb.EndpointSpec{
+					{
+						WorkcellName: "vmp-234", // Will stay
+						ConnectionSpec: &endpointpb.EndpointSpec_Remote{
+							Remote: &endpointpb.RemoteConnectionSpec{},
+						},
+					},
+					{
+						WorkcellName: "node-345", // Will be removed
+						ConnectionSpec: &endpointpb.EndpointSpec_Local{
+							Local: &endpointpb.LocalConnectionSpec{},
+						},
+					},
+					{
+						WorkcellName: "vmp-567", // Will be removed
+						ConnectionSpec: &endpointpb.EndpointSpec_Remote{
+							Remote: &endpointpb.RemoteConnectionSpec{},
+						},
+					},
+				},
+			},
+			expectedCleanedUpClusters: []string{"vmp-567", "node-345"},
+			expectedOutput: []string{
+				"Cluster \"vmp-567\" is being removed from the network. Uninstalling onprem_to_line_router_relay from it",
+				"Cluster \"node-345\" is being removed from the network. Uninstalling onprem_to_line_router_relay from it",
+				"Cleanup of the existing network complete",
+				"Saving line configuration",
+			},
+			unexpectedOutput: []string{
+				"Cluster \"node-123\" is being removed from the network. Uninstalling onprem_to_line_router_relay from it",
+				"Cluster \"vmp-234\" is being removed from the network. Uninstalling onprem_to_line_router_relay from it",
+			},
+		},
+		{
+			name:           "force-local-only flag disables interactions with cloud services",
+			hubEndpoint:    "node-123@local",
+			spokeEndpoints: []string{"node-234@local"},
+			forceLocalOnly: true,
+			expectedOutput: []string{
+				"The '--force-local-only' flag is present",
+				"Creating a local-only line orchestration network without saving its configuration in the cloud",
+				"Creating a local-only line orchestration network with the hub at \"node-123\"",
+				"Successfully added an instance of the line_orchestration_relay service",
+			},
+			unexpectedOutput: []string{
+				"Connecting to the cloud API endpoint",
+				"Checking if the line orchestration network with the hub at \"node-123\" already exists",
+			},
+		},
+		{
+			name:           "Abort on spoke cleanup error",
+			hubEndpoint:    "node-123@local",
+			spokeEndpoints: []string{"node-234@remote"},
+			lineConfig: &lineconfigpb.LineConfiguration{
+				HubEndpoint: &endpointpb.EndpointSpec{
+					WorkcellName: "node-123", // Will stay
+					ConnectionSpec: &endpointpb.EndpointSpec_Local{
+						Local: &endpointpb.LocalConnectionSpec{},
+					},
+				},
+				SpokeEndpoints: []*endpointpb.EndpointSpec{
+					{
+						WorkcellName: "vmp-567", // Will be removed
+						ConnectionSpec: &endpointpb.EndpointSpec_Remote{
+							Remote: &endpointpb.RemoteConnectionSpec{},
+						},
+					},
+				},
+			},
+			onpremServiceName:         common.OnpremToLineRouterRelayServiceName,
+			deleteInstalledAssetError: fmt.Errorf("test onprem error"),
+			expectedCleanedUpClusters: []string{"vmp-567"},
+			expectedOutput: []string{
+				"Uninstalling ai.intrinsic.onprem_to_line_router_relay from vmp-567",
+			},
+			unexpectedOutput: []string{
+				"The existing line orchestration network has been torn down",
+				"Saving line configuration",
+				"Creating a local-only line orchestration network with the hub at \"node-123\"",
+			},
+			expectFinalError:         true,
+			expectFinalErrorContains: "test onprem error",
+		},
+		{
+			name:           "Spoke cleanup error is ignored",
+			hubEndpoint:    "node-123@local",
+			spokeEndpoints: []string{"vmp-234@remote"},
+			lineConfig: &lineconfigpb.LineConfiguration{
+				HubEndpoint: &endpointpb.EndpointSpec{
+					WorkcellName: "node-123", // Will stay
+					ConnectionSpec: &endpointpb.EndpointSpec_Local{
+						Local: &endpointpb.LocalConnectionSpec{},
+					},
+				},
+				SpokeEndpoints: []*endpointpb.EndpointSpec{
+					{
+						WorkcellName: "vmp-567", // Will be removed
+						ConnectionSpec: &endpointpb.EndpointSpec_Remote{
+							Remote: &endpointpb.RemoteConnectionSpec{},
+						},
+					},
+				},
+			},
+			onpremServiceName:         common.OnpremToLineRouterRelayServiceName,
+			deleteInstalledAssetError: fmt.Errorf("test onprem error"),
+			ignoreOnpremErrors:        true,
+			expectedCleanedUpClusters: []string{"vmp-567"},
+			expectedOutput: []string{
+				"Failed to delete \"onprem_to_line_router_relay\" from \"vmp-567\": failed to uninstall onprem_to_line_router_relay service asset: rpc error: code = Unknown desc = test onprem error, but the '--ignore-onprem-errors' flag is present. Moving on",
+				"Cleanup of the existing network complete",
+				"Saving line configuration",
+				"Creating a mixed line orchestration network. Line id: \"intrinsic-node-123\"",
+				"All relay routers have been installed, the line orchestration network is ready",
+			},
+			unexpectedOutput: []string{
+				"Failed to delete \"onprem_to_line_router_relay\" from \"vmp-123\": failed to uninstall onprem_to_line_router_relay service asset: rpc error: code = Unknown desc = test onprem error, but the '--ignore-onprem-errors' flag is present. Moving on",
+			},
+			expectFinalError: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			state := &testState{}
+			res := pubsubtesting.SetupTestServer(t)
+			configureTestServerForSuccessfulOnpremInstallation(res)
+
+			res.InstServer.ListAssetInstancesFn = func(ctx context.Context, in *aigrpcpb.ListAssetInstancesRequest) (*aigrpcpb.ListAssetInstancesResponse, error) {
+				return &aigrpcpb.ListAssetInstancesResponse{
+					AssetInstances: []*aigrpcpb.AssetInstance{
+						{Name: tt.onpremServiceName},
+					},
+				}, nil
+			}
+
+			res.DepServer.DeleteResourceFn = func(ctx context.Context, in *adgrpcpb.DeleteResourceRequest) (*lropb.Operation, error) {
+				return &lropb.Operation{Done: true, Name: "op1"}, nil
+			}
+
+			res.OpServer.GetOperationFn = func(ctx context.Context, in *lropb.GetOperationRequest) (*lropb.Operation, error) {
+				return &lropb.Operation{Done: true, Name: "op1"}, nil
+			}
+
+			res.IaServer.DeleteInstalledAssetFn = func(ctx context.Context, in *iagrpcpb.DeleteInstalledAssetRequest) (*lropb.Operation, error) {
+				if !slices.Contains(tt.expectedCleanedUpClusters, state.currentOnpremCluster) {
+					t.Errorf("Service assets are being uninstalled from an unexpected cluster %q", state.currentOnpremCluster)
+				}
+				if tt.deleteInstalledAssetError != nil {
+					return nil, tt.deleteInstalledAssetError
+				}
+				return &lropb.Operation{Done: true, Name: "op1"}, nil
+			}
+
+			res.LineConfigStorageServer.GetFn = func(ctx context.Context, in *lineconfigstoragepb.GetLineConfigurationRequest) (*lineconfigpb.LineConfiguration, error) {
+				if tt.getLineConfigError != nil {
+					return nil, tt.getLineConfigError
+				}
+
+				return tt.lineConfig, nil
+			}
+
+			res.LineConfigStorageServer.DeleteFn = func(ctx context.Context, in *lineconfigstoragepb.DeleteLineConfigurationRequest) (*emptypb.Empty, error) {
+				return &emptypb.Empty{}, nil
+			}
+
+			res.ProvisionerServer.DeleteFn = func(ctx context.Context, req *provisionerpb.DeleteLineRouterRequest) (*provisionerpb.LineRouterDeleteResponse, error) {
+				if req.GetLineId() != "intrinsic-node-123" {
+					t.Errorf("Unexpected line id. Got %q, want \"intrinsic-node-123\"", req.GetLineId())
+				}
+				if tt.deleteCloudServerError != nil {
+					return nil, tt.deleteCloudServerError
+				}
+				return &provisionerpb.LineRouterDeleteResponse{}, nil
+			}
+
+			ctx := t.Context()
+			var buf bytes.Buffer
+
+			runner := &HubServiceCreateRunner{
+				org:                             "intrinsic",
+				hubEndpoint:                     tt.hubEndpoint,
+				spokeEndpoints:                  tt.spokeEndpoints,
+				forceLocalOnly:                  tt.forceLocalOnly,
+				shouldRetainServiceAsset:        false,
+				ignoreOnpremErrorsDuringCleanup: tt.ignoreOnpremErrors,
+				dialOnpremCluster: func(ctx context.Context, project string, org string, cluster string) (context.Context, *grpc.ClientConn, string, error) {
+					state.currentOnpremCluster = cluster
+					conn, err := pubsubtesting.DialTestServer(ctx, res.Listener)
+					if err != nil {
+						t.Fatalf("Failed to connect to the test server : %v", err)
+					}
+
+					// Not closing the connection here because it will be closed by the calling code.
+					return ctx, conn, "", nil
+				},
+				dialCloudCluster: func(ctx context.Context) (*grpc.ClientConn, error) {
+					conn, err := pubsubtesting.DialTestServer(ctx, res.Listener)
+					if err != nil {
+						t.Fatalf("Failed to connect to the test server: %v", err)
+					}
+
+					// Not closing the connection here because it will be closed by the calling code.
+					return conn, nil
+				},
+				getServiceVersionToInstall: func(packageName string, serviceName string) (string, error) {
+					return testHubServiceVersion, nil
+				},
+			}
+
+			err := runner.run(ctx, &buf)
+			pubsubtesting.VerifyExpectedOutputAndError(t, &buf, err, tt.expectFinalError, tt.expectFinalErrorContains, tt.expectedOutput)
+			pubsubtesting.EnsureNoUnexpectedOutput(t, &buf, tt.unexpectedOutput)
 		})
 	}
 }

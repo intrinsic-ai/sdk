@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common"
-	servicedeletionutils "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/service_deletion_utils"
+	servicedeletionutils "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common/service_deletion_utils"
 	pubsubcmd "intrinsic/tools/inctl/cmd/pubsub/pubsub_cmd"
 )
 
@@ -62,7 +62,7 @@ func (e *stopForwardingCmdEnvironment) RunE(cmd *cobra.Command, _ []string) erro
 			cluster,
 			common.ForwardingServicePackage,
 			common.ForwardingServiceName),
-		ShouldUninstallServiceAsset: e.cmdFlags.GetBool(servicedeletionutils.KeyUninstallServiceAsset),
+		ShouldRetainServiceAsset: e.cmdFlags.GetBool(common.KeyRetainServiceAsset),
 	}
 
 	return runner.Run(ctx)
@@ -90,7 +90,7 @@ func NewStopForwardingCmd(use, short string) *cobra.Command {
 	// Can be useful during development, when a service built from source is sideloaded
 	// into a solution. In this case, it may be better to keep it installed instead of
 	// rebuilding it from source every time (it takes about 20 minutes).
-	flags.OptionalBool(servicedeletionutils.KeyUninstallServiceAsset, true, "Whether to uninstall the service asset")
+	flags.OptionalBool(common.KeyRetainServiceAsset, false, "Whether to retain the service asset")
 
 	return cmd
 }

@@ -75,11 +75,13 @@ func (e *hubServiceCreateCmdEnvironment) RunE(cmd *cobra.Command, _ []string) er
 	}
 
 	runner := &HubServiceCreateRunner{
-		project:        project,
-		org:            org,
-		hubEndpoint:    hubEndpoint,
-		spokeEndpoints: e.cmdFlags.GetStringSlice(common.KeySpokeEndpoints),
-		forceLocalOnly: e.cmdFlags.GetBool(common.KeyForceLocalOnly),
+		project:                         project,
+		org:                             org,
+		hubEndpoint:                     hubEndpoint,
+		spokeEndpoints:                  e.cmdFlags.GetStringSlice(common.KeySpokeEndpoints),
+		forceLocalOnly:                  e.cmdFlags.GetBool(common.KeyForceLocalOnly),
+		shouldRetainServiceAsset:        e.cmdFlags.GetBool(common.KeyRetainServiceAsset),
+		ignoreOnpremErrorsDuringCleanup: e.cmdFlags.GetBool(common.KeyIgnoreOnpremErrors),
 		dialOnpremCluster: func(ctx context.Context, project, org, cluster string) (context.Context, *grpc.ClientConn, string, error) {
 			return clientutils.DialCluster(ctx, project, org, "" /* address */, cluster, "" /* solution */)
 		},
@@ -119,8 +121,16 @@ func NewHubServiceCreateCmd() *cobra.Command {
 	flags.OptionalString(common.KeyHubEndpoint, "", "Hub endpoint specification (<workcell_name>@{local|remote|url})")
 	flags.OptionalString(common.KeyClusterDeprecated, "", "Hub cluster (DEPRECATED, use hub-endpoint instead)")
 	flags.OptionalBool(common.KeyForceLocalOnly, false, "Whether to create a local-only network without saving its configuration")
+
+	flags.OptionalBool(common.KeyIgnoreOnpremErrors, false, "Whether to proceed when uninstallation of onprem assets fails during cleanup")
+
 	cmd.MarkFlagsMutuallyExclusive(common.KeyHubEndpoint, common.KeyClusterDeprecated)
 	cmd.MarkFlagsOneRequired(common.KeyHubEndpoint, common.KeyClusterDeprecated)
+
+	// Can be useful during development, when a service built from source is sideloaded
+	// into a solution. In this case, it may be better to keep it installed instead of
+	// rebuilding it from source every time (it takes about 20 minutes).
+	flags.OptionalBool(common.KeyRetainServiceAsset, false, "Whether to retain service assets when cleaning up existing networks")
 
 	return cmd
 }

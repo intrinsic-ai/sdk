@@ -49,6 +49,55 @@ go_library(
     ],
 )
 
+go_library(
+    name = "line_config_utils",
+    srcs = ["line_config_utils.go"],
+    importpath = "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common/line_config_utils",
+    deps = [
+        ":common",
+        "//intrinsic/platform/pubsub/connect/cloud/proto/line_configuration_storage/v1:line_configuration_storage_go_proto",
+        "//intrinsic/platform/pubsub/connect/common:line_id_utils",
+        "//intrinsic/platform/pubsub/connect/common/proto/line_configuration/v1:endpoint_spec_go_proto",
+        "//intrinsic/platform/pubsub/connect/common/proto/line_configuration/v1:line_configuration_go_proto",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+    ],
+)
+
+go_library(
+    name = "service_deletion_utils",
+    srcs = [
+        "service_deletion_utils.go",
+    ],
+    importpath = "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common/service_deletion_utils",
+    deps = [
+        ":common",
+        "//intrinsic/platform/pubsub/cloud_router_provisioner/v1:provisioner_go_proto",
+        "//intrinsic/platform/pubsub/connect/common/proto/line_configuration/v1:line_configuration_go_proto",
+        "@org_golang_google_grpc//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "service_deletion_utils_test",
+    srcs = [
+        "service_deletion_utils_test.go",
+    ],
+    embed = [":service_deletion_utils"],
+    importpath = "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common/service_deletion_utils_test",
+    deps = [
+        ":common",
+        "//intrinsic/assets/proto:asset_deployment_go_proto",
+        "//intrinsic/assets/proto:installed_assets_go_proto",
+        "//intrinsic/assets/proto/v1:asset_instances_go_proto",
+        "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/testing",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+    ],
+)
+
 go_test(
     name = "service_installing_cmd_runner_test",
     srcs = [

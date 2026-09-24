@@ -24,7 +24,7 @@ import (
 	"intrinsic/assets/cmdutils"
 	"intrinsic/tools/inctl/auth/auth"
 	"intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common"
-	servicedeletionutils "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/service_deletion_utils"
+	servicedeletionutils "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common/service_deletion_utils"
 	pubsubcmd "intrinsic/tools/inctl/cmd/pubsub/pubsub_cmd"
 	"intrinsic/tools/inctl/util/agents"
 
@@ -56,21 +56,24 @@ func (e *serviceDeleteCmdEnvironment) RunE(cmd *cobra.Command, _ []string) error
 	}
 
 	runner := &HubServiceDeleteRunner{
-		project:                     project,
-		org:                         org,
-		hubEndpoint:                 hubEndpoint,
-		forceLocalOnly:              e.cmdFlags.GetBool(common.KeyForceLocalOnly),
-		ignoreOnpremErrors:          e.cmdFlags.GetBool(servicedeletionutils.KeyIgnoreOnpremErrors),
-		shouldUninstallServiceAsset: e.cmdFlags.GetBool(servicedeletionutils.KeyUninstallServiceAsset),
-		dialOnpremCluster: func(ctx context.Context, project, org, cluster string) (context.Context, *grpc.ClientConn, string, error) {
-			return clientutils.DialCluster(ctx, project, org, "" /* address */, cluster, "" /* solution */)
+		ServiceDeleter: servicedeletionutils.ServiceDeleter{
+			ProjectID:                project,
+			OrgID:                    org,
+			IgnoreOnpremErrors:       e.cmdFlags.GetBool(common.KeyIgnoreOnpremErrors),
+			ShouldRetainServiceAsset: e.cmdFlags.GetBool(common.KeyRetainServiceAsset),
+			DialOnpremCluster: func(ctx context.Context, project, org, cluster string) (context.Context, *grpc.ClientConn, string, error) {
+				return clientutils.DialCluster(ctx, project, org, "" /* address */, cluster, "" /* solution */)
+			},
 		},
-		dialCloudCluster: func(ctx context.Context) (*grpc.ClientConn, error) {
+
+		HubEndpoint:    hubEndpoint,
+		ForceLocalOnly: e.cmdFlags.GetBool(common.KeyForceLocalOnly),
+		DialCloudCluster: func(ctx context.Context) (*grpc.ClientConn, error) {
 			return auth.NewCloudConnection(ctx, auth.WithFlagValues(hubServiceDeleteViper))
 		},
 	}
 
-	return runner.run(ctx, cmd.OutOrStdout())
+	return runner.Run(ctx, cmd.OutOrStdout())
 }
 
 // NewHubServiceDeleteCmd returns the initialized cobra command for
@@ -94,14 +97,14 @@ func NewHubServiceDeleteCmd(use, short string) *cobra.Command {
 	flags.OptionalString(common.KeyHubEndpoint, "", "Hub endpoint specification (<workcell_name>@{local|remote|url})")
 	flags.OptionalString(common.KeyClusterDeprecated, "", "Hub cluster (DEPRECATED, use hub-endpoint instead)")
 	flags.OptionalBool(common.KeyForceLocalOnly, false, "Whether to delete a local-only network without trying to read its configuration")
-	flags.OptionalBool(servicedeletionutils.KeyIgnoreOnpremErrors, false, "Whether to proceed with deletion when uninstallation of onprem assets fails")
+	flags.OptionalBool(common.KeyIgnoreOnpremErrors, false, "Whether to proceed with deletion when uninstallation of onprem assets fails")
 	cmd.MarkFlagsMutuallyExclusive(common.KeyHubEndpoint, common.KeyClusterDeprecated)
 	cmd.MarkFlagsOneRequired(common.KeyHubEndpoint, common.KeyClusterDeprecated)
 
 	// Can be useful during development, when a service built from source is sideloaded
 	// into a solution. In this case, it may be better to keep it installed instead of
 	// rebuilding it from source every time (it takes about 20 minutes).
-	flags.OptionalBool(servicedeletionutils.KeyUninstallServiceAsset, true, "Whether to uninstall the service asset")
+	flags.OptionalBool(common.KeyRetainServiceAsset, false, "Whether to retain the service asset")
 
 	return cmd
 }

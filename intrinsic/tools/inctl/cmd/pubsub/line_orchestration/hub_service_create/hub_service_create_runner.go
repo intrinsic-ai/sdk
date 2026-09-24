@@ -20,17 +20,14 @@ import (
 	"fmt"
 	"io"
 
-	"intrinsic/platform/pubsub/connect/common/lineidutils"
 	"intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common"
+	lineconfigutils "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common/line_config_utils"
+	servicedeletionutils "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common/service_deletion_utils"
 
 	provisionerpb "intrinsic/platform/pubsub/cloud_router_provisioner/v1/provisioner_go_proto"
-	lineconfigstoragepb "intrinsic/platform/pubsub/connect/cloud/proto/line_configuration_storage/v1/line_configuration_storage_go_proto"
 	endpointpb "intrinsic/platform/pubsub/connect/common/proto/line_configuration/v1/endpoint_spec_go_proto"
-	lineconfigpb "intrinsic/platform/pubsub/connect/common/proto/line_configuration/v1/line_configuration_go_proto"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // HubServiceCreateRunner implements high-level logic of the hub-service-create command.
@@ -39,11 +36,13 @@ import (
 // a local-only network that consists entirely of workcells, or a mixed network that may
 // include VMs.
 type HubServiceCreateRunner struct {
-	project        string
-	org            string
-	hubEndpoint    string
-	spokeEndpoints []string
-	forceLocalOnly bool
+	project                         string
+	org                             string
+	hubEndpoint                     string
+	spokeEndpoints                  []string
+	forceLocalOnly                  bool
+	shouldRetainServiceAsset        bool
+	ignoreOnpremErrorsDuringCleanup bool
 
 	// dialOnpremCluster creates a connection to the given spoke cluster.
 	// The default implementation connects to the real workcell or VM.
@@ -173,7 +172,7 @@ func (r *HubServiceCreateRunner) createMixedLineOrchestrationNetwork(
 	hubAndSpokeClusterIds := make([]string, 0, len(spokeEndpointSpecs)+1)
 	hubAndSpokeClusterIds = append(hubAndSpokeClusterIds, hubClusterId) // Hub
 	for _, spec := range spokeEndpointSpecs {
-		hubAndSpokeClusterIds = append(hubAndSpokeClusterIds, spec.WorkcellName) // Spoke
+		hubAndSpokeClusterIds = append(hubAndSpokeClusterIds, spec.GetWorkcellName()) // Spoke
 	}
 	fmt.Fprintf(
 		out,
@@ -192,31 +191,56 @@ func (r *HubServiceCreateRunner) createMixedLineOrchestrationNetwork(
 	return nil
 }
 
-// saveLineConfiguration persists configuration of the factory line in the cloud.
-func (r *HubServiceCreateRunner) saveLineConfiguration(
+// cleanupLineIfExists checks if a line orchestration network already exists,
+// and deletes resources that are no longer necessary.
+func (r *HubServiceCreateRunner) cleanupLineIfExists(
 	ctx context.Context,
+	out io.Writer,
 	conn *grpc.ClientConn,
-	lineId string,
+	lineID string,
 	hubEndpointSpec *endpointpb.EndpointSpec,
 	spokeEndpointSpecs []*endpointpb.EndpointSpec) error {
-	client := lineconfigstoragepb.NewLineConfigurationStorageServiceClient(conn)
-	req := &lineconfigstoragepb.UpdateLineConfigurationRequest{
-		LineConfiguration: &lineconfigpb.LineConfiguration{
-			Name:           lineidutils.ConvertIDToName(lineId),
-			HubEndpoint:    hubEndpointSpec,
-			SpokeEndpoints: spokeEndpointSpecs,
-		},
-		AllowMissing: true,
-	}
-	_, err := client.UpdateLineConfiguration(ctx, req)
+	hubClusterID := hubEndpointSpec.GetWorkcellName()
+	fmt.Fprintf(
+		out,
+		"Checking if the line orchestration network with the hub at %q already exists\n",
+		hubClusterID)
+	oldLineConfig, err := lineconfigutils.FetchLineConfiguration(ctx, conn, lineID)
 	if err != nil {
-		if status.Code(err) == codes.Unimplemented {
-			return common.ErrConfigStorageNotImplemented
+		if errors.Is(err, common.ErrConfigStorageNotImplemented) {
+			common.ExplainConfigStorageNotImplementedError(out, "hub-service-create", common.KeyForceLocalOnly, "create")
+			return err
 		}
-		return err
+		if errors.Is(err, common.ErrLineConfigNotFound) {
+			fmt.Fprintf(
+				out,
+				"Line with the hub at %q not found, will create a new one.\n",
+				hubClusterID)
+			return nil
+		}
+		return fmt.Errorf("failed to check existing line configuration: %w", err)
 	}
 
-	return nil
+	fmt.Fprintf(out, "Line orchestration network with the hub at %q found.\n", hubClusterID)
+	cleaner := oldLineCleaner{
+		ServiceDeleter: servicedeletionutils.ServiceDeleter{
+			ProjectID:                r.project,
+			OrgID:                    r.org,
+			ShouldRetainServiceAsset: r.shouldRetainServiceAsset,
+			IgnoreOnpremErrors:       r.ignoreOnpremErrorsDuringCleanup,
+			DialOnpremCluster:        r.dialOnpremCluster,
+		},
+		lineID:             lineID,
+		hubEndpointSpec:    hubEndpointSpec,
+		spokeEndpointSpecs: spokeEndpointSpecs,
+		oldLineConfig:      oldLineConfig,
+		remoteEndpointsPresentInOldLine: common.RemoteEndpointsExist(
+			oldLineConfig.GetSpokeEndpoints(),
+			oldLineConfig.GetHubEndpoint()),
+		remoteEndpointsPresentInNewLine: common.RemoteEndpointsExist(spokeEndpointSpecs, hubEndpointSpec),
+	}
+
+	return cleaner.cleanup(ctx, out, conn)
 }
 
 // run implements high-level logic of the hub-service-create command.
@@ -251,7 +275,7 @@ Creating a local-only line orchestration network without saving its configuratio
 		return r.createLocalOnlyLineOrchestrationNetwork(
 			ctx,
 			out,
-			hubEndpointSpec.WorkcellName,
+			hubEndpointSpec.GetWorkcellName(),
 			spokeEndpointSpecs)
 	}
 
@@ -262,18 +286,20 @@ Creating a local-only line orchestration network without saving its configuratio
 	}
 	defer conn.Close()
 
-	lineID, err := common.MakeLineID(r.org, hubEndpointSpec.WorkcellName)
+	lineID, err := common.MakeLineID(r.org, hubEndpointSpec.GetWorkcellName())
 	if err != nil {
-		fmt.Fprintf(out, "Cannot create a valid line id from %q and %q\n", r.org, hubEndpointSpec.WorkcellName)
+		fmt.Fprintf(out, "Cannot create a valid line id from %q and %q\n", r.org, hubEndpointSpec.GetWorkcellName())
 		return err
 	}
-	fmt.Fprintf(out, "Saving line configuration\n")
-	err = r.saveLineConfiguration(ctx, conn, lineID, hubEndpointSpec, spokeEndpointSpecs)
+
+	err = r.cleanupLineIfExists(ctx, out, conn, lineID, hubEndpointSpec, spokeEndpointSpecs)
 	if err != nil {
-		if errors.Is(err, common.ErrConfigStorageNotImplemented) {
-			common.ExplainConfigStorageNotImplementedError(out, "hub-service-create", common.KeyForceLocalOnly, "create")
-			return err
-		}
+		return err
+	}
+
+	fmt.Fprintf(out, "Saving line configuration\n")
+	err = lineconfigutils.SaveLineConfiguration(ctx, conn, lineID, hubEndpointSpec, spokeEndpointSpecs)
+	if err != nil {
 		return fmt.Errorf("failed to save line configuration: %w", err)
 	}
 
@@ -284,13 +310,13 @@ Creating a local-only line orchestration network without saving its configuratio
 			conn,
 			out,
 			lineID,
-			hubEndpointSpec.WorkcellName,
+			hubEndpointSpec.GetWorkcellName(),
 			spokeEndpointSpecs)
 	} else {
 		result = r.createLocalOnlyLineOrchestrationNetwork(
 			ctx,
 			out,
-			hubEndpointSpec.WorkcellName,
+			hubEndpointSpec.GetWorkcellName(),
 			spokeEndpointSpecs)
 	}
 

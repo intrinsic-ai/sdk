@@ -22,7 +22,7 @@ import (
 	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 
 	"intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common"
-	servicedeletionutils "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/service_deletion_utils"
+	servicedeletionutils "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/common/service_deletion_utils"
 	pubsubtesting "intrinsic/tools/inctl/cmd/pubsub/line_orchestration/testing"
 
 	"google.golang.org/grpc/codes"
@@ -37,14 +37,14 @@ func TestStopForwarding(t *testing.T) {
 	tests := []struct {
 		name               string
 		forwarderInstalled bool
-		shouldUninstall    bool
+		shouldRetain       bool
 		expectedOutput     []string
 		unexpectedOutput   []string
 	}{
 		{
 			name:               "Successful stop and uninstallation",
 			forwarderInstalled: true,
-			shouldUninstall:    true,
+			shouldRetain:       false,
 			expectedOutput: []string{
 				"Successfully deleted an instance of the line_orchestration_forwarder service",
 				"Successfully uninstalled the line_orchestration_forwarder service asset",
@@ -53,7 +53,7 @@ func TestStopForwarding(t *testing.T) {
 		{
 			name:               "Successful stop without uninstallation",
 			forwarderInstalled: true,
-			shouldUninstall:    false,
+			shouldRetain:       true,
 			expectedOutput: []string{
 				"Successfully deleted an instance of the line_orchestration_forwarder service",
 			},
@@ -64,7 +64,7 @@ func TestStopForwarding(t *testing.T) {
 		{
 			name:               "No-op when no forwarding",
 			forwarderInstalled: false,
-			shouldUninstall:    true,
+			shouldRetain:       false,
 			expectedOutput: []string{
 				"Deleting existing instances of the line_orchestration_forwarder service in the current solution",
 				"0 instances have been deleted",
@@ -118,7 +118,7 @@ func TestStopForwarding(t *testing.T) {
 					"test-cluster",
 					common.ForwardingServicePackage,
 					common.ForwardingServiceName),
-				ShouldUninstallServiceAsset: tt.shouldUninstall,
+				ShouldRetainServiceAsset: tt.shouldRetain,
 			}
 
 			err = runner.Run(ctx)

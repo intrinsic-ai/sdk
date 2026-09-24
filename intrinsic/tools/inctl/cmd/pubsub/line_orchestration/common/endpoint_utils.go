@@ -96,3 +96,18 @@ func ParseEndpointSpecs(endpointSpecStrings []string) ([]*endpointpb.EndpointSpe
 
 	return result, nil
 }
+
+// EndpointSpecString converts the `EndpointSpec` proto to a string
+// that can be used as a command line flag that represents that endpoint.
+func EndpointSpecString(endpointSpec *endpointpb.EndpointSpec) string {
+	suffix := ""
+	if endpointSpec.GetRemote() != nil {
+		suffix = RemoteEndpointDesignation
+	} else if endpointSpec.GetLocal() != nil {
+		suffix = LocalEndpointDesignation
+	} else {
+		suffix = endpointSpec.GetUrl()
+	}
+
+	return fmt.Sprintf("%s%s%s", endpointSpec.GetWorkcellName(), EndpointSpecSeparator, suffix)
+}

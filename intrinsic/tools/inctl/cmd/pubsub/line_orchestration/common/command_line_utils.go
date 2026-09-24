@@ -34,6 +34,14 @@ const (
 	// flag.
 	KeyClusterDeprecated = "cluster"
 
+	// KeyRetainServiceAsset is the command line flag that specifies whether to
+	// retain service asset in a solution.
+	KeyRetainServiceAsset = "retain-service-asset"
+
+	// KeyIgnoreOnpremErrors is the command line flag that specifies whether to
+	// ignore errors that occur in onprem clusters.
+	KeyIgnoreOnpremErrors = "ignore-onprem-errors"
+
 	EndpointSpecSeparator     = "@"
 	LocalEndpointDesignation  = "local"
 	RemoteEndpointDesignation = "remote"
