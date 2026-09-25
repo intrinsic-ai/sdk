@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Unit tests for the Python PubSub bindings."""
+
 import threading
 
 from absl.testing import absltest
@@ -24,12 +26,15 @@ from intrinsic.solutions.testing import compare
 
 
 class CallbackType:
+  """Callback status values for subscription test notifications."""
+
   NONE = 0
   OK = 1
   ERROR = 2
 
 
 class SubCallbackChecker:
+  """Helper that waits on subscription callbacks using a condition variable."""
 
   def __init__(self, pubsub_impl):
     self.pubsub_impl = pubsub_impl
@@ -90,7 +95,14 @@ class PubsubTest(parameterized.TestCase):
 
   def tearDown(self):
     super().tearDown()
-    del self.callback_checker.sub
+    if hasattr(self, 'callback_checker') and self.callback_checker is not None:
+      if hasattr(self.callback_checker, 'sub'):
+        del self.callback_checker.sub
+      del self.callback_checker
+    if hasattr(self, 'pub'):
+      del self.pub
+    if hasattr(self, 'pubsub'):
+      del self.pubsub
 
   @parameterized.named_parameters(('proto', make_test_proto()))
   def test_pubsub(self, value):
@@ -189,6 +201,36 @@ class PubsubTest(parameterized.TestCase):
         msg_callback=lambda msg: None,
     )
     self.assertTrue(publisher.HasMatchingSubscribers())
+
+  def test_destroy_session_when_unused_defers_teardown_and_reinitializes(self):
+    del self.callback_checker.sub
+    del self.callback_checker
+    del self.pub
+    del self.pubsub
+
+    ps = pubsub.PubSub()
+    self.assertTrue(pubsub.imw_is_initialized())
+    del ps
+    self.assertTrue(pubsub.imw_is_initialized())
+    pubsub.PubSub.DestroySessionWhenUnused()
+    self.assertFalse(pubsub.imw_is_initialized())
+
+    # Deferred teardown across outliving Publisher
+    ps2 = pubsub.PubSub()
+    self.assertTrue(pubsub.imw_is_initialized())
+    pub2 = ps2.CreatePublisher('news2', pubsub.TopicConfig())
+    pubsub.PubSub.DestroySessionWhenUnused()
+    self.assertTrue(pubsub.imw_is_initialized())
+    del ps2
+    self.assertTrue(pubsub.imw_is_initialized())
+    del pub2
+    self.assertFalse(pubsub.imw_is_initialized())
+
+    # Subsequent construction re-initializes cleanly
+    ps3 = pubsub.PubSub()
+    self.assertTrue(pubsub.imw_is_initialized())
+    del ps3
+    self.assertTrue(pubsub.imw_is_initialized())
 
 
 if __name__ == '__main__':
