@@ -96,6 +96,22 @@ class EnvironmentsTest(absltest.TestCase):
     with self.assertRaisesRegex(ValueError, "Unknown environment: invalid_env"):
       environments.portal_domain("invalid_env")
 
+  def test_equipment_domain(self):
+    self.assertEqual(
+        environments.equipment_domain(environments.PROD),
+        environments.EQUIPMENT_DOMAIN_PROD,
+    )
+    self.assertEqual(
+        environments.equipment_domain(environments.STAGING),
+        environments.EQUIPMENT_DOMAIN_STAGING,
+    )
+    self.assertEqual(
+        environments.equipment_domain(environments.DEV),
+        environments.EQUIPMENT_DOMAIN_DEV,
+    )
+    with self.assertRaisesRegex(ValueError, "Unknown environment: invalid_env"):
+      environments.equipment_domain("invalid_env")
+
   def test_portal_project(self):
     self.assertEqual(
         environments.portal_project(environments.PROD),

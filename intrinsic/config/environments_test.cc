@@ -88,6 +88,13 @@ TEST(EnvironmentsTest, PortalDomain) {
   EXPECT_EQ(PortalDomain("invalid_env"), "");
 }
 
+TEST(EnvironmentsTest, EquipmentDomain) {
+  EXPECT_EQ(EquipmentDomain(kProd), kEquipmentDomainProd);
+  EXPECT_EQ(EquipmentDomain(kStaging), kEquipmentDomainStaging);
+  EXPECT_EQ(EquipmentDomain(kDev), kEquipmentDomainDev);
+  EXPECT_EQ(EquipmentDomain("invalid_env"), "");
+}
+
 TEST(EnvironmentsTest, AccountsDomain) {
   EXPECT_EQ(AccountsDomain(kProd), kAccountsDomainProd);
   EXPECT_EQ(AccountsDomain(kStaging), kAccountsDomainStaging);

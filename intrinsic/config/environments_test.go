@@ -58,3 +58,20 @@ func TestAccountsProjectFromProject(t *testing.T) {
 		}
 	}
 }
+
+func TestEquipmentDomain(t *testing.T) {
+	tests := []struct {
+		env  string
+		want string
+	}{
+		{env: Prod, want: EquipmentDomainProd},
+		{env: Staging, want: EquipmentDomainStaging},
+		{env: Dev, want: EquipmentDomainDev},
+		{env: "invalid_env", want: ""},
+	}
+	for _, tc := range tests {
+		if got := EquipmentDomain(tc.env); got != tc.want {
+			t.Errorf("EquipmentDomain(%q) = %q, want %q", tc.env, got, tc.want)
+		}
+	}
+}
