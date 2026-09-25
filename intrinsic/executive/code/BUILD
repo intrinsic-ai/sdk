@@ -60,7 +60,7 @@ py_wheel(
     distribution = "code-execution",
     requires = [
         "absl-py",
-        "googleapis-common-protos",
+        "googleapis-common-protos<=1.72.0",
         "grpcio",
         "grpcio-status",
         "retrying",

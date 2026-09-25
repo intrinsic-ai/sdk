@@ -654,7 +654,7 @@ py_wheel(
     requires = [
         "absl-py",
         "black",
-        "googleapis-common-protos",
+        "googleapis-common-protos<=1.72.0",
         "graphviz",
         "grpcio",
         "grpcio-status",

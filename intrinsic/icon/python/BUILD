@@ -251,7 +251,7 @@ py_wheel(
         "google-api-python-client",
         "absl-py",
         "numpy",
-        "googleapis-common-protos",
+        "googleapis-common-protos<=1.72.0",
     ],
     version = "0.0.1",
     deps = [":icon_py_packages"],

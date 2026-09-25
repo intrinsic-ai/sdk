@@ -166,8 +166,9 @@ py_wheel(
     name = "skills_wheel",
     distribution = "skills",
     requires = [
-        "grpcio",
         "google-api-core",
+        "googleapis-common-protos<=1.72.0",
+        "grpcio",
         "numpy",
         "retrying",
     ],
