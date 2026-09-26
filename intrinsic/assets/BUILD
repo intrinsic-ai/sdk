@@ -202,6 +202,28 @@ go_test(
 )
 
 go_library(
+    name = "throttle",
+    srcs = ["throttle.go"],
+    importpath = "intrinsic/assets/throttle",
+    visibility = ["//intrinsic/assets:__subpackages__"],
+    deps = [
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_time//rate:go_default_library",
+    ],
+)
+
+go_test(
+    name = "throttle_test",
+    srcs = ["throttle_test.go"],
+    embed = [":throttle"],
+    importpath = "intrinsic/assets/throttle_test",
+    deps = [
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_time//rate:go_default_library",
+    ],
+)
+
+go_library(
     name = "typeutils",
     srcs = ["typeutils.go"],
     importpath = "intrinsic/assets/typeutils",
