@@ -287,6 +287,7 @@ go_library(
         "//intrinsic/skills:skillbundle",
         "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
         "//intrinsic/util/proto:descriptor",
+        "@com_github_google_safearchive//tar",
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
