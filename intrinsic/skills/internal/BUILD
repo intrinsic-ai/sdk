@@ -304,7 +304,6 @@ py_library(
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_py_pb2_grpc",
         "//intrinsic/skills/proto:error_py_pb2",
         "//intrinsic/skills/proto:footprint_py_pb2",
-        "//intrinsic/skills/proto:prediction_py_pb2",
         "//intrinsic/skills/proto:skill_service_py_pb2",
         "//intrinsic/skills/proto:skill_service_py_pb2_grpc",
         "//intrinsic/skills/proto:skills_py_pb2",
