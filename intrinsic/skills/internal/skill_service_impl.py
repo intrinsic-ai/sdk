@@ -45,12 +45,6 @@ from intrinsic.skills.internal import error_bindings
 from intrinsic.skills.internal import error_utils
 from intrinsic.skills.internal import execute_context_impl
 from intrinsic.skills.internal import get_footprint_context_impl
-
-# isort: off
-
-# isort: on
-
-
 from intrinsic.skills.internal import preview_context_impl
 from intrinsic.skills.internal import runtime_data as rd
 from intrinsic.skills.internal import skill_repository as skill_repo
@@ -252,19 +246,15 @@ class SkillProjectorServicer(skill_service_pb2_grpc.ProjectorServicer):
 
     return skill_service_pb2.GetFootprintResult(footprint=skill_footprint)
 
-  # pylint: disable=line-too-long
   def Predict(
       self,
       predict_request: skill_service_pb2.PredictRequest,
       context: grpc.ServicerContext,
   ) -> skill_service_pb2.PredictResult:
     return skill_service_pb2.PredictResult(
-        outcomes=[
-            prediction_pb2.Prediction(probability=1.0)
-        ],
+        outcomes=[prediction_pb2.Prediction(probability=1.0)],
         internal_data=predict_request.internal_data,
     )
-  # pylint: enable=line-too-long
 
 
 class SkillExecutorServicer(skill_service_pb2_grpc.ExecutorServicer):
@@ -1173,7 +1163,6 @@ def _abort_with_status(
   # since context.abort_with_status does not properly annotate its return value
   # as NoReturn.
   raise AssertionError('This error should not have been raised.')
-
 
 
 def _proto_to_get_footprint_request(

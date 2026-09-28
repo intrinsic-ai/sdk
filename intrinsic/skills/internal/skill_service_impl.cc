@@ -438,18 +438,14 @@ grpc::Status SkillProjectorServiceImpl::GetFootprint(
   return ::grpc::Status::OK;
 }
 
-// NOLINTBEGIN
-// clang-format off
 grpc::Status SkillProjectorServiceImpl::Predict(
-    grpc::ServerContext* context,
+    grpc::ServerContext* /*context*/,
     const intrinsic_proto::skills::PredictRequest* req,
     intrinsic_proto::skills::PredictResult* result) {
   result->set_internal_data(req->internal_data());
   result->add_outcomes()->set_probability(1.0);
   return ::grpc::Status::OK;
 }
-// clang-format on
-// NOLINTEND
 
 SkillExecutorServiceImpl::SkillExecutorServiceImpl(
     SkillRepository& skill_repository,
