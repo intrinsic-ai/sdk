@@ -33,7 +33,6 @@
 namespace intrinsic {
 namespace skills {
 
-
 // Provides extra metadata and functionality for a Skill::Preview call.
 //
 // It is provided by the skill service to a skill and allows access to the world

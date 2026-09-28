@@ -59,7 +59,6 @@ absl::StatusOr<ExecuteRequest> PreviewToExecuteRequest(
 // input preview context exists.
 absl::StatusOr<ExecuteContextView> PreviewToExecuteContext(
     PreviewContext& context, const EquipmentPack& equipment);
-
 }  // namespace skills
 }  // namespace intrinsic
 

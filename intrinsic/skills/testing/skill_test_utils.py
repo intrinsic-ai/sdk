@@ -36,16 +36,10 @@ from intrinsic.motion_planning.proto.v1 import motion_planner_service_pb2_grpc
 from intrinsic.resources.proto import resource_handle_pb2
 from intrinsic.skills.internal import execute_context_impl
 from intrinsic.skills.internal import get_footprint_context_impl
-
-# isort: off
-# isort: on
 from intrinsic.skills.internal import preview_context_impl
 from intrinsic.skills.proto import skill_manifest_pb2
 from intrinsic.skills.python import execute_request
 from intrinsic.skills.python import get_footprint_request
-
-# isort: off
-# isort: on
 from intrinsic.skills.python import preview_request
 from intrinsic.skills.python import skill_canceller
 from intrinsic.skills.python import skill_interface
@@ -264,7 +258,6 @@ def make_test_preview_context(
       resource_handles=resource_handles,
       context_id=context_id,
   )
-
 
 
 def make_test_get_footprint_request(

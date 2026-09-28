@@ -84,7 +84,6 @@ TEST(PreviewViaExecuteTest, PreviewViaExecuteCallsExecute) {
 
   EXPECT_EQ(result.foo(), "foo");
 }
-
 }  // namespace
 }  // namespace skills
 }  // namespace intrinsic

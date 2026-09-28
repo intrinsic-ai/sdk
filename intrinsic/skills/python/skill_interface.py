@@ -27,9 +27,6 @@ from intrinsic.skills.python import execute_context
 from intrinsic.skills.python import execute_request
 from intrinsic.skills.python import get_footprint_context
 from intrinsic.skills.python import get_footprint_request
-
-# isort: off
-# isort: on
 from intrinsic.skills.python import preview_context
 from intrinsic.skills.python import preview_request
 from intrinsic.util.status import status_exception
