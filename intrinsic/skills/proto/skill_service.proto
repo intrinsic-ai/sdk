@@ -42,8 +42,8 @@ message GetFootprintRequest {
   // deployment configs etc.).
   intrinsic_proto.data_logger.Context context = 4;
 
-  // Skill-internal data from a previous call to Predict.
-  bytes internal_data = 5;
+  reserved 5;
+  reserved "internal_data";
 }
 
 message GetFootprintResult {
@@ -60,8 +60,8 @@ message ExecuteRequest {
 
   intrinsic_proto.skills.Footprint footprint = 2;
 
-  // Skill-internal data from a previous call to Projector.Predict.
-  bytes internal_data = 3;
+  reserved 3;
+  reserved "internal_data";
 
   // ID of the world in the world service which holds the initial world state
   // for the skill execution.
@@ -91,8 +91,8 @@ message PreviewRequest {
 
   intrinsic_proto.skills.Footprint footprint = 2;
 
-  // Skill-internal data from a previous call to Projector.Predict.
-  bytes internal_data = 3;
+  reserved 3;
+  reserved "internal_data";
 
   // ID of the world in the world service which holds the initial world state
   // for the skill preview.
@@ -271,11 +271,8 @@ message ProjectRequest {
   // related plan instance, deployment configs etc.).
   intrinsic_proto.data_logger.Context context = 5;
 
-  // OPTIONAL. Skill-internal data about the outcome of planning the skill. This
-  // data is optional and if provided can be used to make planning faster. It is
-  // intended to be used if the skill was previously planned and needs
-  // replanning.
-  bytes internal_data = 7;
+  reserved 7;
+  reserved "internal_data";
 
 }
 
@@ -284,10 +281,8 @@ message ProjectResult {
 
   intrinsic_proto.skills.Footprint footprint = 2;
 
-  // Skill-internal data about the outcome of planning the skill. Attempting to
-  // execute a skill without passing this data may result in behavior that does
-  // not match this ProjectResult.
-  bytes internal_data = 5;
+  reserved 5;
+  reserved "internal_data";
 
 }
 
