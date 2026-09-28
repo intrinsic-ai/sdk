@@ -22,7 +22,11 @@ import (
 	"os"
 	"time"
 
-	"go.opencensus.io/trace"
+	"intrinsic/stats/go/telemetry"
+
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -33,11 +37,10 @@ const (
 )
 
 func getMetadata(ctx context.Context, path string) (string, error) {
-	ctx, span := trace.StartSpan(ctx, "metadata.getMetadata")
+	ctx, span := telemetry.StartSpan(ctx, "metadata.getMetadata", trace.WithAttributes(
+		attribute.String("path", path),
+	))
 	defer span.End()
-	if span.IsRecordingEvents() {
-		span.AddAttributes(trace.StringAttribute("path", path))
-	}
 
 	client := &http.Client{
 		Timeout: 5 * time.Second, // Set a timeout for the request
@@ -81,27 +84,22 @@ func CloudProjectName(ctx context.Context) (string, error) {
 	return getMetadata(ctx, projectIDPath)
 }
 
-func spanStatusFromResponse(span *trace.Span, resp *http.Response) {
-	if span != nil && span.IsRecordingEvents() && resp.StatusCode >= 300 {
-		span.Annotatef([]trace.Attribute{
-			trace.StringAttribute("method", resp.Request.Method),
-			trace.StringAttribute("url", resp.Request.URL.String()),
-			trace.Int64Attribute("code", int64(resp.StatusCode)),
-			trace.StringAttribute("status", resp.Status),
-		}, "http: %s", resp.Status)
-		span.SetStatus(trace.Status{
-			Code:    int32(resp.StatusCode),
-			Message: resp.Status,
-		})
+func spanStatusFromResponse(span trace.Span, resp *http.Response) {
+	if span != nil && span.IsRecording() && resp.StatusCode >= 300 {
+		span.AddEvent("http: "+resp.Status, trace.WithAttributes(
+			attribute.String("method", resp.Request.Method),
+			attribute.String("url", resp.Request.URL.String()),
+			attribute.Int64("code", int64(resp.StatusCode)),
+			attribute.String("status", resp.Status),
+		))
+		span.SetStatus(codes.Error, resp.Status)
 	}
 }
 
-func spanSetErrorStatus(span *trace.Span, err error) error {
-	if span != nil && span.IsRecordingEvents() && err != nil {
-		span.SetStatus(trace.Status{
-			Code:    13,
-			Message: err.Error(),
-		})
+func spanSetErrorStatus(span trace.Span, err error) error {
+	if span != nil && span.IsRecording() && err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 	}
 	return err
 }

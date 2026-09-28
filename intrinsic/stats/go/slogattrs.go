@@ -18,15 +18,15 @@ package slogattrs
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
-	"go.opencensus.io/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type slogAttrsCtxKey string
@@ -99,15 +99,15 @@ func (h *ContextHandler) Handle(ctx context.Context, r slog.Record) error {
 	if attrs, ok := ctx.Value(slogFields).([]slog.Attr); ok {
 		r.AddAttrs(attrs...)
 	}
-	span := trace.FromContext(ctx)
-	if span != nil && span.IsRecordingEvents() {
+	span := trace.SpanFromContext(ctx)
+	if span.IsRecording() {
 		// We are going to attach trace information IFF span is recording events.
 		spanContext := span.SpanContext()
 		r.Add(
 			// See: https://cloud.google.com/logging/docs/structured-logging#special-payload-fields
-			slog.String("logging.googleapis.com/trace", fmt.Sprintf("projects/%s/traces/%s", h.ProjectName, spanContext.TraceID)),
-			slog.String("logging.googleapis.com/spanId", spanContext.SpanID.String()),
-			slog.Bool("logging.googleapis.com/trace_sampled", span.IsRecordingEvents()), // always true in this context
+			slog.String("logging.googleapis.com/trace", path.Join("projects", h.ProjectName, "traces", spanContext.TraceID().String())),
+			slog.String("logging.googleapis.com/spanId", spanContext.SpanID().String()),
+			slog.Bool("logging.googleapis.com/trace_sampled", spanContext.IsSampled()),
 		)
 	}
 	if h.LogLevelTracing {

@@ -27,15 +27,59 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"go.opencensus.io/plugin/ocgrpc"
-	"go.opencensus.io/trace"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	oteltrace "go.opentelemetry.io/otel/trace"
+	grpccodes "google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
-type testExporter struct {
-	spans []*trace.SpanData
+// newRecordingTracerProvider returns a TracerProvider whose spans are always
+// sampled, together with the recorder that collects them once they end.
+func newRecordingTracerProvider(t *testing.T) (*sdktrace.TracerProvider, *tracetest.SpanRecorder) {
+	t.Helper()
+	recorder := tracetest.NewSpanRecorder()
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
+		sdktrace.WithSpanProcessor(recorder),
+	)
+	t.Cleanup(func() {
+		// t.Context() is canceled just before cleanup functions run, so the
+		// shutdown needs a context of its own.
+		if err := tp.Shutdown(context.Background()); err != nil {
+			t.Errorf("TracerProvider.Shutdown() returned an unexpected error: %v", err)
+		}
+	})
+	return tp, recorder
 }
 
-func (e *testExporter) ExportSpan(s *trace.SpanData) {
-	e.spans = append(e.spans, s)
+// newRecordingTracer returns a tracer for starting spans and a recorder for collecting them.
+func newRecordingTracer(t *testing.T) (oteltrace.Tracer, *tracetest.SpanRecorder) {
+	t.Helper()
+	tp, recorder := newRecordingTracerProvider(t)
+	return tp.Tracer("intrinsic/stats/go/telemetry_test"), recorder
+}
+
+// onlyEndedSpan returns the single span captured by the recorder.
+func onlyEndedSpan(t *testing.T, recorder *tracetest.SpanRecorder) sdktrace.ReadOnlySpan {
+	t.Helper()
+	spans := recorder.Ended()
+	if len(spans) != 1 {
+		t.Fatalf("recorder captured %d ended spans, want 1", len(spans))
+	}
+	return spans[0]
+}
+
+// spanAttributes renders the attributes of a span as a name to value map.
+func spanAttributes(s sdktrace.ReadOnlySpan) map[string]string {
+	attrs := make(map[string]string)
+	for _, kv := range s.Attributes() {
+		attrs[string(kv.Key)] = kv.Value.Emit()
+	}
+	return attrs
 }
 
 type WasCalledHandler struct {
@@ -66,9 +110,10 @@ type TraceIDHandlerTest struct {
 }
 
 func mustCreateNewRequestWithSpan(ctx context.Context, t *testing.T, method, url string, body io.Reader) *http.Request {
-	spanCtx, _ := trace.StartSpanWithRemoteParent(ctx, "test",
-		trace.SpanContext{TraceOptions: 0x1}, // trace span
-	)
+	t.Helper()
+	tracer, _ := newRecordingTracer(t)
+	spanCtx, span := tracer.Start(ctx, "test")
+	t.Cleanup(func() { span.End() })
 	r, err := http.NewRequestWithContext(spanCtx, method, url, body)
 	if err != nil {
 		t.Fatal(err)
@@ -284,32 +329,159 @@ func TestEnableMetrics(t *testing.T) {
 	}
 }
 
-func TestContextSpanAddAttributes(t *testing.T) {
-	te := &testExporter{}
-	trace.RegisterExporter(te)
-	defer trace.UnregisterExporter(te)
+func TestAddSpanAttributes(t *testing.T) {
+	tracer, recorder := newRecordingTracer(t)
 
-	ctx, span := trace.StartSpanWithRemoteParent(context.Background(), "test-span", trace.SpanContext{TraceOptions: 1})
-	ContextSpanAddAttributes(ctx, trace.StringAttribute("key1", "value1"), trace.BoolAttribute("key2", true))
+	ctx, span := tracer.Start(t.Context(), "test-span")
+	AddSpanAttributes(ctx, attribute.String("key1", "value1"), attribute.Bool("key2", true))
 	span.End()
 
-	if got, want := len(te.spans), 1; got != want {
-		t.Fatalf("ContextSpanAddAttributes() exported %d spans, want %d", got, want)
-	}
-	gotAttributes := te.spans[0].Attributes
-	wantAttributes := map[string]any{
+	want := map[string]string{
 		"key1": "value1",
-		"key2": true,
+		"key2": "true",
 	}
-	for k, v := range wantAttributes {
-		got, ok := gotAttributes[k]
-		if !ok {
-			t.Errorf("Attribute %q not found in span attributes", k)
-			continue
-		}
-		if got != v {
-			t.Errorf("Attribute %q=%v, want %v", k, got, v)
-		}
+	got := spanAttributes(onlyEndedSpan(t, recorder))
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("AddSpanAttributes() recorded unexpected attributes (-want +got):\n%s", diff)
+	}
+}
+
+func TestAddSpanAttributesWithoutSpan(t *testing.T) {
+	// There is no span in the context, so this must not panic.
+	AddSpanAttributes(t.Context(), attribute.String("key1", "value1"))
+}
+
+func TestSetSpanError(t *testing.T) {
+	tracer, recorder := newRecordingTracer(t)
+
+	_, span := tracer.Start(t.Context(), "test-span")
+	SetSpanError(span, grpccodes.NotFound, "loading item", errors.New("no such key"))
+	span.End()
+
+	ended := onlyEndedSpan(t, recorder)
+	if got, want := ended.Status().Code, codes.Error; got != want {
+		t.Errorf("SetSpanError() set status code %v, want %v", got, want)
+	}
+	if got, want := ended.Status().Description, "loading item: no such key"; got != want {
+		t.Errorf("SetSpanError() set status description %q, want %q", got, want)
+	}
+	want := map[string]string{"error.type": "NotFound"}
+	if diff := cmp.Diff(want, spanAttributes(ended)); diff != "" {
+		t.Errorf("SetSpanError() recorded unexpected attributes (-want +got):\n%s", diff)
+	}
+}
+
+func TestSetSpanErrorf(t *testing.T) {
+	tracer, recorder := newRecordingTracer(t)
+
+	_, span := tracer.Start(t.Context(), "test-span")
+	SetSpanErrorf(span, grpccodes.InvalidArgument, "value %d is out of range", 42)
+	span.End()
+
+	ended := onlyEndedSpan(t, recorder)
+	if got, want := ended.Status().Code, codes.Error; got != want {
+		t.Errorf("SetSpanErrorf() set status code %v, want %v", got, want)
+	}
+	if got, want := ended.Status().Description, "value 42 is out of range"; got != want {
+		t.Errorf("SetSpanErrorf() set status description %q, want %q", got, want)
+	}
+	want := map[string]string{"error.type": "InvalidArgument"}
+	if diff := cmp.Diff(want, spanAttributes(ended)); diff != "" {
+		t.Errorf("SetSpanErrorf() recorded unexpected attributes (-want +got):\n%s", diff)
+	}
+}
+
+func TestSpanStatusWithError(t *testing.T) {
+	tests := []struct {
+		desc            string
+		err             error
+		wantCode        codes.Code
+		wantDescription string
+		wantAttributes  map[string]string
+	}{
+		{
+			desc:            "grpc_status_error",
+			err:             status.Error(grpccodes.PermissionDenied, "not allowed"),
+			wantCode:        codes.Error,
+			wantDescription: "not allowed",
+			wantAttributes:  map[string]string{"error.type": "PermissionDenied"},
+		},
+		{
+			desc:            "plain_error_is_reported_as_unknown",
+			err:             errors.New("something broke"),
+			wantCode:        codes.Error,
+			wantDescription: "something broke",
+			wantAttributes:  map[string]string{"error.type": "Unknown"},
+		},
+		{
+			desc:            "nil_error_leaves_the_span_untouched",
+			err:             nil,
+			wantCode:        codes.Unset,
+			wantDescription: "",
+			wantAttributes:  map[string]string{},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			tracer, recorder := newRecordingTracer(t)
+
+			_, span := tracer.Start(t.Context(), "test-span")
+			if got := SpanStatusWithError(span, test.err); got != test.err {
+				t.Errorf("SpanStatusWithError() returned error %v, want %v", got, test.err)
+			}
+			span.End()
+
+			ended := onlyEndedSpan(t, recorder)
+			if got, want := ended.Status().Code, test.wantCode; got != want {
+				t.Errorf("SpanStatusWithError() set status code %v, want %v", got, want)
+			}
+			if got, want := ended.Status().Description, test.wantDescription; got != want {
+				t.Errorf("SpanStatusWithError() set status description %q, want %q", got, want)
+			}
+			if diff := cmp.Diff(test.wantAttributes, spanAttributes(ended)); diff != "" {
+				t.Errorf("SpanStatusWithError() recorded unexpected attributes (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestOtelHTTPHelpersPropagateTraceContext(t *testing.T) {
+	serverTP, serverRecorder := newRecordingTracerProvider(t)
+	clientTP, clientRecorder := newRecordingTracerProvider(t)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/items/list", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("ok"))
+	})
+	srv := httptest.NewServer(NewOtelHTTPHandler(mux, otelhttp.WithTracerProvider(serverTP)))
+	defer srv.Close()
+
+	client := &http.Client{
+		Transport: NewOtelHTTPTransport(nil, otelhttp.WithTracerProvider(clientTP)),
+	}
+	resp, err := client.Get(srv.URL + "/items/list")
+	if err != nil {
+		t.Fatalf("client.Get() returned an unexpected error: %v", err)
+	}
+	if _, err := io.ReadAll(resp.Body); err != nil {
+		t.Fatalf("reading the response body returned an unexpected error: %v", err)
+	}
+	resp.Body.Close()
+
+	serverSpan := onlyEndedSpan(t, serverRecorder)
+	clientSpan := onlyEndedSpan(t, clientRecorder)
+
+	if serverSpan.Parent().SpanID() != clientSpan.SpanContext().SpanID() {
+		t.Errorf("server span parent is %v, want the client span %v", serverSpan.Parent().SpanID(), clientSpan.SpanContext().SpanID())
+	}
+	if serverSpan.SpanContext().TraceID() != clientSpan.SpanContext().TraceID() {
+		t.Errorf("server span trace is %v, want the client trace %v", serverSpan.SpanContext().TraceID(), clientSpan.SpanContext().TraceID())
+	}
+	if serverSpan.Name() != "/items/list" {
+		t.Errorf("server span is named %q, want %q", serverSpan.Name(), "/items/list")
+	}
+	if clientSpan.Name() != "/items/list" {
+		t.Errorf("client span is named %q, want %q", clientSpan.Name(), "/items/list")
 	}
 }
 
