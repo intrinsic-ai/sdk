@@ -336,6 +336,12 @@ message CreateClusterInfo {
   // The name of the cluster for humans
   string display_name = 6 [(google.api.field_behavior) = REQUIRED];
   string location = 7 [(google.api.field_behavior) = OPTIONAL];
+
+  // The update mode to select.
+  PlatformUpdateMode update_mode = 8 [(google.api.field_behavior) = OPTIONAL];
+
+  // The versions to install.
+  UpdateVersions versions = 9 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message CreateClusterRequest {
