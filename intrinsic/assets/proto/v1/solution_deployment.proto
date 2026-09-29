@@ -97,6 +97,12 @@ message SolutionDeployment {
   // does not match the currently running deployment (or if no deployment is
   // running), the update fails with FAILED_PRECONDITION.
   string name = 4;
+
+  // The display name used for the solution deployment.  This may differ from
+  // the display name associated with solution_id.   Components may choose to
+  // prioritize the latter, but should indicate they are doing so to avoid
+  // confusion.
+  string display_name = 5;
 }
 
 message CreateSolutionDeploymentFromVersionedSolutionRequest {
