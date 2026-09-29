@@ -697,3 +697,22 @@ func TestGetProject(t *testing.T) {
 		}
 	})
 }
+
+func TestQualifiedOrg(t *testing.T) {
+	tests := []struct {
+		projectName string
+		orgName     string
+		want        string
+	}{
+		{projectName: "", orgName: "", want: ""},
+		{projectName: "myproject", orgName: "", want: "intrinsic@myproject"},
+		{projectName: "", orgName: "myorg", want: "myorg"},
+		{projectName: "myproject", orgName: "myorg", want: "myorg@myproject"},
+	}
+
+	for _, tc := range tests {
+		if got := QualifiedOrg(tc.projectName, tc.orgName); got != tc.want {
+			t.Errorf("QualifiedOrg(%q, %q) = %q, want %q", tc.projectName, tc.orgName, got, tc.want)
+		}
+	}
+}
