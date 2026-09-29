@@ -58,8 +58,7 @@ service SolutionDeploymentService {
   }
 
   // Gets the current solution deployment, if running. Returns NotFound if there
-  // is no active solution deployment.  Returns a basic view of the solution
-  // deployment.
+  // is no active solution deployment.
   rpc GetSolutionDeployment(GetSolutionDeploymentRequest)
       returns (SolutionDeployment) {
     option (google.api.http) = {
@@ -67,9 +66,8 @@ service SolutionDeploymentService {
     };
   }
 
-  // Updates the current solution deployment, if running.  It provides the
-  // option to start a solution deployment if not.  Returns a basic view of the
-  // updated solution.
+  // Updates the current solution deployment, if running. It provides the
+  // option to start a solution deployment if not.
   rpc UpdateSolutionDeployment(UpdateSolutionDeploymentRequest)
       returns (google.longrunning.Operation) {
     option (google.longrunning.operation_info) = {
@@ -80,6 +78,21 @@ service SolutionDeploymentService {
       patch: "/v1/solutionDeployment"
     };
   }
+}
+
+enum SolutionDeploymentView {
+  // The default/unset value (depends on the RPC being called).
+  SOLUTION_DEPLOYMENT_VIEW_UNSPECIFIED = 0;
+
+  // Provides minimal, basic information about the SolutionDeployment.
+  //
+  // In the basic view, solution will only contain id version and type
+  // information about assets and name and asset information for instances. No
+  // object world updates are included.
+  SOLUTION_DEPLOYMENT_VIEW_BASIC = 1;
+
+  // Provides all fields.
+  SOLUTION_DEPLOYMENT_VIEW_FULL = 6;
 }
 
 message SolutionDeployment {
@@ -108,9 +121,17 @@ message SolutionDeployment {
 message CreateSolutionDeploymentFromVersionedSolutionRequest {
   string solution_id = 1;
   intrinsic_proto.config.OperationMode operation_mode = 2;
+
+  // Specify the information returned in the request.
+  // SOLUTION_DEPLOYMENT_VIEW_BASIC is used by default.
+  SolutionDeploymentView view = 3;
 }
 
-message GetSolutionDeploymentRequest {}
+message GetSolutionDeploymentRequest {
+  // Specify the information returned in the request.
+  // SOLUTION_DEPLOYMENT_VIEW_FULL is used by default.
+  SolutionDeploymentView view = 1;
+}
 
 message UpdateSolutionDeploymentMetadata {
   intrinsic_proto.status.ExtendedStatus warnings = 1;
@@ -124,6 +145,10 @@ message UpdateSolutionDeploymentRequest {
   // `solution_deployment.name` in the request is empty; setting a non-empty
   // `name` when no deployment is running fails with FAILED_PRECONDITION).
   bool allow_missing = 3;
+
+  // Specify the information returned in the request.
+  // SOLUTION_DEPLOYMENT_VIEW_BASIC is used by default.
+  SolutionDeploymentView view = 4;
 }
 
 message CreateSolutionDeploymentFromVersionedSolutionMetadata {
