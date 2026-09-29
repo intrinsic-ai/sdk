@@ -39,7 +39,7 @@ cc_library(
     deps = [
         ":conversions",
         "//intrinsic/eigenmath",
-        "//intrinsic/geometry/proto:transformed_geometry_storage_refs_cc_proto",
+        "//intrinsic/geometry/proto/v1:transformed_geometry_cc_proto",
         "//intrinsic/icon/proto:joint_space_cc_proto",
         "//intrinsic/logging/proto:context_cc_proto",
         "//intrinsic/math:pose3",
@@ -73,7 +73,7 @@ py_library(
     deps = [
         "//intrinsic/assets/dependencies:utils_py",
         "//intrinsic/assets/proto/v1:resolved_dependency_py_pb2",
-        "//intrinsic/geometry/proto:transformed_geometry_storage_refs_py_pb2",
+        "//intrinsic/geometry/proto/v1:transformed_geometry_py_pb2",
         "//intrinsic/icon/proto:joint_space_py_pb2",
         "//intrinsic/logging/proto:context_py_pb2",
         "//intrinsic/math/python:data_types",
