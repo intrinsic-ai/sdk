@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package throttle provides primitives to limit concurrency and rates.
+// Package throttle provides constants and primitives to limit concurrency and rates.
 package throttle
 
 import (
@@ -20,6 +20,24 @@ import (
 
 	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
+)
+
+// The following constants provide a single source of truth for safe limits when communicating with
+// backend services during Asset operations (such as installation, release, and deployment). They
+// are used as defaults across CLI commands and client wrappers to prevent overwhelming cloud
+// services or on-premises workcells.
+const (
+	// CloudRateLimit is a safe rate limit for communicating with cloud services.
+	CloudRateLimit = 20.0
+
+	// CloudBurst is a safe burst size for communicating with cloud services.
+	CloudBurst = 2
+
+	// OnPremRateLimit is a safe rate limit for communicating with on-premises cluster services.
+	OnPremRateLimit = 20.0
+
+	// OnPremBurst is a safe burst size for communicating with on-premises cluster services.
+	OnPremBurst = 2
 )
 
 // rateLimitedConn wraps a grpc.ClientConnInterface to rate-limit outbound RPC calls.
