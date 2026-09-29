@@ -18,6 +18,7 @@ package throttle
 import (
 	"context"
 
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
 )
@@ -39,6 +40,136 @@ const (
 	// OnPremBurst is a safe burst size for communicating with on-premises cluster services.
 	OnPremBurst = 2
 )
+
+// ConcurrencyLimiter limits concurrent function calls across potentially nested call graphs.
+//
+// In a nested call graph where functions executed by Do make further calls to Do on the same
+// limiter, a naive semaphore would deadlock whenever all slots are occupied by parent functions
+// waiting for their child Do calls to finish. To prevent this while still bounding active work to
+// the limiter's capacity, Do attaches a concurrency token to the context passed to each function.
+// When a parent function blocks on a nested Do call, up to one child function at a time can
+// "borrow" the waiting parent's concurrency slot (while other child functions can run in parallel
+// if free slots are available in the limiter).
+//
+// Example usage:
+//
+//	cl := throttle.NewConcurrencyLimiter(4)
+//	err := cl.Do(ctx,
+//		func(ctx context.Context) error {
+//			// Shares the limiter with the outer Do call without risking deadlock.
+//			return cl.Do(ctx, childFn1, childFn2)
+//		},
+//		...,
+//	)
+//
+// A nil or zero-value ConcurrencyLimiter is valid and acts as an unconstrained limiter.
+type ConcurrencyLimiter struct {
+	sem chan struct{}
+}
+
+// NewConcurrencyLimiter creates a ConcurrencyLimiter that allows up to limit concurrent operations.
+//
+// If limit <= 0, concurrency is unconstrained.
+func NewConcurrencyLimiter(limit int) *ConcurrencyLimiter {
+	if limit <= 0 {
+		return nil
+	}
+
+	return &ConcurrencyLimiter{
+		sem: make(chan struct{}, limit),
+	}
+}
+
+// Do calls functions within the limiter's concurrency limit and waits for all of them to complete.
+//
+// Each function is launched in an errgroup goroutine and blocks until it acquires a concurrency
+// slot before executing. If ctx carries a token from an enclosing Do call on cl, a child function
+// can either acquire a free slot from cl or borrow the waiting caller's slot (at most one child at
+// a time), guaranteeing forward progress without exceeding the concurrency limit.
+//
+// If ctx is canceled or any function returns an error, the context passed to the functions is
+// canceled, any queued functions that have not yet acquired a concurrency slot are skipped, and Do
+// returns the first error. Calling code should not rely on functions passed to Do being called to
+// release resources acquired outside of Do.
+func (cl *ConcurrencyLimiter) Do(ctx context.Context, fns ...func(ctx context.Context) error) error {
+	g, gCtx := errgroup.WithContext(ctx)
+	if cl != nil && cl.sem != nil {
+		g.SetLimit(cap(cl.sem))
+	}
+	for _, fn := range fns {
+		g.Go(func() error {
+			tok, fnCtx, err := cl.acquire(gCtx)
+			if err != nil {
+				return err
+			}
+			defer tok.release()
+			return fn(fnCtx)
+		})
+	}
+	return g.Wait()
+}
+
+// acquire obtains a concurrency slot for a function in Do and returns the acquired token along
+// with a child context carrying that token.
+//
+// For a top-level Do call (no parent token in ctx), parentSem is nil (disabling that select case)
+// and acquire blocks until a slot is available in cl.sem or ctx is canceled.
+//
+// For a nested Do call (where ctx carries the parent's token), acquire waits on both cl.sem and the
+// parent token's 1-slot sem, returning a token backed by whichever slot becomes available first.
+func (cl *ConcurrencyLimiter) acquire(ctx context.Context) (*token, context.Context, error) {
+	// Check ctx.Err() first because Go's select chooses pseudo-randomly if both a semaphore channel
+	// and ctx.Done() are ready at the same time.
+	if err := ctx.Err(); err != nil {
+		return nil, nil, err
+	}
+	if cl == nil || cl.sem == nil {
+		return nil, ctx, nil
+	}
+
+	// Look for a parent token in the context. If found, we can also acquire ("borrow") the slot from
+	// that token.
+	var parentSem chan struct{}
+	if tok, ok := ctx.Value(cl).(*token); ok {
+		parentSem = tok.sem
+	}
+
+	// Wait until we can either borrow the parent token's slot or acquire a new slot from the limiter.
+	var tok *token
+	select {
+	case cl.sem <- struct{}{}:
+		tok = newToken(func() { <-cl.sem })
+	case parentSem <- struct{}{}:
+		tok = newToken(func() { <-parentSem })
+	case <-ctx.Done():
+		return nil, nil, ctx.Err()
+	}
+	return tok, context.WithValue(ctx, cl, tok), nil
+}
+
+// token represents a single acquired concurrency slot.
+//
+// A nil token is valid and represents an unconstrained operation whose release is a no-op.
+type token struct {
+	releaseFn func()
+	// sem is a 1-element buffered channel that is only used if the holder makes a nested call to Do,
+	// allowing at most one child function at a time to borrow this token's concurrency slot while the
+	// holder waits for the nested Do call to complete.
+	sem chan struct{}
+}
+
+func newToken(releaseFn func()) *token {
+	return &token{
+		releaseFn: releaseFn,
+		sem:       make(chan struct{}, 1),
+	}
+}
+
+func (t *token) release() {
+	if t != nil && t.releaseFn != nil {
+		t.releaseFn()
+	}
+}
 
 // rateLimitedConn wraps a grpc.ClientConnInterface to rate-limit outbound RPC calls.
 type rateLimitedConn struct {

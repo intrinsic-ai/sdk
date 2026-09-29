@@ -208,6 +208,7 @@ go_library(
     visibility = ["//intrinsic/assets:__subpackages__"],
     deps = [
         "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_sync//errgroup:go_default_library",
         "@org_golang_x_time//rate:go_default_library",
     ],
 )
