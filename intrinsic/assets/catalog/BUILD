@@ -44,6 +44,7 @@ go_library(
         "//intrinsic/assets:idutils",
         "//intrinsic/assets:imagetransfer",
         "//intrinsic/assets:referenceddata",
+        "//intrinsic/assets:throttle",
         "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
         "//intrinsic/assets/catalog/proto/v1:release_metadata_go_proto",
         "//intrinsic/assets/proto/v1:asset_artifacts_go_proto",

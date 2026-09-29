@@ -26,6 +26,7 @@ import (
 	"intrinsic/assets/referenceddata"
 	"intrinsic/assets/scene_objects/gzfprocessor"
 	"intrinsic/assets/services/bundleimages"
+	"intrinsic/assets/throttle"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -38,28 +39,23 @@ import (
 	lropb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 )
 
-const (
-	// Asset releases may be run in parallel, so we can't introduce additional parallelization for
-	// geometry uploads without potentially violating concurrency limits in the AssetArtifacts server.
-	numGeoUploadWorkers = 1
-)
-
 // Printer is a function that prints a formatted status message about the release.
 type Printer func(format string, a ...any)
 
 type fromBundleOptions struct {
-	aaClient        assetartifactspb.AssetArtifactsClient
-	acClient        acpb.AssetCatalogClient
-	dryRun          bool
-	flagDefault     bool
-	flagOrgPrivate  bool
-	ignoreExisting  bool
-	imageTransferer imagetransfer.Transferer
-	lroClient       lropb.OperationsClient
-	printer         Printer
-	progressWriter  io.Writer
-	releaseNotes    string
-	version         string
+	aaClient           assetartifactspb.AssetArtifactsClient
+	acClient           acpb.AssetCatalogClient
+	concurrencyLimiter *throttle.ConcurrencyLimiter
+	dryRun             bool
+	flagDefault        bool
+	flagOrgPrivate     bool
+	ignoreExisting     bool
+	imageTransferer    imagetransfer.Transferer
+	lroClient          lropb.OperationsClient
+	printer            Printer
+	progressWriter     io.Writer
+	releaseNotes       string
+	version            string
 }
 
 // FromBundleOption is an option for FromBundle.
@@ -158,9 +154,18 @@ func WithVersion(version string) FromBundleOption {
 	}
 }
 
+// WithProcessingConcurrencyLimiter specifies the ConcurrencyLimiter to use to limit the concurrency
+// of Asset processing.
+func WithProcessingConcurrencyLimiter(limiter *throttle.ConcurrencyLimiter) FromBundleOption {
+	return func(opts *fromBundleOptions) {
+		opts.concurrencyLimiter = limiter
+	}
+}
+
 func FromBundle(ctx context.Context, path string, options ...FromBundleOption) error {
 	opts := &fromBundleOptions{
-		printer: nullPrinter,
+		concurrencyLimiter: throttle.NewConcurrencyLimiter(1),
+		printer:            nullPrinter,
 	}
 	for _, opt := range options {
 		opt(opts)
@@ -189,7 +194,7 @@ func FromBundle(ctx context.Context, path string, options ...FromBundleOption) e
 		ReferencedDataProcessor: rdProcessor,
 		GZFProcessor: gzfprocessor.New(
 			rdProcessor,
-			gzfprocessor.WithConcurrencyLimit(numGeoUploadWorkers),
+			gzfprocessor.WithConcurrencyLimiter(opts.concurrencyLimiter),
 		),
 	}
 

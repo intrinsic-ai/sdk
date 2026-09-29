@@ -22,6 +22,7 @@ go_library(
     deps = [
         ":gzffile",
         "//intrinsic/assets:referenceddata",
+        "//intrinsic/assets:throttle",
         "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
         "//intrinsic/geometry/proto:geometry_storage_refs_go_proto",
         "//intrinsic/geometry/proto/v1:geometry_go_proto",
@@ -34,7 +35,6 @@ go_library(
         "@org_golang_google_grpc//metadata:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",
         "@org_golang_google_protobuf//proto",
-        "@org_golang_x_sync//errgroup",
     ],
 )
 

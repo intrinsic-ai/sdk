@@ -25,9 +25,9 @@ import (
 
 	"intrinsic/assets/referenceddata"
 	"intrinsic/assets/scene_objects/gzffile"
+	"intrinsic/assets/throttle"
 
 	log "github.com/golang/glog"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/proto"
 
 	rdpb "intrinsic/assets/data/proto/v1/referenced_data_go_proto"
@@ -45,8 +45,8 @@ import (
 type GZFProcessor func(ctx context.Context, r io.Reader) (*sopb.SceneObject, error)
 
 type processOptions struct {
-	concurrencyLimit int
-	rewrite          bool
+	concurrencyLimiter *throttle.ConcurrencyLimiter
+	rewrite            bool
 }
 
 // Option is a functional option for [New].
@@ -60,18 +60,18 @@ func WithRewrite(rewrite bool) Option {
 	}
 }
 
-// WithConcurrencyLimit configures the maximum number of concurrent geometry uploads.
-func WithConcurrencyLimit(limit int) Option {
+// WithConcurrencyLimiter configures a shared ConcurrencyLimiter for geometry processing.
+func WithConcurrencyLimiter(limiter *throttle.ConcurrencyLimiter) Option {
 	return func(o *processOptions) {
-		o.concurrencyLimit = limit
+		o.concurrencyLimiter = limiter
 	}
 }
 
 // New returns a new GZFProcessor.
 func New(rdProcessor referenceddata.Processor, options ...Option) GZFProcessor {
 	opts := &processOptions{
-		concurrencyLimit: 1,
-		rewrite:          true,
+		concurrencyLimiter: throttle.NewConcurrencyLimiter(1),
+		rewrite:            true,
 	}
 	for _, opt := range options {
 		opt(opts)
@@ -134,12 +134,10 @@ func processGeometries(ctx context.Context, localExportDir string, rdProcessor r
 		return nil, fmt.Errorf("could not read directory %q: %w", localExportDir, err)
 	}
 
-	g, groupCtx := errgroup.WithContext(ctx)
-	g.SetLimit(opts.concurrencyLimit)
-
 	var mu sync.Mutex
 	tt := make(map[string]string)
 
+	var fns []func(context.Context) error
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
@@ -147,14 +145,14 @@ func processGeometries(ctx context.Context, localExportDir string, rdProcessor r
 		name := entry.Name()
 		filePath := filepath.Join(localExportDir, name)
 
-		g.Go(func() error {
+		fns = append(fns, func(ctx context.Context) error {
 			ref := referenceddata.FromProto(&rdpb.ReferencedData{
 				Data: &rdpb.ReferencedData_Reference{
 					Reference: "file://" + filePath,
 				},
 			})
 			// Force upload by setting threshold to -1
-			if err := referenceddata.Process(groupCtx, ref, rdProcessor,
+			if err := referenceddata.Process(ctx, ref, rdProcessor,
 				referenceddata.WithInlineThresholdOverride(-1),
 			); err != nil {
 				return err
@@ -168,7 +166,7 @@ func processGeometries(ctx context.Context, localExportDir string, rdProcessor r
 		})
 	}
 
-	if err := g.Wait(); err != nil {
+	if err := opts.concurrencyLimiter.Do(ctx, fns...); err != nil {
 		return nil, err
 	}
 

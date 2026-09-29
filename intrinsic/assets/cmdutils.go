@@ -66,6 +66,8 @@ const (
 	// keyPolicy defines the flag used to specify the policy option when
 	// interacting with the installed asset service.
 	keyPolicy = "policy"
+	// keyProcessingConcurrency is the name of the processing concurrency flag.
+	keyProcessingConcurrency = "processing_concurrency"
 	// keyProject is used as central flag name for passing a project name to inctl.
 	keyProject = orgutil.KeyProject
 	// KeyProvides is the name of the provided interfaces flag.
@@ -341,6 +343,16 @@ func (cf *CmdFlags) GetFlagProvides() ([]string, error) {
 	}
 
 	return provides, nil
+}
+
+// AddFlagProcessingConcurrency adds a flag for the processing concurrency limit with a default value.
+func (cf *CmdFlags) AddFlagProcessingConcurrency(defaultLimit int) {
+	cf.OptionalInt(keyProcessingConcurrency, defaultLimit, "Maximum number of concurrent processing operations. Set <= 0 to disable.")
+}
+
+// GetFlagProcessingConcurrency gets the value of the processing concurrency flag added by AddFlagProcessingConcurrency.
+func (cf *CmdFlags) GetFlagProcessingConcurrency() int {
+	return cf.GetInt(keyProcessingConcurrency)
 }
 
 // AddFlagsRateLimit adds flags for gRPC connection rate limiting with default values.

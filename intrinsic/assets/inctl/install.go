@@ -54,11 +54,6 @@ import (
 // Further validation is needed on both parts to ensure validity.
 var solutionAssetRegex = regexp.MustCompile(`^(?P<branch>[A-Za-z0-9_\-]+)/(?P<asset>[a-z0-9_\.]+)$`)
 
-const (
-	// numGeoUploadWorkers enables parallelization of geometry uploads while processing the Asset.
-	numGeoUploadWorkers = 8
-)
-
 // GetCommand returns a command to install an asset.
 func GetCommand() *cobra.Command {
 	flags := cmdutils.NewCmdFlags()
@@ -137,7 +132,7 @@ func GetCommand() *cobra.Command {
 				ReferencedDataProcessor: rdProcessor,
 				GZFProcessor: gzfprocessor.New(
 					rdProcessor,
-					gzfprocessor.WithConcurrencyLimit(numGeoUploadWorkers),
+					gzfprocessor.WithConcurrencyLimiter(throttle.NewConcurrencyLimiter(flags.GetFlagProcessingConcurrency())),
 				),
 			}
 
@@ -191,6 +186,7 @@ func GetCommand() *cobra.Command {
 	flags.AddFlagPolicy("asset")
 	flags.AddFlagsProjectOrg()
 	flags.AddFlagsRateLimit(throttle.OnPremRateLimit, throttle.OnPremBurst)
+	flags.AddFlagProcessingConcurrency(throttle.LocalProcessingConcurrency)
 	flags.AddFlagRegistry()
 	flags.AddFlagsRegistryAuthUserPassword()
 	flags.AddFlagSkipDirectUpload("asset")

@@ -39,6 +39,13 @@ const (
 
 	// OnPremBurst is a safe burst size for communicating with on-premises cluster services.
 	OnPremBurst = 2
+
+	// LocalProcessingConcurrency is a safe maximum concurrency for local processing operations.
+	LocalProcessingConcurrency = 16
+
+	// ReleaseProcessingConcurrency is a safe maximum concurrency for processing operations during
+	// Asset release, which is currently invoked in parallel across multiple processes.
+	ReleaseProcessingConcurrency = 1
 )
 
 // ConcurrencyLimiter limits concurrent function calls across potentially nested call graphs.
