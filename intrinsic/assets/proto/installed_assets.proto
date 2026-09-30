@@ -81,9 +81,19 @@ service InstalledAssets {
   // Installs the specified assets into the solution.
   rpc CreateInstalledAssets(CreateInstalledAssetsRequest)
       returns (google.longrunning.Operation) {
+    option deprecated = true;
     option (google.longrunning.operation_info) = {
       metadata_type: "CreateInstalledAssetsMetadata"
       response_type: "CreateInstalledAssetsResponse"
+    };
+  }
+
+  // Installs the specified assets into the solution.
+  rpc BatchCreateInstalledAssets(BatchCreateInstalledAssetsRequest)
+      returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      metadata_type: "BatchCreateInstalledAssetsMetadata"
+      response_type: "BatchCreateInstalledAssetsResponse"
     };
     option (google.api.http) = {
       post: "/v1/installedAssets:batchCreate"
@@ -372,6 +382,31 @@ message CreateInstalledAssetsMetadata {
 }
 
 message CreateInstalledAssetsResponse {
+  // The description of the installed assets, in the order requested for
+  // installation.
+  repeated InstalledAsset installed_assets = 1;
+}
+
+message BatchCreateInstalledAssetsRequest {
+  // The individual create requests to apply. At most one version of a given
+  // asset ID may be specified across the batch.
+  repeated CreateInstalledAssetRequest requests = 1
+      [(google.api.field_behavior) = REQUIRED];
+
+  // Default update policy for the batch. All requests in the batch share a
+  // single effective policy: individual `requests` should leave `policy`
+  // unspecified or set it to the same value, otherwise `INVALID_ARGUMENT` is
+  // returned.
+  UpdatePolicy policy = 2;
+}
+
+message BatchCreateInstalledAssetsMetadata {
+  // Warnings associated with the installation of the Assets, including any
+  // associated dependency validation errors.
+  intrinsic_proto.status.ExtendedStatus warnings = 1;
+}
+
+message BatchCreateInstalledAssetsResponse {
   // The description of the installed assets, in the order requested for
   // installation.
   repeated InstalledAsset installed_assets = 1;
