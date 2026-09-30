@@ -22,8 +22,6 @@ import (
 	"os"
 	"regexp"
 
-	"golang.org/x/sync/errgroup"
-
 	"intrinsic/assets/bundle"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
@@ -134,31 +132,20 @@ func GetCommand() *cobra.Command {
 				lropb.NewOperationsClient(conn),
 				referenceddata.WithProgressWriter(cmd.OutOrStdout()),
 			)
+			processingLimiter := throttle.NewConcurrencyLimiter(flags.GetFlagProcessingConcurrency())
 			processor := &bundle.Processor{
 				ImageProcessor:          bundleimages.CreateImageProcessor(transfer),
 				ReferencedDataProcessor: rdProcessor,
 				GZFProcessor: gzfprocessor.New(
 					rdProcessor,
-					gzfprocessor.WithConcurrencyLimiter(throttle.NewConcurrencyLimiter(flags.GetFlagProcessingConcurrency())),
+					gzfprocessor.WithConcurrencyLimiter(processingLimiter),
 				),
 			}
 
 			// Prepare all assets client-side (parsing catalog refs, solution refs,
 			// or processing local bundle files) into proto messages.
-			assets := make([]*iapb.CreateInstalledAssetsRequest_Asset, len(targets))
-			g, gCtx := errgroup.WithContext(ctx)
-			g.SetLimit(15)
-			for i, target := range targets {
-				g.Go(func() error {
-					asset, err := assetFromTarget(gCtx, target, processor.ProcessFile)
-					if err != nil {
-						return err
-					}
-					assets[i] = asset
-					return nil
-				})
-			}
-			if err := g.Wait(); err != nil {
+			assets, err := assetsFromTargets(ctx, targets, processor.ProcessFile, processingLimiter)
+			if err != nil {
 				return err
 			}
 
@@ -220,6 +207,25 @@ func GetCommand() *cobra.Command {
 }
 
 type processBundle func(ctx context.Context, path string) (bundle.ProcessedBundle, error)
+
+func assetsFromTargets(ctx context.Context, targets []string, process processBundle, limiter *throttle.ConcurrencyLimiter) ([]*iapb.CreateInstalledAssetsRequest_Asset, error) {
+	assets := make([]*iapb.CreateInstalledAssetsRequest_Asset, len(targets))
+	fns := make([]func(context.Context) error, len(targets))
+	for i, target := range targets {
+		fns[i] = func(ctx context.Context) error {
+			asset, err := assetFromTarget(ctx, target, process)
+			if err != nil {
+				return err
+			}
+			assets[i] = asset
+			return nil
+		}
+	}
+	if err := limiter.Do(ctx, fns...); err != nil {
+		return nil, err
+	}
+	return assets, nil
+}
 
 func assetFromTarget(ctx context.Context, target string, process processBundle) (*iapb.CreateInstalledAssetsRequest_Asset, error) {
 	fileExists := false

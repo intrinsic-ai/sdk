@@ -101,7 +101,6 @@ go_library(
         "@com_github_spf13_cobra//:go_default_library",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_grpc//status:go_default_library",
-        "@org_golang_x_sync//errgroup:go_default_library",
     ],
 )
 
