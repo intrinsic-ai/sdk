@@ -30,6 +30,7 @@ exports_files(
     ],
     visibility = [
         "//:__pkg__",
+        "//intrinsic/ml/services/tools/docker/triton:__pkg__",
         "//intrinsic/production/external:__pkg__",
     ],
 )
