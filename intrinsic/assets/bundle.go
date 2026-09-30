@@ -157,6 +157,10 @@ type ProcessedBundle interface {
 	// a solution.
 	Install() *iapb.CreateInstalledAssetRequest_Asset
 
+	// InstallBatch returns a processed asset in the form required to be installed in
+	// a batch installation.
+	InstallBatch() *iapb.CreateInstalledAssetsRequest_Asset
+
 	// Install returns a processed asset in the form required to be released to
 	// the catalog.
 	Release(VersionDetails) *acpb.Asset
@@ -179,6 +183,14 @@ type processedDataBundle struct {
 func (b processedDataBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_Data{
+			Data: cloneOf(b.da),
+		},
+	}
+}
+
+func (b processedDataBundle) InstallBatch() *iapb.CreateInstalledAssetsRequest_Asset {
+	return &iapb.CreateInstalledAssetsRequest_Asset{
+		Variant: &iapb.CreateInstalledAssetsRequest_Asset_Data{
 			Data: cloneOf(b.da),
 		},
 	}
@@ -225,6 +237,14 @@ type processedHardwareDeviceBundle struct {
 func (b processedHardwareDeviceBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_HardwareDevice{
+			HardwareDevice: cloneOf(b.manifest),
+		},
+	}
+}
+
+func (b processedHardwareDeviceBundle) InstallBatch() *iapb.CreateInstalledAssetsRequest_Asset {
+	return &iapb.CreateInstalledAssetsRequest_Asset{
+		Variant: &iapb.CreateInstalledAssetsRequest_Asset_HardwareDevice{
 			HardwareDevice: cloneOf(b.manifest),
 		},
 	}
@@ -338,6 +358,14 @@ func (b processedProcessBundle) Install() *iapb.CreateInstalledAssetRequest_Asse
 	}
 }
 
+func (b processedProcessBundle) InstallBatch() *iapb.CreateInstalledAssetsRequest_Asset {
+	return &iapb.CreateInstalledAssetsRequest_Asset{
+		Variant: &iapb.CreateInstalledAssetsRequest_Asset_Process{
+			Process: cloneOf(b.pa),
+		},
+	}
+}
+
 func (b processedProcessBundle) Release(details VersionDetails) *acpb.Asset {
 	pa := cloneOf(b.pa)
 	m := cloneOf(pa.GetMetadata())
@@ -380,6 +408,14 @@ type processedSceneObjectBundle struct {
 func (b processedSceneObjectBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_SceneObject{
+			SceneObject: cloneOf(b.manifest),
+		},
+	}
+}
+
+func (b processedSceneObjectBundle) InstallBatch() *iapb.CreateInstalledAssetsRequest_Asset {
+	return &iapb.CreateInstalledAssetsRequest_Asset{
+		Variant: &iapb.CreateInstalledAssetsRequest_Asset_SceneObject{
 			SceneObject: cloneOf(b.manifest),
 		},
 	}
@@ -439,6 +475,14 @@ func (b processedServiceBundle) Install() *iapb.CreateInstalledAssetRequest_Asse
 	}
 }
 
+func (b processedServiceBundle) InstallBatch() *iapb.CreateInstalledAssetsRequest_Asset {
+	return &iapb.CreateInstalledAssetsRequest_Asset{
+		Variant: &iapb.CreateInstalledAssetsRequest_Asset_Service{
+			Service: cloneOf(b.manifest),
+		},
+	}
+}
+
 func (b processedServiceBundle) Release(details VersionDetails) *acpb.Asset {
 	manifest := cloneOf(b.manifest)
 	return &acpb.Asset{
@@ -488,6 +532,14 @@ type processedSkillBundle struct {
 func (b processedSkillBundle) Install() *iapb.CreateInstalledAssetRequest_Asset {
 	return &iapb.CreateInstalledAssetRequest_Asset{
 		Variant: &iapb.CreateInstalledAssetRequest_Asset_Skill{
+			Skill: cloneOf(b.manifest),
+		},
+	}
+}
+
+func (b processedSkillBundle) InstallBatch() *iapb.CreateInstalledAssetsRequest_Asset {
+	return &iapb.CreateInstalledAssetsRequest_Asset{
+		Variant: &iapb.CreateInstalledAssetsRequest_Asset_Skill{
 			Skill: cloneOf(b.manifest),
 		},
 	}
