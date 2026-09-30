@@ -386,6 +386,7 @@ proto_library(
     deps = [
         ":camera_setup_proto",
         ":camera_to_robot_calibration",
+        ":capture_data_proto",
         ":distortion_params_proto",
         ":intrinsic_params_proto",
         ":pattern_detection_config_proto",
@@ -422,6 +423,7 @@ go_proto_library(
     deps = [
         ":camera_setup_go_proto",
         ":camera_to_robot_calibration_go_proto",
+        ":capture_data_go_proto",
         ":distortion_params_go_proto",
         ":intrinsic_params_go_proto",
         ":pattern_detection_config_go_proto",

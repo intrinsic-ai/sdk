@@ -36,10 +36,6 @@ service PoseEstimationService {
       returns (google.protobuf.Empty);
 }
 
-message CaptureDataList {
-  repeated intrinsic_proto.perception.v1.CaptureData capture_data = 1;
-}
-
 message RunPoseEstimationRequest {
   oneof source_type {
     // Directly provide multiple images as part of CaptureResult. Images from
