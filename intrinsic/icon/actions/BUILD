@@ -31,6 +31,7 @@ cc_library(
         "//intrinsic/icon/proto/v1:types_cc_proto",
         "//intrinsic/icon/release:source_location",
         "//intrinsic/util/proto:descriptors",
+        "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/container:flat_hash_set",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/strings",

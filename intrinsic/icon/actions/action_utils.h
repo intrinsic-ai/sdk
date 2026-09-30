@@ -158,9 +158,29 @@ class ActionSignatureBuilder {
   // Returns AlreadyExistsError if `slot_name` is already taken.
   absl::Status AddPartSlot(
       absl::string_view slot_name, absl::string_view slot_description,
-      absl::flat_hash_set<intrinsic_proto::icon::v1::FeatureInterfaceTypes>
+      const absl::flat_hash_set<
+          intrinsic_proto::icon::v1::FeatureInterfaceTypes>&
           required_feature_interfaces,
-      absl::flat_hash_set<intrinsic_proto::icon::v1::FeatureInterfaceTypes>
+      const absl::flat_hash_set<
+          intrinsic_proto::icon::v1::FeatureInterfaceTypes>&
+          optional_feature_interfaces = {},
+      intrinsic::SourceLocation loc = intrinsic::SourceLocation::current());
+
+  // Adds an optional Part Slot with the given name, description and Feature
+  // Interfaces.
+  //
+  // Unlike an optional slot created with empty `required_feature_interfaces`,
+  // any Part that a client maps to this slot MUST still support all of the
+  // Feature Interfaces in `required_feature_interfaces` (and may optionally
+  // support `optional_feature_interfaces`), while the slot itself remains
+  // optional and may be omitted from `SlotPartMap`.
+  absl::Status AddOptionalPartSlot(
+      absl::string_view slot_name, absl::string_view slot_description,
+      const absl::flat_hash_set<
+          intrinsic_proto::icon::v1::FeatureInterfaceTypes>&
+          required_feature_interfaces,
+      const absl::flat_hash_set<
+          intrinsic_proto::icon::v1::FeatureInterfaceTypes>&
           optional_feature_interfaces = {},
       intrinsic::SourceLocation loc = intrinsic::SourceLocation::current());
 

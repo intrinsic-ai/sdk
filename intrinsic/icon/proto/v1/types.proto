@@ -108,12 +108,18 @@ message ActionSignature {
   // concrete part must supply at least `required_feature_interfaces`, and _may_
   // support `optional_feature_interfaces`.
   //
-  // If `required_feature_interfaces` is empty, the slot itself is optional.
-  // That is, a SlotPartMap may omit the slot completely.
+  // If `is_optional` is true (or if `required_feature_interfaces` is empty),
+  // the slot itself is optional. That is, a `SlotPartMap` may omit the slot
+  // completely, while any part mapped to the slot must still supply all
+  // `required_feature_interfaces`.
   message PartSlotInfo {
     string description = 2;
     repeated FeatureInterfaceTypes required_feature_interfaces = 3;
     repeated FeatureInterfaceTypes optional_feature_interfaces = 4;
+    // If true, the slot itself is optional and may be omitted from a
+    // `SlotPartMap`, while any part mapped to the slot must still supply all
+    // `required_feature_interfaces`.
+    bool is_optional = 5;
 
     reserved 1;
   }
