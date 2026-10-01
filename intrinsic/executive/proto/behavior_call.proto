@@ -87,8 +87,8 @@ message BehaviorCall {
   // Optional data that can be set when calling a skill.
   message SkillExecutionOptions {
     // When set, use the specified timeout instead of the default timeout when
-    // calling skill.predict() (report failure if predict does not finish within
-    // this time bound).
+    // projecting the skill (e.g. calling skill.get_footprint()). Report failure
+    // if projection does not finish within this time bound.
     google.protobuf.Duration project_timeout = 1;
 
     // When set, use the specified timeout instead of the default timeout
