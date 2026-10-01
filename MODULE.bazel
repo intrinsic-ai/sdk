@@ -197,7 +197,7 @@ use_repo(rust, "rust_toolchains")
 
 register_toolchains("@rust_toolchains//:all")
 
-bazel_dep(name = "rules_rs", version = "0.0.109")
+bazel_dep(name = "rules_rs", version = "0.0.112")
 rules_rs_toolchains = use_extension("@rules_rs//rs/toolchains:module_extension.bzl", "toolchains")
 rules_rs_toolchains.toolchain(
     name = "rust_1_89_toolchains",
