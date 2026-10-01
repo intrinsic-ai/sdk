@@ -75,9 +75,9 @@ absl::StatusOr<std::string> GetApiKey(std::string_view project_name) {
   if (!data.contains("tokens") ||
       !data["tokens"].contains(kAliasDefaultToken) ||
       !data["tokens"][kAliasDefaultToken].contains("apiKey")) {
-    return absl::FailedPreconditionError(absl::StrCat(
-        "Could not find default token in ", file_name,
-        ". Please run 'inctl auth login --org <org_name>@", project_name, "'"));
+    return absl::FailedPreconditionError(
+        absl::StrCat("Could not find default token in ", file_name,
+                     ". Please run 'inctl auth login'"));
   }
 
   if (!data["tokens"][kAliasDefaultToken]["apiKey"].is_string()) {

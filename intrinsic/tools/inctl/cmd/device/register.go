@@ -262,7 +262,7 @@ var registerCmd = &cobra.Command{
 		case http.StatusNotFound:
 			return fmt.Errorf("device %q does not exist. Please make sure you have the exact id from the device you are trying to register", deviceID)
 		case http.StatusUnauthorized:
-			return fmt.Errorf("your login key has expired or been replaced.\nRun 'inctl auth login --org %s' to update it", orgutil.QualifiedOrg(projectName, orgName))
+			return fmt.Errorf("your login key has expired or been replaced.\nRun 'inctl auth login' to update it")
 		case http.StatusForbidden:
 			return fmt.Errorf("you do not have the necessary permissions to add a cluster on organization %q.\nOpen a support request to get the 'clusterProvisioner' role", orgutil.QualifiedOrg(projectName, orgName))
 		default:

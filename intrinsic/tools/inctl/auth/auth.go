@@ -53,7 +53,7 @@ const (
 	tokenExchangeServer = "flowstate.intrinsic.ai"
 
 	// NoLoginHint is the hint shown when the user does not have an API key configured.
-	NoLoginHint = "\n\tIt seems like you don't have an API key configured. Did you run 'inctl auth login --org <org>@%s'?\n\n"
+	NoLoginHint = "\n\tIt seems like you don't have an API key configured. Did you run 'inctl auth login'?\n\n"
 
 	// envInDebugAuthStore is the environment variable used to trigger debug logging when reading from the auth store.
 	envInDebugAuthStore = "INDEBUG_AUTHSTORE"

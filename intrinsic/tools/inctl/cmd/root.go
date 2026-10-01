@@ -93,10 +93,11 @@ func (e *executionContext) RewriteError(err error, cmdNames []string) string {
 		return fmt.Sprintf("%v\nRun 'inctl --help' for usage.", err)
 	}
 
+	loginCmdHint := "'inctl auth login'"
 	// This will also find wrapped gRPC error/statuses.
 	if grpcStatus, ok := grpcstatus.FromError(cause); ok {
 		if grpcStatus.Code() == grpccodes.Unauthenticated {
-			return fmt.Sprintf("%v\nStored credentials are invalid. (Re-)Run 'inctl auth login'.", err)
+			return fmt.Sprintf("%v\nStored credentials are invalid. (Re-)Run %s.", err, loginCmdHint)
 		}
 
 		// Restrict to certain commands. Otherwise this error hint is too noisy
@@ -132,17 +133,16 @@ func (e *executionContext) RewriteError(err error, cmdNames []string) string {
 		}
 
 		if len(additions) > 0 {
-			return fmt.Sprintf("%s\n%s\nTo add %q run 'inctl auth login --org %s'.", base, strings.Join(additions, "\n"), orgErr.OrgName, orgErr.OrgName)
+			return fmt.Sprintf("%s\n%s\nTo add %q run %s.", base, strings.Join(additions, "\n"), orgErr.OrgName, loginCmdHint)
 		}
 
-		return fmt.Sprintf("%s\nRun 'inctl auth login --org %s' to add it.", base, orgErr.OrgName)
+		return fmt.Sprintf("%s\nRun %s to add it.", base, loginCmdHint)
 	}
 
 	// User not logged in.
 	var credErr *dialerutil.ErrCredentialsNotFound
 	if errors.As(cause, &credErr) {
-		return fmt.Sprintf("%v\nCredentials for given organization not found. Run "+
-			"'inctl auth login --org <org_name>@%s'.", err, credErr.CredentialName)
+		return fmt.Sprintf("%v\nCredentials for given organization not found. Run %s.", err, loginCmdHint)
 	}
 
 	return err.Error()

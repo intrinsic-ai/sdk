@@ -263,8 +263,8 @@ def get_api_key(project: str) -> str:
     return config.get_default_credentials().api_key
   except (CredentialsNotFoundError, FileNotFoundError) as e:
     raise ValueError(
-        "API key not found in system. Run `inctl auth login --org"
-        f" <org_name>@{project}` or explicitly supply one."
+        "API key not found in system. Run `inctl auth login` or explicitly"
+        " supply one."
     ) from e
 
 
