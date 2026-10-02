@@ -46,6 +46,12 @@ const (
 	//    We EXCLUDE 'UNIMPLEMENTED' from the retry list here to ensure the client-side
 	//    'probeAssetArtifacts' call fails fast, rather than hanging for 25s.
 	//
+	//    Note on Session vs RPC retries: This gRPC retry policy handles transport-level transience on
+	//    individual RPCs. If a server pod restarts mid-upload, its in-memory upload session map is
+	//    wiped, causing subsequent in-session calls to return NOT_FOUND. That session loss cannot be
+	//    resolved by retrying the chunk RPC and is instead recovered by retrying sessions in
+	//    referenceddata.go.
+	//
 	// 3. AssetCatalog / AssetCatalogInternal: Custom policy for catalog interaction.
 	//    Retries on database transaction conflicts ('ABORTED') which are transient, but keeps the
 	//    retry window short (max 2s backoff) to fail-fast on permanent errors.

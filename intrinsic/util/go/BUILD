@@ -24,6 +24,22 @@ go_library(
 )
 
 go_library(
+    name = "seekable",
+    srcs = ["seekable.go"],
+    importpath = "intrinsic/util/go/seekable",
+    visibility = ["//intrinsic:internal_api_users"],
+)
+
+go_test(
+    name = "seekable_test",
+    srcs = ["seekable_test.go"],
+    importpath = "intrinsic/util/go/seekable_test",
+    deps = [
+        ":seekable",
+    ],
+)
+
+go_library(
     name = "set",
     srcs = ["set.go"],
     importpath = "intrinsic/util/go/set",

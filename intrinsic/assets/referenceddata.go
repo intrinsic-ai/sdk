@@ -28,6 +28,7 @@ import (
 	"sync"
 	"time"
 
+	"intrinsic/util/go/seekable"
 	"intrinsic/util/proto/walkmessages"
 
 	log "github.com/golang/glog"
@@ -74,6 +75,7 @@ const (
 const (
 	defaultChunkSize                      = 1024 * 1024
 	InlineReferenceFileSizeThresholdBytes = 1024 * 1024
+	maxUploadAttempts                     = 3
 )
 
 // ReferencedData represents a reference to data (e.g., in a file or the cloud).
@@ -800,62 +802,11 @@ func (p *artifactsProcessor) Process(ctx context.Context, rdr *Reader, opts *Pro
 	case CASReferenceType:
 		processedRef = rdr.Ref.ToProto()
 	case FileReferenceType, InlinedReferenceType:
-		// Start upload session.
-		p.update(&Progress{
-			Stage:         StageUploadStart,
-			ReferenceName: origRefName,
-			TotalBytes:    rdr.Size,
-		})
-		startResp, err := p.aaClient.StartUpload(ctx, &assetartifactspb.StartUploadRequest{})
+		var err error
+		processedRef, err = p.uploadWithRetries(ctx, rdr, origRefName)
 		if err != nil {
-			return fmt.Errorf("failed to start upload: %w", err)
+			return fmt.Errorf("failed to upload %q: %w", origRefName, err)
 		}
-		uploadID := startResp.GetUploadId()
-
-		// Stream the data chunks.
-		buf := make([]byte, p.chunkSize)
-		var offset int64 = 0
-		for {
-			n, err := rdr.Reader.Read(buf)
-			if err != io.EOF && err != nil {
-				return fmt.Errorf("failed to read data: %w", err)
-			}
-			if n > 0 {
-				_, err := p.aaClient.UploadChunk(ctx, &assetartifactspb.UploadChunkRequest{
-					UploadId: uploadID,
-					Offset:   offset,
-					Data:     buf[:n],
-				})
-				if err != nil {
-					return fmt.Errorf("failed to upload chunk: %w", err)
-				}
-				offset += int64(n)
-				p.update(&Progress{
-					Stage:         StageUploadProgress,
-					ReferenceName: origRefName,
-					BytesUploaded: offset,
-					TotalBytes:    rdr.Size,
-				})
-			}
-			if err == io.EOF {
-				break
-			}
-		}
-
-		// Finalize the upload.
-		p.update(&Progress{
-			Stage:         StageUploadFinalize,
-			ReferenceName: origRefName,
-			TotalBytes:    rdr.Size,
-		})
-		finalizeResp, err := p.aaClient.FinalizeUpload(ctx, &assetartifactspb.FinalizeUploadRequest{
-			UploadId:       uploadID,
-			ExpectedDigest: rdr.Ref.Digest(),
-		})
-		if err != nil {
-			return fmt.Errorf("failed to finalize upload: %w", err)
-		}
-		processedRef = finalizeResp.GetReferencedData()
 	default:
 		return fmt.Errorf("unknown reference type: %v", rt)
 	}
@@ -904,6 +855,109 @@ func (p *artifactsProcessor) Process(ctx context.Context, rdr *Reader, opts *Pro
 	})
 
 	return nil
+}
+
+// uploadWithRetries wraps upload with session-level retries to recover from in-memory session loss
+// (such as server pod restarts returning NotFound or session aborts returning Aborted).
+//
+// Unlike transport-level errors which are handled with exponential backoff by the gRPC client
+// ServiceConfig in baseclientutils.go (i.e., for transient errors like UNAVAILABLE or
+// RESOURCE_EXHAUSTED), session loss indicates that the server has already restarted and is healthy.
+// Therefore, this function rewinds the seekable reader and retries upload() immediately.
+func (p *artifactsProcessor) uploadWithRetries(ctx context.Context, rdr *Reader, refName string) (*rdpb.ReferencedData, error) {
+	// We need to seek back to the beginning of the reader on retries below.
+	seeker, cleanup, err := seekable.From(rdr.Reader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make reader seekable for %q: %w", refName, err)
+	}
+	defer cleanup()
+	rdr.Reader = seeker
+
+	var uploadErr error
+	for attempt := 1; attempt <= maxUploadAttempts; attempt++ {
+		if attempt > 1 {
+			log.WarningContextf(ctx, "Retrying upload session for %q (attempt %d/%d) after session error: %v", refName, attempt, maxUploadAttempts, uploadErr)
+
+			if _, err := seeker.Seek(0, io.SeekStart); err != nil {
+				return nil, fmt.Errorf("failed to seek reader to start for retry: %w", err)
+			}
+		}
+
+		var ref *rdpb.ReferencedData
+		ref, uploadErr = p.upload(ctx, rdr, refName)
+		if uploadErr == nil {
+			return ref, nil
+		}
+
+		// Abort unless we have a retryable code.
+		switch status.Code(uploadErr) {
+		case codes.Aborted, codes.NotFound:
+		default:
+			return nil, fmt.Errorf("non-retryable upload error for %q (attempt %d/%d): %w", refName, attempt, maxUploadAttempts, uploadErr)
+		}
+	}
+
+	return nil, fmt.Errorf("failed to upload %q after %d attempts: %w", refName, maxUploadAttempts, uploadErr)
+}
+
+func (p *artifactsProcessor) upload(ctx context.Context, rdr *Reader, refName string) (*rdpb.ReferencedData, error) {
+	// Start upload session.
+	p.update(&Progress{
+		Stage:         StageUploadStart,
+		ReferenceName: refName,
+		TotalBytes:    rdr.Size,
+	})
+	startResp, err := p.aaClient.StartUpload(ctx, &assetartifactspb.StartUploadRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to start upload: %w", err)
+	}
+	uploadID := startResp.GetUploadId()
+
+	// Stream the data chunks.
+	buf := make([]byte, p.chunkSize)
+	var offset int64 = 0
+	for {
+		n, err := rdr.Reader.Read(buf)
+		if err != io.EOF && err != nil {
+			return nil, fmt.Errorf("failed to read data: %w", err)
+		}
+		if n > 0 {
+			_, err := p.aaClient.UploadChunk(ctx, &assetartifactspb.UploadChunkRequest{
+				UploadId: uploadID,
+				Offset:   offset,
+				Data:     buf[:n],
+			})
+			if err != nil {
+				return nil, fmt.Errorf("failed to upload chunk: %w", err)
+			}
+			offset += int64(n)
+			p.update(&Progress{
+				Stage:         StageUploadProgress,
+				ReferenceName: refName,
+				BytesUploaded: offset,
+				TotalBytes:    rdr.Size,
+			})
+		}
+		if err == io.EOF {
+			break
+		}
+	}
+
+	// Finalize the upload.
+	p.update(&Progress{
+		Stage:         StageUploadFinalize,
+		ReferenceName: refName,
+		TotalBytes:    rdr.Size,
+	})
+	finalizeResp, err := p.aaClient.FinalizeUpload(ctx, &assetartifactspb.FinalizeUploadRequest{
+		UploadId:       uploadID,
+		ExpectedDigest: rdr.Ref.Digest(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to finalize upload: %w", err)
+	}
+
+	return finalizeResp.GetReferencedData(), nil
 }
 
 func (p *artifactsProcessor) update(progress *Progress) {
