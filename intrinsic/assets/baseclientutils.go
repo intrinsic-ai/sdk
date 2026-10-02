@@ -43,8 +43,13 @@ const (
 	// 2. AssetArtifacts: Custom policy for heavy geometry/artifact uploads.
 	//    Uses a patient retry window (6 attempts, max 10s backoff, total ~25s) to survive server
 	//    restarts (which take 10-15s) and Nginx rate-limiting blocks under parallel release load.
+	//
 	//    We EXCLUDE 'UNIMPLEMENTED' from the retry list here to ensure the client-side
 	//    'probeAssetArtifacts' call fails fast, rather than hanging for 25s.
+	//
+	//    We INCLUDE 'UNKNOWN' to retry on transient HTTP 500 errors from the api-relay/auth-proxy
+	//    (which the gRPC client translates to UNKNOWN). This is safe because the AssetArtifacts
+	//    APIs are idempotent.
 	//
 	//    Note on Session vs RPC retries: This gRPC retry policy handles transport-level transience on
 	//    individual RPCs. If a server pod restarts mid-upload, its in-memory upload session map is
@@ -78,7 +83,7 @@ const (
 						"InitialBackoff": "1s",
 						"MaxBackoff": "10s",
 						"BackoffMultiplier": 2.0,
-						"RetryableStatusCodes": [ "UNAVAILABLE", "RESOURCE_EXHAUSTED" ]
+						"RetryableStatusCodes": [ "UNAVAILABLE", "RESOURCE_EXHAUSTED", "UNKNOWN" ]
 				}
 		}, {
 				"name": [
