@@ -27,9 +27,11 @@ import (
 	"net/http"
 	"strings"
 
-	"contrib.go.opencensus.io/exporter/prometheus"
 	traceexporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	log "github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/otlptranslator"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
@@ -40,7 +42,9 @@ import (
 	"go.opentelemetry.io/otel/bridge/opencensus"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
@@ -260,6 +264,7 @@ func WithViews(Views []*view.View) ConfigOption {
 // Telemetry is an object to configure tracing and metrics export in services.
 type Telemetry struct {
 	tp            *sdktrace.TracerProvider
+	mp            *metric.MeterProvider
 	metricsServer *http.Server
 }
 
@@ -379,6 +384,9 @@ func (t *Telemetry) Shutdown(ctx context.Context) error {
 	if t.metricsServer != nil {
 		err = errors.Join(err, t.metricsServer.Shutdown(ctx))
 	}
+	if t.mp != nil {
+		err = errors.Join(err, t.mp.Shutdown(ctx))
+	}
 	return err
 }
 
@@ -408,14 +416,27 @@ func (t *Telemetry) enableMetrics(c metricsConfig) {
 	if err := view.Register(c.Views...); err != nil {
 		log.Warningf("Failed to register views: %v", err)
 	}
-	pe, err := prometheus.NewExporter(prometheus.Options{})
+	reg := prometheus.NewRegistry()
+	pe, err := otelprom.New(
+		otelprom.WithRegisterer(reg),
+		// Bridge existing OpenCensus views into the OpenTelemetry metric reader.
+		otelprom.WithProducer(opencensus.NewMetricProducer()),
+		otelprom.WithTranslationStrategy(otlptranslator.UnderscoreEscapingWithoutSuffixes),
+		// The MeterProvider has no resource, so target_info would only carry SDK defaults.
+		otelprom.WithoutTargetInfo(),
+	)
 	if err != nil {
 		log.Errorf("Metrics is disabled! Metrics setup failed: %v", err)
+		return
 	}
-	view.RegisterExporter(pe)
+
+	t.mp = metric.NewMeterProvider(
+		metric.WithReader(pe),
+	)
+	otel.SetMeterProvider(t.mp)
 
 	mux := http.NewServeMux()
-	mux.Handle(c.MetricsPath, pe)
+	mux.Handle(c.MetricsPath, promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 	t.metricsServer = &http.Server{
 		Addr:    fmt.Sprintf("0.0.0.0:%v", c.MetricsPort),
 		Handler: mux,

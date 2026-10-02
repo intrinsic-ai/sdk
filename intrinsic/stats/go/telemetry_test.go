@@ -21,13 +21,16 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"syscall"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"go.opencensus.io/plugin/ocgrpc"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -486,15 +489,55 @@ func TestOtelHTTPHelpersPropagateTraceContext(t *testing.T) {
 }
 
 func TestTelemetryMetrics(t *testing.T) {
+	prevMP := otel.GetMeterProvider()
+	opencensusMeasure := stats.Int64("opencensus_metric", "", "")
+	opencensusView := &view.View{
+		Measure:     opencensusMeasure,
+		Name:        opencensusMeasure.Name(),
+		Description: opencensusMeasure.Description(),
+		Aggregation: view.Count(),
+	}
+
+	meter := otel.Meter("testing_otel_meter")
+	otelMetric, err := meter.Int64Counter("opentelemetry_metric")
+	if err != nil {
+		t.Fatalf("meter.Int64Counter(\"opentelemetry_metric\") returned an unexpected error: %v", err)
+	}
+
 	tele := Initialize(
 		EnableMetrics(9101),
-		WithViews(ocgrpc.DefaultServerViews),
+		WithViews([]*view.View{opencensusView}),
 	)
 
+	t.Cleanup(func() {
+		view.Unregister(opencensusView)
+		otel.SetMeterProvider(prevMP)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := tele.Shutdown(ctx); err != nil {
+			t.Errorf("Telemetry.Shutdown() returned an unexpected error: %v", err)
+		}
+	})
+
+	otelMetric.Add(t.Context(), 1)
+	stats.Record(t.Context(), opencensusMeasure.M(1))
+
+	// Flush OpenCensus's asynchronous stats worker before scraping /metrics.
+	if _, err := view.RetrieveData(opencensusView.Name); err != nil {
+		t.Fatalf("view.RetrieveData() returned an unexpected error: %v", err)
+	}
+
+	var prometheusResp string
 	retries := 0
 	for {
-		if _, err := http.Get("http://localhost:9101/metrics"); err == nil {
+		if resp, err := http.Get("http://localhost:9101/metrics"); err == nil {
 			// No error; break out of retry loop.
+			defer resp.Body.Close()
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				t.Fatalf("reading metrics body: %v", err)
+			}
+			prometheusResp = string(body)
 			break
 		} else if !errors.Is(err, syscall.ECONNREFUSED) {
 			t.Fatalf("error making http request: %s", err)
@@ -507,9 +550,13 @@ func TestTelemetryMetrics(t *testing.T) {
 		time.Sleep(time.Duration(retries) * time.Millisecond)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := tele.Shutdown(ctx); err != nil {
-		t.Fatalf("Telemetry shutdown error: %v", err)
+	// Both metrics must be exported with value 1.
+	for _, re := range []*regexp.Regexp{
+		regexp.MustCompile(`(?m)^opencensus_metric\{.*\} 1$`),
+		regexp.MustCompile(`(?m)^opentelemetry_metric\{.*\} 1$`),
+	} {
+		if !re.MatchString(prometheusResp) {
+			t.Errorf("/metrics output does not match %q:\n%s", re.String(), prometheusResp)
+		}
 	}
 }
