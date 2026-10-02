@@ -16,6 +16,7 @@ load("@aspect_rules_js//js:proto.bzl", "js_proto_toolchain")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@npm//intrinsic/frontend/sdk:@bufbuild/protoc-gen-es/package_json.bzl", "bin")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -48,4 +49,24 @@ ts_config(
     name = "tsconfig",
     src = "tsconfig.json",
     visibility = ["//visibility:public"],
+)
+
+py_library(
+    name = "stamp_package_dependencies_lib",
+    srcs = ["stamp_package_dependencies.py"],
+)
+
+py_binary(
+    name = "stamp_package_dependencies",
+    srcs = ["stamp_package_dependencies.py"],
+    deps = [":stamp_package_dependencies_lib"],
+)
+
+py_test(
+    name = "stamp_package_dependencies_test",
+    srcs = ["stamp_package_dependencies_test.py"],
+    deps = [
+        ":stamp_package_dependencies_lib",
+        "@com_google_absl_py//absl/testing:absltest",
+    ],
 )

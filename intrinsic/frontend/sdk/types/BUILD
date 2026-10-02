@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@aspect_rules_js//npm:defs.bzl", "npm_package", "stamped_package_json")
+load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("//intrinsic/frontend/sdk:stamped_package_json.bzl", "stamped_package_json")
 
 package(default_visibility = ["//visibility:public"])
 
