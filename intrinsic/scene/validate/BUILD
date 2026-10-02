@@ -38,12 +38,12 @@ cc_library(
     srcs = ["scene_object_validation.cc"],
     hdrs = ["scene_object_validation.h"],
     deps = [
-        "//intrinsic/eigenmath",
         "//intrinsic/kinematics/types:cartesian_limits",
         "//intrinsic/math:pose3",
         "//intrinsic/math:proto_conversion",
         "//intrinsic/scene:constants",
         "//intrinsic/scene/conversion:object_properties_conversion",
+        "//intrinsic/scene/conversion:scene_object_model_utils",
         "//intrinsic/scene/proto/v1:collision_rules_cc_proto",
         "//intrinsic/scene/proto/v1:entity_cc_proto",
         "//intrinsic/scene/proto/v1:object_properties_cc_proto",

@@ -46,9 +46,16 @@ cc_library(
     srcs = ["scene_object_model_utils.cc"],
     hdrs = ["scene_object_model_utils.h"],
     deps = [
+        "//intrinsic/eigenmath",
+        "//intrinsic/math:pose3",
+        "//intrinsic/math:proto_conversion",
         "//intrinsic/scene/proto/v1:entity_cc_proto",
+        "//intrinsic/util/status:status_macros",
         "//intrinsic/world/proto:kinematics_component_cc_proto",
         "@abseil-cpp//absl/container:flat_hash_set",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
     ],
 )
 

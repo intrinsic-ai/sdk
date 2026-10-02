@@ -65,6 +65,7 @@ cc_library(
         "//intrinsic/math:pose3",
         "//intrinsic/math:proto_conversion",
         "//intrinsic/math/proto:pose_cc_proto",
+        "//intrinsic/scene/conversion:scene_object_model_utils",
         "//intrinsic/scene/proto/v1:collision_rules_cc_proto",
         "//intrinsic/scene/proto/v1:entity_cc_proto",
         "//intrinsic/scene/proto/v1:object_properties_cc_proto",
