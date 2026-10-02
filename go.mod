@@ -31,7 +31,6 @@ require (
 	cloud.google.com/go/secretmanager v1.16.0
 	cloud.google.com/go/spanner v1.88.0
 	cloud.google.com/go/storage v1.59.2
-	contrib.go.opencensus.io/exporter/prometheus v0.4.2
 	dario.cat/mergo v1.0.2
 	firebase.google.com/go v3.13.0+incompatible
 	firebase.google.com/go/v4 v4.14.1
@@ -299,8 +298,6 @@ require (
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.5 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
-	github.com/go-kit/log v0.2.1 // indirect
-	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-logr/zapr v1.3.0 // indirect
 	github.com/go-logr/zerologr v1.2.3 // indirect
@@ -433,7 +430,6 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.67.5 // indirect
 	github.com/prometheus/procfs v0.19.2 // indirect
-	github.com/prometheus/statsd_exporter v0.22.8 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rodaine/table v1.3.0 // indirect

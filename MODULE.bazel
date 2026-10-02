@@ -98,7 +98,6 @@ use_repo(
     "in_gopkg_xmlpath_v2",
     "in_gopkg_yaml_v3",
     "io_opencensus_go",
-    "io_opencensus_go_contrib_exporter_prometheus",
     "io_opentelemetry_go_contrib_instrumentation_google_golang_org_grpc_otelgrpc",
     "io_opentelemetry_go_contrib_instrumentation_net_http_otelhttp",
     "io_opentelemetry_go_contrib_propagators_b3",
