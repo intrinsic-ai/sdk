@@ -60,21 +60,17 @@ js_library(
 proto_library(
     name = "solution_version_service_proto",
     srcs = ["solution_version_service.proto"],
-    visibility = [
-    ],
     deps = [
+        ":solution_diff_proto",
+        "//intrinsic/assets/proto/v1:solution_proto",
         "//intrinsic/solution_versions/proto/v1:branch_proto",
         "//intrinsic/solution_versions/proto/v1:conflict_proto",
-        "//intrinsic/solution_versions/proto/v1:conflict_resolution_proto",
         "//intrinsic/solution_versions/proto/v1:snapshot_proto",
         "//intrinsic/solution_versions/proto/v1:snapshot_source_proto",
         "//intrinsic/solution_versions/proto/v1:warning_proto",
         "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/api:field_behavior_proto",
         "@com_google_googleapis//google/api:resource_proto",
-        "@com_google_googleapis//google/longrunning:operations_proto",
-        "@com_google_googleapis//google/rpc:status_proto",
-        "@com_google_protobuf//:descriptor_proto",
         "@com_google_protobuf//:field_mask_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
@@ -102,32 +98,17 @@ go_proto_library(
     ],
     importpath = "intrinsic/solution_versions/proto/v1/solution_version_service_go_proto",
     protos = [":solution_version_service_proto"],
-    visibility = [
-        "//intrinsic/assets/deploy:__pkg__",
-        "//intrinsic/assets/install:__pkg__",
-        "//intrinsic/frontend/cloud:__subpackages__",
-        "//intrinsic/frontend/go/api:__subpackages__",
-        "//intrinsic/kubernetes/data_store/http_endpoints:__pkg__",
-        "//intrinsic/kubernetes/workcell_spec:__pkg__",
-        "//intrinsic/performance/inctl:__subpackages__",
-        "//intrinsic/solution_copy:__subpackages__",
-        "//intrinsic/solution_versions:__subpackages__",
-        "//intrinsic/tools/inctl/cmd:__subpackages__",
-    ],
     deps = [
+        ":solution_diff_go_proto",
+        "//intrinsic/assets/proto/v1:solution_go_proto",
         "//intrinsic/solution_versions/proto/v1:branch_go_proto",
         "//intrinsic/solution_versions/proto/v1:conflict_go_proto",
-        "//intrinsic/solution_versions/proto/v1:conflict_resolution_go_proto",
         "//intrinsic/solution_versions/proto/v1:snapshot_go_proto",
         "//intrinsic/solution_versions/proto/v1:snapshot_source_go_proto",
         "//intrinsic/solution_versions/proto/v1:warning_go_proto",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@io_bazel_rules_go//proto/wkt:field_mask_go_proto",
         "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
-        "@org_golang_google_genproto//googleapis/longrunning",
         "@org_golang_google_genproto_googleapis_api//annotations",
-        "@org_golang_google_genproto_googleapis_rpc//status",
     ],
 )
 
@@ -169,9 +150,8 @@ js_library(
 proto_library(
     name = "solution_diff_proto",
     srcs = ["solution_diff.proto"],
-    visibility = [
-    ],
     deps = [
+        "//intrinsic/assets/proto/v1:solution_proto",
         "//intrinsic/solution_versions/proto/v1:diff_mask_proto",
     ],
 )
@@ -180,12 +160,8 @@ go_proto_library(
     name = "solution_diff_go_proto",
     importpath = "intrinsic/solution_versions/proto/v1/solution_diff_go_proto",
     protos = [":solution_diff_proto"],
-    visibility = [
-        "//intrinsic/frontend/cloud/portal_bridge:__subpackages__",
-        "//intrinsic/solution_versions:__subpackages__",
-        "//intrinsic/tools/inctl/cmd/solution_version:__pkg__",
-    ],
     deps = [
+        "//intrinsic/assets/proto/v1:solution_go_proto",
         "//intrinsic/solution_versions/proto/v1:diff_mask_go_proto",
     ],
 )

@@ -16,14 +16,12 @@ syntax = "proto3";
 
 package intrinsic_proto.solution_versions.v1;
 
-import "google/longrunning/operations.proto";
-import "google/protobuf/descriptor.proto";
 import "google/protobuf/field_mask.proto";
-import "google/rpc/status.proto";
+import "intrinsic/assets/proto/v1/solution.proto";
+import "intrinsic/solution_versions/proto/v1/solution_diff.proto";
 
 import "intrinsic/solution_versions/proto/v1/branch.proto";
 import "intrinsic/solution_versions/proto/v1/conflict.proto";
-import "intrinsic/solution_versions/proto/v1/conflict_resolution.proto";
 import "intrinsic/solution_versions/proto/v1/snapshot.proto";
 import "intrinsic/solution_versions/proto/v1/snapshot_source.proto";
 import "intrinsic/solution_versions/proto/v1/warning.proto";
@@ -72,6 +70,13 @@ service SolutionVersionService {
   // - upstream_branch_id (only for version branches)
   // - tip_snapshot_id (only for deployment branches)
   rpc UpdateBranch(UpdateBranchRequest) returns (Branch) {}
+
+  // Commits a snapshot to a branch.
+  //
+  // The given snapshot is committed to an already existing version branch.
+  // After the commit is successful, the history of the deployment branch will
+  // be set to the version branch history.
+  rpc Commit(CommitRequest) returns (CommitResponse) {}
 
   // Renames a branch.
   rpc RenameBranch(RenameBranchRequest) returns (RenameBranchResponse) {}
@@ -122,6 +127,28 @@ service SolutionVersionService {
   //
   // This RPC will gracefully handle all types of branches.
   rpc ShareBranch(ShareBranchRequest) returns (ShareBranchResponse) {}
+
+  // Returns the Solution for the given branch and snapshot id.
+  // A Solution represents the Assets, Asset instances, and other information
+  // that define an automation solution in the Intrinsic platform.
+  rpc GetSolution(GetSolutionRequest)
+      returns (intrinsic_proto.assets.v1.Solution) {}
+
+  // Performs a directional, two-way comparison (diff) between two solution
+  // versions.
+  rpc Diff(DiffRequest) returns (SolutionDiff) {}
+
+  // Performs a directional, three-way comparison to generate a pre-merge
+  // analysis (preview) of merging a source snapshot into a destination branch.
+  //
+  // By comparing both against their latest common ancestor (CA) — resolved
+  // topologically or by selecting the one with the latest creation time if
+  // multiple non-redundant candidates exist — it identifies where independent
+  // changes overlap (merge-blocking conflicts) or introduce logical
+  // inconsistencies (non-blocking warnings) before any state is committed.
+  // If the two versions don't have a common ancestor, the empty solution state
+  // is used as the common ancestor.
+  rpc PreviewMerge(PreviewMergeRequest) returns (PreviewMergeResponse) {}
 
 }
 
@@ -218,6 +245,34 @@ message DeleteBranchRequest {
 }
 
 message DeleteBranchResponse {}
+
+// The request for the `Commit` RPC.
+message CommitRequest {
+  // The version branch to add a commit to.
+  string branch_id = 2;
+
+  // Commit title and description to be attached to the version.
+  CommitMessage commit_message = 3;
+
+  // The branch to get the specified snapshot from.
+  // Can be of any type (deployment or version).
+  string origin_branch_id = 4;
+
+  // The ID of the snapshot to commit.
+  // If not provided, the tip of the origin branch is used.
+  string snapshot_id = 5;
+}
+
+message CommitResponse {
+  // The snapshot that was committed.
+  Snapshot snapshot = 1;
+
+  // The version branch that the snapshot was committed to.
+  Branch version_branch = 2;
+
+  // The deployment branches of the version branch that were updated.
+  repeated Branch deployment_branches = 3;
+}
 
 message UpdateBranchRequest {
   // The branch update.
@@ -344,3 +399,94 @@ message ShareBranchRequest {
 }
 
 message ShareBranchResponse {}
+
+message GetSolutionRequest {
+  // The snapshot to be retrieved and normalized.
+  SnapshotSource source = 1;
+
+  // Controls the detail level of the returned Solution.
+  enum View {
+    // Defaults to `VIEW_FULL_NO_FDS`.
+    VIEW_UNSPECIFIED = 0;
+
+    // Strips FileDescriptorSets from the returned Solution.
+    VIEW_FULL_NO_FDS = 1;
+
+    // Includes FileDescriptorSets in the returned Solution.
+    VIEW_FULL = 2;
+  }
+  View view = 2;
+}
+
+message DiffRequest {
+  // The baseline state of the comparison.
+  SnapshotSource reference = 1;
+
+  // The state that is compared against the reference. Applying the returned
+  // patch to the reference yields the target.
+  SnapshotSource target = 2;
+}
+
+message PreviewMergeRequest {
+  // The specific snapshot requested to be merged into the destination branch.
+  SnapshotSource source = 1;
+
+  // The destination branch ID that will receive the changes.
+  string destination_branch_id = 2;
+
+  // Controls the detail level of the created PreviewMergeResponse.
+  enum View {
+    // Defaults to `VIEW_BASIC`.
+    VIEW_UNSPECIFIED = 0;
+
+    // Contains metadata, diffs, conflicts, and warnings.
+    VIEW_BASIC = 1;
+
+    // Also contains the full merged solution.
+    VIEW_FULL = 2;
+  }
+  View view = 3;
+}
+
+// PreviewMergeResponse represents the pre-merge analysis, providing the 3-way
+// diffs, conflicts, and warnings needed to evaluate and prepare a source
+// snapshot for merging into a destination branch.
+message PreviewMergeResponse {
+  // The specific snapshot requested to be merged into the destination branch.
+  SnapshotSource source = 1;
+
+  // The destination branch ID that will receive the changes and the tip
+  // snapshot at the time the preview was generated.
+  SnapshotSource destination = 2;
+
+  // The ID of the common ancestor snapshot used for the 3-way diff.
+  // This may be empty if no common ancestor exists (e.g., disjoint histories),
+  // indicating that the diffs are relative to an empty solution state.
+  string common_ancestor_snapshot_id = 3;
+
+  // The diff of the destination branch (tip) relative to the common ancestor,
+  // or relative to an empty solution state if no common ancestor exists.
+  SolutionDiff destination_diff = 4;
+
+  // The diff of the incoming source snapshot relative to the common ancestor,
+  // or relative to an empty solution state if no common ancestor exists.
+  SolutionDiff source_diff = 5;
+
+  // The combined diff representing the final merged state relative to the
+  // destination branch tip.
+  // Populated only in the conflict-free case (i.e., when `conflicts` is empty).
+  SolutionDiff merged_diff = 6;
+
+  // List of merge-blocking conflicts (e.g., overlapping field updates,
+  // unresolved hard dependencies) that prevent a clean merge.
+  repeated Conflict conflicts = 7;
+
+  // List of non-blocking warnings (e.g. schema mismatches, dangling soft
+  // references) that the user should address post-merge.
+  repeated Warning warnings = 8;
+
+  // The full solution representing the final merged state.
+  // Only populated if the view in the request is set to VIEW_FULL
+  // and there are no blocking conflicts (`conflicts` is empty).
+  intrinsic_proto.assets.v1.Solution merged_result = 9;
+}
