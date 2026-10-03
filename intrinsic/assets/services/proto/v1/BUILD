@@ -18,9 +18,27 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = [
+    "//visibility:public",
+])
+
+js_library(
+    name = "service_state_jspb_proto",
+    deps = ["//intrinsic/assets/services/proto/v1:service_state_proto"],
+)
+
+js_library(
+    name = "service_inspection_jspb_proto",
+    deps = ["//intrinsic/assets/services/proto/v1:service_inspection_proto"],
+)
+
+js_library(
+    name = "system_service_state_jspb_proto",
+    deps = ["//intrinsic/assets/services/proto/v1:system_service_state_proto"],
+)
 
 proto_library(
     name = "dynamic_reconfiguration_proto",

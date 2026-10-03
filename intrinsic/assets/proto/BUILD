@@ -18,9 +18,220 @@ load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+load("//bazel:go_macros.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
+
+js_library(
+    name = "field_metadata_jspb_proto",
+    visibility = ["//intrinsic:public_api_users"],
+    deps = ["//intrinsic/assets/proto:field_metadata_proto"],
+)
+
+js_library(
+    name = "asset_tag_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = ["//intrinsic/assets/proto:asset_tag_proto"],
+)
+
+filegroup(
+    name = "asset_tags",
+    srcs = [
+        "asset_tags.textproto",
+    ],
+    visibility = [
+        "//intrinsic/assets:__subpackages__",
+    ],
+)
+
+js_library(
+    name = "asset_type_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = ["//intrinsic/assets/proto:asset_type_proto"],
+)
+
+js_library(
+    name = "documentation_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = ["//intrinsic/assets/proto:documentation_proto"],
+)
+
+js_library(
+    name = "status_spec_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = ["//intrinsic/assets/proto:status_spec_proto"],
+)
+
+js_library(
+    name = "id_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = ["//intrinsic/assets/proto:id_proto"],
+)
+
+js_library(
+    name = "metadata_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = ["//intrinsic/assets/proto:metadata_proto"],
+)
+
+js_library(
+    name = "release_tag_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = ["//intrinsic/assets/proto:release_tag_proto"],
+)
+
+js_library(
+    name = "vendor_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = ["//intrinsic/assets/proto:vendor_proto"],
+)
+
+js_library(
+    name = "view_jspb_proto",
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = ["//intrinsic/assets/proto:view_proto"],
+)
+
+js_library(
+    name = "asset_deployment_jspb_proto",
+    visibility = [
+        "//intrinsic/frontend:__subpackages__",
+    ],
+    deps = ["//intrinsic/assets/proto:asset_deployment_proto"],
+)
+
+proto_library(
+    name = "installed_assets_proto",
+    srcs = ["installed_assets.proto"],
+    visibility = [
+        "//intrinsic:public_api_users",
+        "//intrinsic/kubernetes/api_relay:__subpackages__",
+        "//intrinsic/world/service:__subpackages__",
+    ],
+    deps = [
+        "//intrinsic/assets/data/proto/v1:data_asset_proto",
+        "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_proto",
+        "//intrinsic/assets/processes/proto:process_asset_proto",
+        "//intrinsic/assets/proto:asset_tag_proto",
+        "//intrinsic/assets/proto:asset_type_proto",
+        "//intrinsic/assets/proto:id_proto",
+        "//intrinsic/assets/proto:metadata_proto",
+        "//intrinsic/assets/proto:view_proto",
+        "//intrinsic/assets/proto/v1:asset_proto",
+        "//intrinsic/assets/proto/v1:reference_proto",
+        "//intrinsic/assets/proto/v1:search_proto",
+        "//intrinsic/assets/scene_objects/proto:scene_object_manifest_proto",
+        "//intrinsic/assets/services/proto:service_manifest_proto",
+        "//intrinsic/assets/services/proto/v1:service_inspection_proto",
+        "//intrinsic/skills/proto:processed_skill_manifest_proto",
+        "//intrinsic/util/status:extended_status_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/api:field_behavior_proto",
+        "@com_google_googleapis//google/longrunning:operations_proto",
+    ],
+)
+
+go_proto_library(
+    name = "installed_assets_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+    ],
+    importpath = "intrinsic/assets/proto/installed_assets_go_proto",
+    protos = [":installed_assets_proto"],
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = [
+        "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
+        "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
+        "//intrinsic/assets/processes/proto:process_asset_go_proto",
+        "//intrinsic/assets/proto:asset_tag_go_proto",
+        "//intrinsic/assets/proto:asset_type_go_proto",
+        "//intrinsic/assets/proto:id_go_proto",
+        "//intrinsic/assets/proto:metadata_go_proto",
+        "//intrinsic/assets/proto:view_go_proto",
+        "//intrinsic/assets/proto/v1:asset_go_proto",
+        "//intrinsic/assets/proto/v1:reference_go_proto",
+        "//intrinsic/assets/proto/v1:search_go_proto",
+        "//intrinsic/assets/scene_objects/proto:scene_object_manifest_go_proto",
+        "//intrinsic/assets/services/proto:service_manifest_go_proto",
+        "//intrinsic/assets/services/proto/v1:service_inspection_go_proto",
+        "//intrinsic/skills/proto:processed_skill_manifest_go_proto",
+        "//intrinsic/util/status:extended_status_go_proto",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
+)
+
+py_proto_library(
+    name = "installed_assets_py_pb2",
+    visibility = [
+        "//intrinsic:public_api_users",
+        "//intrinsic/solutions:__pkg__",
+    ],
+    deps = [":installed_assets_proto"],
+)
+
+py_grpc_library(
+    name = "installed_assets_pb2_grpc",
+    srcs = [":installed_assets_proto"],
+    grpc_library = requirement("grpcio"),
+    visibility = [
+        "//intrinsic:public_api_users",
+        "//intrinsic/solutions:__pkg__",
+    ],
+    deps = [":installed_assets_py_pb2"],
+)
+
+cc_proto_library(
+    name = "installed_assets_cc_proto",
+    visibility = [
+        "//intrinsic:public_api_users",
+    ],
+    deps = [":installed_assets_proto"],
+)
+
+cc_grpc_library(
+    name = "installed_assets_cc_grpc_proto",
+    srcs = [":installed_assets_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    visibility = [
+        "//intrinsic:public_api_users",
+    ],
+    deps = [":installed_assets_cc_proto"],
+)
+
+js_library(
+    name = "installed_assets_jspb_proto",
+    visibility = [
+        "//intrinsic/assets/dependencies:__pkg__",
+        "//intrinsic/assets/dependencies/build_defs:__pkg__",
+        "//intrinsic/frontend:__subpackages__",
+    ],
+    deps = [":installed_assets_proto"],
+)
 
 proto_library(
     name = "id_proto",

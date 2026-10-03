@@ -1,0 +1,65 @@
+# proto-file: intrinsic/assets/proto/asset_tag.proto
+# proto-message: AssetTagMetadataSet
+
+# Copyright 2026 Intrinsic Innovation LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+tags [
+  {
+    asset_tag: ASSET_TAG_UNSPECIFIED
+    display_name: ""
+    applicable_asset_types: [
+      ASSET_TYPE_DATA,
+      ASSET_TYPE_HARDWARE_DEVICE,
+      ASSET_TYPE_SCENE_OBJECT,
+      ASSET_TYPE_SERVICE,
+      ASSET_TYPE_SKILL,
+      ASSET_TYPE_PROCESS,
+      ASSET_TYPE_UNSPECIFIED
+    ]
+  },
+  {
+    asset_tag: ASSET_TAG_CAMERA
+    display_name: "Camera"
+    applicable_asset_types: [
+      ASSET_TYPE_HARDWARE_DEVICE,
+      ASSET_TYPE_SCENE_OBJECT,
+      ASSET_TYPE_SERVICE
+    ]
+  },
+  {
+    asset_tag: ASSET_TAG_GRIPPER
+    display_name: "Gripper"
+    applicable_asset_types: [
+      ASSET_TYPE_HARDWARE_DEVICE,
+      ASSET_TYPE_SCENE_OBJECT,
+      ASSET_TYPE_SERVICE
+    ]
+  },
+  {
+    asset_tag: ASSET_TAG_SUBPROCESS
+    display_name: "Subprocess"
+    applicable_asset_types: [ASSET_TYPE_PROCESS]
+  },
+  {
+    asset_tag: ASSET_TAG_ARM
+    display_name: "Arm"
+    applicable_asset_types: [
+      ASSET_TYPE_HARDWARE_DEVICE,
+      ASSET_TYPE_SCENE_OBJECT,
+      ASSET_TYPE_SERVICE
+    ]
+  }
+]

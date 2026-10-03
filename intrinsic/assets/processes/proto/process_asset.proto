@@ -1,0 +1,70 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.processes;
+
+import "intrinsic/assets/proto/metadata.proto";
+import "intrinsic/executive/proto/behavior_tree.proto";
+import "intrinsic/assets/proto/v1/reference.proto";
+
+option go_package = "intrinsic/assets/processes/proto/process_asset_go_proto";
+
+// A processed, portable representation of a Process asset.
+message ProcessAsset {
+  // Metadata about the asset, such as package, ID, release notes, etc.
+  intrinsic_proto.assets.Metadata metadata = 1;
+
+  // The behavior tree representing the process.
+  //
+  // [BehaviorTree.name] has to be equal to [Metadata.display_name].
+  //
+  // The Skill proto in [BehaviorTree.description] stores additional metadata
+  // about the process. If present, it describes the interface of the process
+  // (parameters, return value, etc.) and contains redundant metadata in "skill
+  // format" which always has to be consistent with the asset's metadata:
+  // - [Skill.skill_name, .package_name, .id] have to match
+  //   [Metadata.id_version.id].
+  // - [Skill.description] has to be equal to
+  //   [Metadata.documentation.description].
+  // - [Skill.id_version] has to match [Metadata.id_version]. It has to be empty
+  //   if [Metadata.id_version.version] is empty.
+  intrinsic_proto.executive.BehaviorTree behavior_tree = 2;
+
+  // Post-processing representation of an Asset referenced within the definition
+  // of a Process. The corresponding pre-processing representation is
+  // `ProcessManifest.Asset`.
+  message ProcessedAsset {
+    oneof variant {
+      intrinsic_proto.assets.v1.CatalogAsset catalog = 1;
+    }
+  }
+
+  // A map from asset IDs to Assets that are referenced within the definition of
+  // this Process. Any Assets in this map that are not already installed will be
+  // installed automatically when this Process is installed in a Solution.
+  //
+  // This field should contain an entry for every Asset directly referenced
+  // within this Process. This ensures that all required Assets are
+  // automatically installed when a user installs the Process. Both the
+  // graphical Flowstate Process editor and the Python Solution Building Library
+  // (SBL) will automatically populate this field with all Assets referenced in
+  // the Process using the version installed in the Solution. For Processes
+  // built using Bazel, this field will be populated by processing the
+  // corresponding `assets` field in `ProcessManifest`.
+  //
+  // See `ProcessManifest.assets` for more details on automatic installation.
+  map<string, ProcessedAsset> assets = 3;
+}
