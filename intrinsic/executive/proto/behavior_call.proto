@@ -111,12 +111,7 @@ message BehaviorCall {
   }
   optional SkillExecutionOptions skill_execution_options = 7;
 
-  // The fields in SkillExecutionData are updated based on a skill.predict()
-  // call. They are passed to skill.execute() if set.
-  // At a later point these fields may be set, for example when prediction was
-  // run off-line. This is currently not implemented. Confer documentation of
-  // intrinsic_proto.skills.PredictResult and
-  // intrinsic_proto.skills.ExecuteRequest.
+  // Deprecated internal skill execution data. Do not set or read this message.
   message SkillExecutionData {
     // The footprint (required resources etc.) of the skill.
     intrinsic_proto.skills.Footprint footprint = 1;
