@@ -93,7 +93,9 @@ go_library(
 
 go_library(
     name = "identity",
-    srcs = ["identity.go"],
+    srcs = [
+        "identity.go",
+    ],
     importpath = "intrinsic/kubernetes/acl/identity",
     deps = [
         ":clientcontext",
