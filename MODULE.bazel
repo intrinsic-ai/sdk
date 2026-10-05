@@ -203,7 +203,7 @@ register_toolchains("@rust_1_89_toolchains//...")
 # JS/TS #
 #########
 
-bazel_dep(name = "rules_nodejs", version = "6.7.5", dev_dependency = True)
+bazel_dep(name = "rules_nodejs", version = "6.7.6", dev_dependency = True)
 bazel_dep(name = "aspect_rules_js", version = "3.4.1", dev_dependency = True)
 bazel_dep(name = "aspect_rules_ts", version = "3.10.1", dev_dependency = True)
 bazel_dep(name = "aspect_rules_esbuild", version = "0.27.1", dev_dependency = True)
