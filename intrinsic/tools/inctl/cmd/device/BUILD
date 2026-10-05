@@ -14,7 +14,9 @@
 
 load("//bazel:go_macros.bzl", "go_library", "go_test")
 
-package(default_visibility = ["//intrinsic/tools/inctl:__subpackages__"])
+package(default_visibility = [
+    "//intrinsic/tools/inctl:__subpackages__",
+])
 
 go_library(
     name = "device",

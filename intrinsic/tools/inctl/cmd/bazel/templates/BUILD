@@ -13,7 +13,9 @@
 # limitations under the License.
 
 # Templates used by the external inctl tool.
-package(default_visibility = ["//intrinsic/tools/inctl/cmd/bazel:__subpackages__"])
+package(default_visibility = [
+    "//intrinsic/tools/inctl/cmd/bazel:__subpackages__",
+])
 
 exports_files(
     srcs = [

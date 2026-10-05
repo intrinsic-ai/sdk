@@ -22,7 +22,9 @@ go_library(
         "operations.go",
     ],
     importpath = "intrinsic/tools/inctl/util/accounts/accounts",
-    visibility = ["//intrinsic/tools/inctl:__subpackages__"],
+    visibility = [
+        "//intrinsic/tools/inctl:__subpackages__",
+    ],
     deps = [
         "//intrinsic/config:environments",
         "//intrinsic/kubernetes/accounts/service/api/accesscontrol/v1:accesscontrol_go_proto",

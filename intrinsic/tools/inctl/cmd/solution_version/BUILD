@@ -21,7 +21,9 @@ go_library(
         "solutionversion_duplicate.go",
     ] + [],
     importpath = "intrinsic/tools/inctl/cmd/solution_version/solutionversion",
-    visibility = ["//intrinsic/tools/inctl:__subpackages__"],
+    visibility = [
+        "//intrinsic/tools/inctl:__subpackages__",
+    ],
     deps = [
         "//intrinsic/solution_versions/proto/v1:branch_go_proto",
         "//intrinsic/solution_versions/proto/v1:snapshot_source_go_proto",

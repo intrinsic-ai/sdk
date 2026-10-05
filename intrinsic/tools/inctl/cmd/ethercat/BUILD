@@ -24,7 +24,9 @@ go_library(
     ] + ["validation_syntax.go"],
     embedsrcs = [],
     importpath = "intrinsic/tools/inctl/cmd/ethercat/ethercat",
-    visibility = ["//intrinsic/tools/inctl:__pkg__"],
+    visibility = [
+        "//intrinsic/tools/inctl:__pkg__",
+    ],
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",

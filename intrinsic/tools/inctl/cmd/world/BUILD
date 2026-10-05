@@ -21,7 +21,9 @@ go_library(
         "world.go",
     ],
     importpath = "intrinsic/tools/inctl/cmd/world",
-    visibility = ["//intrinsic/tools/inctl:__subpackages__"],
+    visibility = [
+        "//intrinsic/tools/inctl:__subpackages__",
+    ],
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
