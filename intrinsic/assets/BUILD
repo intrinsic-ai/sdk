@@ -423,7 +423,6 @@ go_library(
     importpath = "intrinsic/assets/referenceddata",
     visibility = ["//intrinsic:public_api_users"],
     deps = [
-        "//intrinsic/assets/catalog/proto/v1:asset_catalog_go_proto",
         "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
         "//intrinsic/assets/proto/v1:asset_artifacts_go_proto",
         "//intrinsic/util/go:seekable",

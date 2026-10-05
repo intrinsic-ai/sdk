@@ -37,7 +37,6 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
-	acpb "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto"
 	rdpb "intrinsic/assets/data/proto/v1/referenced_data_go_proto"
 	assetartifactspb "intrinsic/assets/proto/v1/asset_artifacts_go_proto"
 
@@ -524,127 +523,6 @@ func InlineProcessor() Processor {
 	return &inlineProcessor{}
 }
 
-type legacyCatalogProcessor struct {
-	acClient  acpb.AssetCatalogClient
-	chunkSize int
-}
-
-// legacyCatalogProcessorOption is an option for legacyCatalogProcessor.
-type legacyCatalogProcessorOption func(*legacyCatalogProcessor)
-
-// withLegacyChunkSize sets the chunk size for legacyCatalogProcessor.
-func withLegacyChunkSize(size int) legacyCatalogProcessorOption {
-	return func(opts *legacyCatalogProcessor) {
-		opts.chunkSize = size
-	}
-}
-
-// NeedsReaderFor returns true for file references.
-func (p *legacyCatalogProcessor) NeedsReaderFor(rt ReferenceType) bool {
-	return rt == FileReferenceType
-}
-
-// Process prepares the given ReferencedData for inclusion in an Asset that will be released to the
-// AssetCatalog.
-func (p *legacyCatalogProcessor) Process(ctx context.Context, rdr *Reader, opts *ProcessOptions) error {
-	if rdr.Ref.Reference() != "" {
-		log.Infof("Preparing reference %v", rdr.Ref.Reference())
-	}
-
-	stream, err := p.acClient.PrepareReferencedData(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to open PrepareReferencedData stream: %w", err)
-	}
-
-	// First send the referenced data.
-	if err := stream.Send(&acpb.PrepareReferencedDataRequest{
-		Data: &acpb.PrepareReferencedDataRequest_ReferencedData{
-			ReferencedData: rdr.Ref.ToProto(),
-		},
-	}); err != nil {
-		return fmt.Errorf("failed to send referenced data: %w", err)
-	}
-
-	// For file references, send the file data.
-	if rdr.Ref.Type() == FileReferenceType {
-		log.Infof("Sending file data for %v", rdr.Ref.Reference())
-		buf := make([]byte, p.chunkSize)
-		for {
-			n, err := rdr.Reader.Read(buf)
-			if err != io.EOF && err != nil {
-				return fmt.Errorf("failed to read data: %w", err)
-			}
-			if n > 0 {
-				if err := stream.Send(&acpb.PrepareReferencedDataRequest{
-					Data: &acpb.PrepareReferencedDataRequest_DataChunk{
-						DataChunk: buf[:n],
-					},
-				}); err != nil {
-					return fmt.Errorf("failed to send data chunk: %w", err)
-				}
-			}
-			if err == io.EOF {
-				break
-			}
-		}
-	}
-
-	// Close the stream and get the updated referenced data.
-	response, err := stream.CloseAndRecv()
-	if err != nil {
-		return fmt.Errorf("failed to close stream: %w", err)
-	}
-
-	// Replace the referenced data with the updated referenced data from the catalog.
-	rdr.Ref.Replace(FromProto(response.GetReferencedData()))
-
-	// If the catalog returned a sha512 digest, but we are running in fallback mode,
-	// it means the runtime might not support sha512 yet. We strip it to ensure
-	// compatibility with older runtimes.
-	if strings.HasPrefix(rdr.Ref.Digest(), "sha512:") {
-		rdr.Ref.SetDigest("")
-	}
-
-	return nil
-}
-
-// newLegacyCatalogProcessor returns a Processor that prepares ReferencedData for inclusion in an
-// Asset that will be released to the AssetCatalog.
-//
-// It is only kept as a fallback until all Asset cloud deployments start serving AssetArtifacts.
-func newLegacyCatalogProcessor(client acpb.AssetCatalogClient, options ...legacyCatalogProcessorOption) Processor {
-	p := &legacyCatalogProcessor{
-		acClient:  client,
-		chunkSize: defaultChunkSize,
-	}
-	for _, opt := range options {
-		opt(p)
-	}
-
-	return p
-}
-
-type defaultFallbackProcessor struct {
-	fallbackError error
-}
-
-func (p *defaultFallbackProcessor) NeedsReaderFor(rt ReferenceType) bool {
-	return false
-}
-
-func (p *defaultFallbackProcessor) Process(ctx context.Context, rdr *Reader, opts *ProcessOptions) error {
-	switch rdr.Ref.Type() {
-	case CASReferenceType, InlinedReferenceType:
-		// Already in CAS or inlined, nothing to do for old servers.
-		return nil
-	case FileReferenceType:
-		// We cannot upload large files to old servers during install.
-		return fmt.Errorf("large file references cannot be processed; AssetArtifacts is unavailable: %w", p.fallbackError)
-	default:
-		return fmt.Errorf("unknown reference type: %v", rdr.Ref.Type())
-	}
-}
-
 type artifactsProcessor struct {
 	aaClient         assetartifactspb.AssetArtifactsClient
 	chunkSize        int
@@ -653,13 +531,8 @@ type artifactsProcessor struct {
 	lroClient        lropb.OperationsClient
 	progressCallback ProgressCallback
 
-	// fallbackFactory is a factory for a fallback Processor to use in case the AssetArtifacts service
-	// is not available).
-	//
-	// The factory is passed the error that led to the fallback being needed.
-	fallbackFactory func(error) Processor
-	fallbackError   error
-	probeAAOnce     sync.Once
+	fallbackError error
+	probeAAOnce   sync.Once
 }
 
 // ProcessorOption is an option for NewProcessor.
@@ -676,16 +549,6 @@ func WithChunkSize(size int) ProcessorOption {
 func WithDryRun(dryRun bool) ProcessorOption {
 	return func(opts *artifactsProcessor) {
 		opts.dryRun = dryRun
-	}
-}
-
-// WithFallbackCatalogClient sets a fallback AssetCatalogClient to use if the AssetArtifacts service
-// is unavailable.
-func WithFallbackCatalogClient(client acpb.AssetCatalogClient) ProcessorOption {
-	return func(p *artifactsProcessor) {
-		p.fallbackFactory = func(_ error) Processor {
-			return newLegacyCatalogProcessor(client)
-		}
 	}
 }
 
@@ -792,8 +655,9 @@ func (p *artifactsProcessor) Process(ctx context.Context, rdr *Reader, opts *Pro
 		return nil
 	}
 
+	// If AssetArtifacts is unavailable, fall back to a basic behavior.
 	if p.fallbackError != nil {
-		return p.fallbackFactory(p.fallbackError).Process(ctx, rdr, opts)
+		return p.fallbackProcess(rdr)
 	}
 
 	origRefName := rdr.Ref.Reference()
@@ -855,6 +719,19 @@ func (p *artifactsProcessor) Process(ctx context.Context, rdr *Reader, opts *Pro
 	})
 
 	return nil
+}
+
+func (p *artifactsProcessor) fallbackProcess(rdr *Reader) error {
+	switch rdr.Ref.Type() {
+	case CASReferenceType, InlinedReferenceType:
+		// Already in CAS or inlined, nothing to do for old servers.
+		return nil
+	case FileReferenceType:
+		// We cannot upload large files to old servers during install.
+		return fmt.Errorf("large file references cannot be processed; AssetArtifacts is unavailable: %w", p.fallbackError)
+	default:
+		return fmt.Errorf("unknown reference type: %v", rdr.Ref.Type())
+	}
 }
 
 // uploadWithRetries wraps upload with session-level retries to recover from in-memory session loss
@@ -973,11 +850,6 @@ func NewProcessor(aaClient assetartifactspb.AssetArtifactsClient, lroClient lrop
 		lroClient:       lroClient,
 		inlineThreshold: InlineReferenceFileSizeThresholdBytes,
 		chunkSize:       defaultChunkSize,
-		fallbackFactory: func(err error) Processor {
-			return &defaultFallbackProcessor{
-				fallbackError: err,
-			}
-		},
 	}
 	for _, opt := range options {
 		opt(p)

@@ -92,8 +92,12 @@ service AssetCatalog {
   // ReferencedData references a file, then the client should then send chunks
   // of the file data until the entire file has been sent. Finally, the client
   // should close the stream.
+  //
+  // Deprecated: Use the AssetArtifacts service instead.
   rpc PrepareReferencedData(stream PrepareReferencedDataRequest)
-      returns (PrepareReferencedDataResponse) {}
+      returns (PrepareReferencedDataResponse) {
+    option deprecated = true;
+  }
 }
 
 // A specific version of an asset in the catalog.
@@ -277,6 +281,8 @@ message UpdateReleaseMetadataRequest {
 }
 
 message PrepareReferencedDataRequest {
+  option deprecated = true;
+
   oneof data {
     // The ReferencedData to prepare.
     intrinsic_proto.data.v1.ReferencedData referenced_data = 1;
@@ -287,6 +293,8 @@ message PrepareReferencedDataRequest {
 }
 
 message PrepareReferencedDataResponse {
+  option deprecated = true;
+
   // The prepared ReferencedData.
   intrinsic_proto.data.v1.ReferencedData referenced_data = 1;
 }
