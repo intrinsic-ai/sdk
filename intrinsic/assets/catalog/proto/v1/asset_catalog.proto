@@ -81,18 +81,6 @@ service AssetCatalog {
     };
   }
 
-  // Prepares a ReferencedData so that it can be included in an asset that will
-  // be released to the catalog.
-  //
-  // The prepared form of the data to include in the asset is returned.
-  //
-  // This RPC is streaming in order to enable referenced files to be uploaded in
-  // chunks while preparing the data. The client should begin by opening a
-  // stream and sending the ReferencedData in an initial request. If the
-  // ReferencedData references a file, then the client should then send chunks
-  // of the file data until the entire file has been sent. Finally, the client
-  // should close the stream.
-  //
   // Deprecated: Use the AssetArtifacts service instead.
   rpc PrepareReferencedData(stream PrepareReferencedDataRequest)
       returns (PrepareReferencedDataResponse) {
