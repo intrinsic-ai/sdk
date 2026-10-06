@@ -213,7 +213,6 @@ cc_library(
         "@abseil-cpp//absl/strings:string_view",
         "@abseil-cpp//absl/time",
         "@com_google_protobuf//:protobuf",
-        "@io_opencensus_cpp//opencensus/stats",
     ],
 )
 

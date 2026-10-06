@@ -31,8 +31,6 @@
 #include "intrinsic/util/proto_time.h"
 #include "intrinsic/util/status/ret_check.h"
 #include "intrinsic/util/status/status_macros.h"
-#include "opencensus/stats/stats.h"
-
 namespace intrinsic {
 
 Publisher::Publisher(Publisher&& other)
@@ -68,7 +66,8 @@ Publisher& Publisher::operator=(Publisher&& other) {
 
 Publisher::Publisher(absl::string_view topic_name,
                      std::unique_ptr<PublisherData> publisher_data)
-    : topic_name_(topic_name), publisher_data_(std::move(publisher_data)) {}
+    : topic_name_(topic_name), publisher_data_(std::move(publisher_data)) {
+}
 
 Publisher::~Publisher() {
   if (publisher_data_ && !publisher_data_->prefixed_name.empty()) {
