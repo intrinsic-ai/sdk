@@ -543,18 +543,24 @@ func TraceIDHandler(h http.Handler) http.Handler {
 	})
 }
 
-// setSpanErrorStatus marks span as failed with the given code and description.
+// setSpanErrorStatus marks span as failed with the given code and description,
+// and records the description as an exception event.
+//
+// Cloud Trace does not display the status description, but it does display
+// exception events, so both are recorded. See
+// https://github.com/GoogleCloudPlatform/opentelemetry-operations-go/issues/1039.
 func setSpanErrorStatus(span oteltrace.Span, code grpccodes.Code, description string) {
 	span.SetAttributes(
 		semconv.ErrorTypeKey.String(code.String()),
 	)
+	span.RecordError(errors.New(description))
 	span.SetStatus(codes.Error, description)
 }
 
 // SetError sets the error status code and message for the given span.
 // The helper avoids the string-formatting operation for the error if the span is not recorded.
 //
-// Deprecated: Use native OpenTelemetry [trace.Span.SetStatus] instead.
+// Deprecated: Use native OpenTelemetry [oteltrace.Span.RecordError] and [oteltrace.Span.SetStatus] instead.
 // If you really need to attach code to the span, use [SetSpanError].
 func SetError(span *trace.Span, statusCode int, message string, err error) {
 	if !span.IsRecordingEvents() {
@@ -564,6 +570,7 @@ func SetError(span *trace.Span, statusCode int, message string, err error) {
 }
 
 // SetSpanError marks span as failed with the given gRPC status code and message.
+// The status description "<message>: <err>" is also recorded as an exception event.
 //
 // The helper avoids the string-formatting operation for the error if the span is not recorded.
 func SetSpanError(span oteltrace.Span, code grpccodes.Code, message string, err error) {
@@ -576,7 +583,7 @@ func SetSpanError(span oteltrace.Span, code grpccodes.Code, message string, err 
 // SetErrorf sets the error status code and message for the given span.
 // The helper avoids the string-formatting operation for the error if the span is not recorded.
 //
-// Deprecated: Use native OpenTelemetry [trace.Span.SetStatus] instead.
+// Deprecated: Use native OpenTelemetry [oteltrace.Span.RecordError] and [oteltrace.Span.SetStatus] instead.
 // If you really need to attach code to the span, use [SetSpanErrorf].
 func SetErrorf(span *trace.Span, statusCode int, format string, a ...any) {
 	if !span.IsRecordingEvents() {
@@ -586,6 +593,7 @@ func SetErrorf(span *trace.Span, statusCode int, format string, a ...any) {
 }
 
 // SetSpanErrorf marks span as failed with the given gRPC status code and the formatted message.
+// The message is also recorded as an exception event.
 //
 // The helper avoids the string-formatting operation if the span is not recorded.
 func SetSpanErrorf(span oteltrace.Span, code grpccodes.Code, format string, a ...any) {
@@ -611,7 +619,8 @@ func StatusWithError(span *trace.Span, err error) error {
 }
 
 // SpanStatusWithError marks span as failed, treating err as a gRPC status to
-// derive the error code. Returns err for easy daisy-chaining.
+// derive the error code. The status message is also recorded as an exception
+// event. Returns err for easy daisy-chaining.
 func SpanStatusWithError(span oteltrace.Span, err error) error {
 	if err == nil || !span.IsRecording() {
 		return err

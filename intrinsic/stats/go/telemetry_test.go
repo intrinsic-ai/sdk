@@ -80,9 +80,25 @@ func onlyEndedSpan(t *testing.T, recorder *tracetest.SpanRecorder) sdktrace.Read
 func spanAttributes(s sdktrace.ReadOnlySpan) map[string]string {
 	attrs := make(map[string]string)
 	for _, kv := range s.Attributes() {
-		attrs[string(kv.Key)] = kv.Value.Emit()
+		attrs[string(kv.Key)] = kv.Value.String()
 	}
 	return attrs
+}
+
+// exceptionMessages returns the messages of the exception events recorded on a span.
+func exceptionMessages(s sdktrace.ReadOnlySpan) []string {
+	var messages []string
+	for _, event := range s.Events() {
+		if event.Name != "exception" {
+			continue
+		}
+		for _, kv := range event.Attributes {
+			if kv.Key == "exception.message" {
+				messages = append(messages, kv.Value.String())
+			}
+		}
+	}
+	return messages
 }
 
 type WasCalledHandler struct {
@@ -372,6 +388,10 @@ func TestSetSpanError(t *testing.T) {
 	if diff := cmp.Diff(want, spanAttributes(ended)); diff != "" {
 		t.Errorf("SetSpanError() recorded unexpected attributes (-want +got):\n%s", diff)
 	}
+	wantExceptions := []string{"loading item: no such key"}
+	if diff := cmp.Diff(wantExceptions, exceptionMessages(ended)); diff != "" {
+		t.Errorf("SetSpanError() recorded unexpected exception events (-want +got):\n%s", diff)
+	}
 }
 
 func TestSetSpanErrorf(t *testing.T) {
@@ -392,6 +412,10 @@ func TestSetSpanErrorf(t *testing.T) {
 	if diff := cmp.Diff(want, spanAttributes(ended)); diff != "" {
 		t.Errorf("SetSpanErrorf() recorded unexpected attributes (-want +got):\n%s", diff)
 	}
+	wantExceptions := []string{"value 42 is out of range"}
+	if diff := cmp.Diff(wantExceptions, exceptionMessages(ended)); diff != "" {
+		t.Errorf("SetSpanErrorf() recorded unexpected exception events (-want +got):\n%s", diff)
+	}
 }
 
 func TestSpanStatusWithError(t *testing.T) {
@@ -401,6 +425,7 @@ func TestSpanStatusWithError(t *testing.T) {
 		wantCode        codes.Code
 		wantDescription string
 		wantAttributes  map[string]string
+		wantExceptions  []string
 	}{
 		{
 			desc:            "grpc_status_error",
@@ -408,6 +433,7 @@ func TestSpanStatusWithError(t *testing.T) {
 			wantCode:        codes.Error,
 			wantDescription: "not allowed",
 			wantAttributes:  map[string]string{"error.type": "PermissionDenied"},
+			wantExceptions:  []string{"not allowed"},
 		},
 		{
 			desc:            "plain_error_is_reported_as_unknown",
@@ -415,6 +441,7 @@ func TestSpanStatusWithError(t *testing.T) {
 			wantCode:        codes.Error,
 			wantDescription: "something broke",
 			wantAttributes:  map[string]string{"error.type": "Unknown"},
+			wantExceptions:  []string{"something broke"},
 		},
 		{
 			desc:            "nil_error_leaves_the_span_untouched",
@@ -422,6 +449,7 @@ func TestSpanStatusWithError(t *testing.T) {
 			wantCode:        codes.Unset,
 			wantDescription: "",
 			wantAttributes:  map[string]string{},
+			wantExceptions:  nil,
 		},
 	}
 	for _, test := range tests {
@@ -443,6 +471,9 @@ func TestSpanStatusWithError(t *testing.T) {
 			}
 			if diff := cmp.Diff(test.wantAttributes, spanAttributes(ended)); diff != "" {
 				t.Errorf("SpanStatusWithError() recorded unexpected attributes (-want +got):\n%s", diff)
+			}
+			if diff := cmp.Diff(test.wantExceptions, exceptionMessages(ended)); diff != "" {
+				t.Errorf("SpanStatusWithError() recorded unexpected exception events (-want +got):\n%s", diff)
 			}
 		})
 	}
