@@ -144,7 +144,6 @@ class MotionPlanningOptions:
   collision_check_spacing_override: float | None = None
   enable_strict_trajectory_fallback: bool | None = None
 
-
 @dataclasses.dataclass
 class PlanTrajectoryResult:
   """Wrapped result from calling plan_trajectory.
