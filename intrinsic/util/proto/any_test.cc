@@ -40,7 +40,7 @@ using ::testing::HasSubstr;
 TEST(UnpackAny, UnpackAnyWrongTypeFail) {
   google::protobuf::FloatValue float_value;
   google::protobuf::Any any;
-  any.PackFrom(float_value);
+  ASSERT_TRUE(any.PackFrom(float_value));
   EXPECT_THAT(UnpackAny<google::protobuf::DoubleValue>(any),
               StatusIs(absl::StatusCode::kInvalidArgument,
                        AllOf(HasSubstr("google.protobuf.FloatValue"),
@@ -51,7 +51,7 @@ TEST(UnpackAny, UnpackAnyWorks) {
   google::protobuf::FloatValue float_value;
   float_value.set_value(18.0);
   google::protobuf::Any any;
-  any.PackFrom(float_value);
+  ASSERT_TRUE(any.PackFrom(float_value));
   EXPECT_THAT(UnpackAny<google::protobuf::FloatValue>(any),
               IsOkAndHolds(EqualsProto(float_value)));
 }
@@ -60,7 +60,7 @@ TEST(UnpackAny, UnpackAnyToParamWorks) {
   google::protobuf::FloatValue float_value;
   float_value.set_value(18.0);
   google::protobuf::Any any;
-  any.PackFrom(float_value);
+  ASSERT_TRUE(any.PackFrom(float_value));
   google::protobuf::FloatValue recovered;
   ASSERT_OK(UnpackAny(any, recovered));
   EXPECT_THAT(recovered, EqualsProto(float_value));
@@ -89,9 +89,9 @@ TEST_P(UnpackAnyAndMergeTest, MergeBehavior) {
           test_case.expected);
 
   google::protobuf::Any defaults_any;
-  defaults_any.PackFrom(defaults_msg);
+  ASSERT_TRUE(defaults_any.PackFrom(defaults_msg));
   google::protobuf::Any params_any;
-  params_any.PackFrom(params_msg);
+  ASSERT_TRUE(params_any.PackFrom(params_msg));
 
   EXPECT_THAT(
       UnpackAnyAndMerge<intrinsic_proto::test::ParamMessageDefaultsTestMessage>(

@@ -173,7 +173,8 @@ absl::Status UpdateExtendedStatusOnError(
       ToGoogleRpcStatus(UpdateExtendedStatusOnError(status, skill_id, op_name,
                                                     status_specs, log_context));
   rpc_status.set_message(message);
-  rpc_status.add_details()->PackFrom(error_info);
+  static_cast<void>(rpc_status.add_details()->PackFrom(
+      error_info));
 
   return rpc_status;
 }
@@ -185,7 +186,8 @@ intrinsic_proto::skills::SkillErrorInfo GetErrorInfo(
       status.GetPayload(AddTypeUrlPrefix(
           intrinsic_proto::skills::SkillErrorInfo::descriptor()->full_name()));
   if (error_info_cord) {
-    error_info.ParseFromString(std::string(error_info_cord.value()));  // NOLINT
+    static_cast<void>(error_info.ParseFromString(std::string(
+        error_info_cord.value())));  // NOLINT
   }
   return error_info;
 }

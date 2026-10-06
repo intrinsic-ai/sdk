@@ -21,6 +21,7 @@
 #include <string>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/log/check.h"
 #include "absl/strings/str_cat.h"
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/message.h"
@@ -56,7 +57,7 @@ class FakeKvStore : public intrinsic_proto::kvstore::KVStore::Service {
   void SetString(const std::string& key, const std::string& value) {
     google::protobuf::StringValue str_val;
     str_val.set_value(value);
-    store_[key].PackFrom(str_val);
+    CHECK(store_[key].PackFrom(str_val));
   }
 
  private:

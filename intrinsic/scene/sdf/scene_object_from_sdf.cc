@@ -322,7 +322,8 @@ SceneObjectFromSdfModel(const ::sdf::Model& sdf_model,
     auto* user_data_map = scene_object_model.mutable_user_data();
     google::protobuf::Any& any_data_from_map =
         (*user_data_map)[sdf::kGazeboCustomJoint];
-    any_data_from_map.PackFrom(struct_msg);
+    static_cast<void>(
+        any_data_from_map.PackFrom(struct_msg));
   }
 
   if (sdf_model.Element()->HasElement(

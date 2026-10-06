@@ -64,7 +64,9 @@ KvStoreSetStringSkill::Execute(const ExecuteRequest& request,
   set_request.set_key(params.key());
   google::protobuf::StringValue string_value;
   string_value.set_value(params.value());
-  set_request.mutable_value()->PackFrom(string_value);
+  if (!set_request.mutable_value()->PackFrom(string_value)) {
+    return absl::InternalError("Failed to pack string_value");
+  }
 
   grpc::ClientContext client_context;
   intrinsic_proto::kvstore::SetResponse set_response;

@@ -107,7 +107,9 @@ absl::Status SkillOperation::Start(
             absl::MutexLock lock(&operation_mutex_);
 
             if (result.ok()) {
-              operation_.mutable_response()->PackFrom(**result);
+              if (!operation_.mutable_response()->PackFrom(**result)) {
+                LOG(ERROR) << "Failed to pack response in operation";
+              }
             } else {
               google::rpc::Status rpc_status = CreateSkillError(
                   result.status(), runtime_data().GetId(), op_name,
@@ -523,7 +525,9 @@ grpc::Status SkillExecutorServiceImpl::StartExecute(
         auto result =
             std::make_unique<intrinsic_proto::skills::ExecuteResult>();
         if (skill_result != nullptr) {
-          result->mutable_result()->PackFrom(*skill_result);
+          if (!result->mutable_result()->PackFrom(*skill_result)) {
+            return absl::InternalError("Failed to pack skill result");
+          }
           if (result->result().Is<intrinsic_proto::skills::ExecuteResult>()) {
             return absl::InternalError(
                 "Skill returned an ExecuteResult rather than a skill result "
@@ -607,7 +611,9 @@ grpc::Status SkillExecutorServiceImpl::StartPreview(
         auto result =
             std::make_unique<intrinsic_proto::skills::PreviewResult>();
         if (skill_result != nullptr) {
-          result->mutable_result()->PackFrom(*skill_result);
+          if (!result->mutable_result()->PackFrom(*skill_result)) {
+            return absl::InternalError("Failed to pack skill preview result");
+          }
         }
         result->mutable_expected_states()->Add(
             skill_context->GetWorldUpdates().begin(),

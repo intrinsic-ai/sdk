@@ -81,7 +81,11 @@ IntrinsicIconStreamingInputType* InvokeParser(
     return nullptr;
   }
   ProtoT proto_input;
-  any_input.UnpackTo(&proto_input);
+  if (!any_input.UnpackTo(&proto_input)) {
+    *status_out = FromRealtimeStatus(
+        icon::InternalError("Failed to unpack streaming input proto."));
+    return nullptr;
+  }
   absl::StatusOr<RealtimeT> result =
       (*reinterpret_cast<
           std::function<absl::StatusOr<RealtimeT>(const ProtoT& input)>*>(
@@ -203,7 +207,10 @@ IntrinsicIconStreamingOutputConverterFnInstance WrapStreamingOutputConverter(
                       return result.status();
                     }
                     google::protobuf::Any output_any;
-                    output_any.PackFrom(result.value());
+                    if (!output_any.PackFrom(result.value())) {
+                      return absl::InternalError(
+                          "Failed to pack streaming output proto.");
+                    }
                     return output_any;
                   }))),
       .destroy_string = DestroyString,

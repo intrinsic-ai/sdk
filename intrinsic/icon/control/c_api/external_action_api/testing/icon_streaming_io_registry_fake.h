@@ -243,7 +243,9 @@ class IconStreamingIoRegistryFake {
         return absl::FailedPreconditionError("No streaming input parser");
       }
       google::protobuf::Any input_any;
-      input_any.PackFrom(input_proto);
+      if (!input_any.PackFrom(input_proto)) {
+        return absl::InternalError("Failed to pack input proto.");
+      }
 
       IntrinsicIconRealtimeStatus status;
       absl::MutexLock lock(&input_mutex_);

@@ -257,7 +257,8 @@ ActionDescriptor::ActionDescriptor(absl::string_view action_type_name,
 ActionDescriptor& ActionDescriptor::WithFixedParams(
     const ::google::protobuf::Message& fixed_params) {
   google::protobuf::Any any_proto;
-  any_proto.PackFrom(fixed_params);
+  static_cast<void>(
+      any_proto.PackFrom(fixed_params));
   fixed_params_ = any_proto;
   return *this;
 }

@@ -66,7 +66,7 @@ TEST(ParseTextProtoTest, ParseTextProtoWorksWithCustomAnyTypeUrlPrefix) {
 
   // Use Option because it is a well-known type which has an Any field.
   google::protobuf::Option option;
-  option.mutable_value()->PackFrom(int32_value);
+  ASSERT_TRUE(option.mutable_value()->PackFrom(int32_value));
 
   absl::StatusOr<google::protobuf::Option> actual_option =
       ParseTextProto<google::protobuf::Option>(R"pb(
@@ -146,8 +146,10 @@ TEST(ParseTextProtoTest, ParseTextProtoWorksWithCustomAnyTypeUrlPrefix) {
   // Use Type because it is a well-known type which has a repeated Option
   // field (and each Option has an Any field).
   google::protobuf::Type type_with_two_options;
-  type_with_two_options.add_options()->mutable_value()->PackFrom(int32_value);
-  type_with_two_options.add_options()->mutable_value()->PackFrom(int32_value);
+  ASSERT_TRUE(type_with_two_options.add_options()->mutable_value()->PackFrom(
+      int32_value));
+  ASSERT_TRUE(type_with_two_options.add_options()->mutable_value()->PackFrom(
+      int32_value));
   EXPECT_THAT(
       ParseTextProto<google::protobuf::Type>(R"pb(
         options: {
@@ -186,8 +188,8 @@ TEST(ParseTextProtoTest, ParseTextProtoWorksWithCustomAnyTypeUrlPrefix) {
 
   // Test that type URLs of nested Any protos work.
   google::protobuf::Option inner_option, outer_option;
-  inner_option.mutable_value()->PackFrom(int32_value);
-  outer_option.mutable_value()->PackFrom(inner_option);
+  ASSERT_TRUE(inner_option.mutable_value()->PackFrom(int32_value));
+  ASSERT_TRUE(outer_option.mutable_value()->PackFrom(inner_option));
   EXPECT_THAT(
       ParseTextProto<google::protobuf::Option>(R"pb(
         value: {

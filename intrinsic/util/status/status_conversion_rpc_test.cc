@@ -70,7 +70,7 @@ TEST(ToAbslStatus, TypeUrlPrefixRemoved) {
   google::rpc::Status rpc_status;
   rpc_status.set_code(google::rpc::Code::DEADLINE_EXCEEDED);
   rpc_status.set_message("Oh no!");
-  rpc_status.add_details()->PackFrom(custom_payload);
+  ASSERT_TRUE(rpc_status.add_details()->PackFrom(custom_payload));
 
   absl::Status absl_status = ToAbslStatus(rpc_status);
   EXPECT_THAT(

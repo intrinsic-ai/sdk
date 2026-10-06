@@ -116,16 +116,16 @@ TEST(GetExtendedStatus, FromGoogleRpcStatus) {
 TEST(GetExtendedStatus, FromGoogleRpcStatusWithMultiplePayloadsTakesLast) {
   google::rpc::Status s;
   s.set_code(google::rpc::INTERNAL);
-  s.add_details()->PackFrom(
+  ASSERT_TRUE(s.add_details()->PackFrom(
       ParseTextOrDie<intrinsic_proto::status::ExtendedStatus>(R"pb(
         status_code { component: "ai.intrinsic.test" code: 123 }
         title: "Foo"
-      )pb"));
-  s.add_details()->PackFrom(
+      )pb")));
+  ASSERT_TRUE(s.add_details()->PackFrom(
       ParseTextOrDie<intrinsic_proto::status::ExtendedStatus>(R"pb(
         status_code { component: "ai.intrinsic.test" code: 234 }
         title: "Bar"
-      )pb"));
+      )pb")));
   EXPECT_THAT(GetExtendedStatus(s), Optional(EqualsProto(R"pb(
                 status_code { component: "ai.intrinsic.test" code: 234 }
                 title: "Bar"

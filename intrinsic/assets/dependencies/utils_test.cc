@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/status/status_matchers.h"
 #include "absl/status/statusor.h"
@@ -63,7 +64,7 @@ using ::testing::HasSubstr;
 DataAsset MakeEmptyDataAsset(absl::string_view name = "data_asset") {
   google::protobuf::Empty payload;
   google::protobuf::Any payload_any;
-  payload_any.PackFrom(payload);
+  CHECK(payload_any.PackFrom(payload));
 
   DataAsset asset;
   asset.mutable_metadata()->mutable_id_version()->mutable_id()->set_name(name);
