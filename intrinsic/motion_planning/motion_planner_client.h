@@ -60,6 +60,10 @@ class MotionPlannerClient {
                       ClientContextFactory client_context_factory =
                           DefaultClientContextFactory);
 
+  // Returns a client for the world with the given id, sharing the same
+  // underlying service connection.
+  MotionPlannerClient ForWorld(absl::string_view world_id) const;
+
   // Options for motion planning.
   struct MotionPlanningOptions {
     // Timeout for path planning algorithms.

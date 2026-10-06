@@ -220,6 +220,10 @@ class MotionPlannerClient(MotionPlannerClientBase):
     * Path planning
   """
 
+  def for_world(self, world_id: str) -> "MotionPlannerClient":
+    """Returns a client for the given world ID sharing the same stub."""
+    return MotionPlannerClient(world_id, self._stub)
+
   def plan_trajectory(
       self,
       robot_specification: robot_specification_pb2.RobotSpecification,

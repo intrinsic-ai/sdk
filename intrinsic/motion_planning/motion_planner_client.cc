@@ -139,6 +139,12 @@ MotionPlannerClient::MotionPlannerClient(
       motion_planner_service_(std::move(motion_planner_service)),
       client_context_factory_(std::move(client_context_factory)) {}
 
+MotionPlannerClient MotionPlannerClient::ForWorld(
+    absl::string_view world_id) const {
+  return MotionPlannerClient(world_id, motion_planner_service_,
+                             client_context_factory_);
+}
+
 absl::StatusOr<MotionPlannerClient::PlanTrajectoryResult>
 MotionPlannerClient::PlanTrajectory(
     const intrinsic_proto::motion_planning::v1::RobotSpecification&
