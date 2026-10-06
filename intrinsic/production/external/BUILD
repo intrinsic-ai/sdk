@@ -16,16 +16,6 @@ load("@rules_python//python:defs.bzl", "py_test")
 
 package(default_visibility = ["//visibility:public"])
 
-exports_files(
-    srcs = [
-        "intrinsic.bazelrc",
-        "intrinsic.bazelversion",
-    ],
-    visibility = [
-        "//intrinsic/tools/inctl/cmd/bazel/templates:__pkg__",
-    ],
-)
-
 py_test(
     name = "grpc_synchronized_py_test",
     size = "small",
