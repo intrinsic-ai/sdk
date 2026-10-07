@@ -169,6 +169,25 @@ class ObjectWorldClientTest(absltest.TestCase):
     )
     self.assertIn('name_is_global_alias', str(recorded_warnings[0].message))
 
+  def test_clone(self):
+    self._stub.CloneWorld.return_value = object_world_service_pb2.WorldMetadata(
+        id='cloned_world'
+    )
+    world_client = object_world_client.ObjectWorldClient(
+        'world', self._stub, self._geometry_service_stub
+    )
+
+    with world_client.clone() as cloned_world:
+      self.assertEqual(cloned_world.world_id, 'cloned_world')
+      self._stub.CloneWorld.assert_called_once_with(
+          object_world_service_pb2.CloneWorldRequest(world_id='world')
+      )
+      self._stub.DeleteWorld.assert_not_called()
+
+    self._stub.DeleteWorld.assert_called_once_with(
+        object_world_service_pb2.DeleteWorldRequest(world_id='cloned_world')
+    )
+
 
 if __name__ == '__main__':
   absltest.main()
