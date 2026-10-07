@@ -72,7 +72,10 @@ const (
 )
 
 const (
-	defaultChunkSize                      = 1024 * 1024
+	// defaultChunkSize is 3 MiB to maximize throughput under request rate limits while staying below
+	// the 4 MiB CAS gRPC max receive message size on older servers that do not sub-chunk before
+	// forwarding to CAS.
+	defaultChunkSize                      = 3 * 1024 * 1024
 	InlineReferenceFileSizeThresholdBytes = 1024 * 1024
 	maxUploadAttempts                     = 3
 )
