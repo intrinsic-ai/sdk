@@ -750,6 +750,18 @@ func (p *artifactsProcessor) uploadWithRetries(ctx context.Context, rdr *Reader,
 	defer cleanup()
 	rdr.Reader = seeker
 
+	digest := rdr.Ref.Digest()
+	if !strings.HasPrefix(digest, "sha512:") {
+		hasher := sha512.New()
+		if _, err := io.Copy(hasher, seeker); err != nil {
+			return nil, fmt.Errorf("failed to compute digest for %q: %w", refName, err)
+		}
+		if _, err := seeker.Seek(0, io.SeekStart); err != nil {
+			return nil, fmt.Errorf("failed to seek reader to start after computing digest: %w", err)
+		}
+		digest = fmt.Sprintf("sha512:%x", hasher.Sum(nil))
+	}
+
 	var uploadErr error
 	for attempt := 1; attempt <= maxUploadAttempts; attempt++ {
 		if attempt > 1 {
@@ -761,7 +773,7 @@ func (p *artifactsProcessor) uploadWithRetries(ctx context.Context, rdr *Reader,
 		}
 
 		var ref *rdpb.ReferencedData
-		ref, uploadErr = p.upload(ctx, rdr, refName)
+		ref, uploadErr = p.upload(ctx, rdr, refName, digest)
 		if uploadErr == nil {
 			return ref, nil
 		}
@@ -777,58 +789,62 @@ func (p *artifactsProcessor) uploadWithRetries(ctx context.Context, rdr *Reader,
 	return nil, fmt.Errorf("failed to upload %q after %d attempts: %w", refName, maxUploadAttempts, uploadErr)
 }
 
-func (p *artifactsProcessor) upload(ctx context.Context, rdr *Reader, refName string) (*rdpb.ReferencedData, error) {
+func (p *artifactsProcessor) upload(ctx context.Context, rdr *Reader, refName, digest string) (*rdpb.ReferencedData, error) {
 	// Start upload session.
 	p.update(&Progress{
 		Stage:         StageUploadStart,
 		ReferenceName: refName,
 		TotalBytes:    rdr.Size,
 	})
-	startResp, err := p.aaClient.StartUpload(ctx, &assetartifactspb.StartUploadRequest{})
+	startResp, err := p.aaClient.StartUpload(ctx, &assetartifactspb.StartUploadRequest{
+		Digest: digest,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to start upload: %w", err)
 	}
 	uploadID := startResp.GetUploadId()
 
-	// Stream the data chunks.
-	buf := make([]byte, p.chunkSize)
-	var offset int64 = 0
-	for {
-		n, err := rdr.Reader.Read(buf)
-		if err != io.EOF && err != nil {
-			return nil, fmt.Errorf("failed to read data: %w", err)
-		}
-		if n > 0 {
-			_, err := p.aaClient.UploadChunk(ctx, &assetartifactspb.UploadChunkRequest{
-				UploadId: uploadID,
-				Offset:   offset,
-				Data:     buf[:n],
-			})
-			if err != nil {
-				return nil, fmt.Errorf("failed to upload chunk: %w", err)
+	if !startResp.GetArtifactExists() {
+		// Stream the data chunks.
+		buf := make([]byte, p.chunkSize)
+		var offset int64 = 0
+		for {
+			n, err := rdr.Reader.Read(buf)
+			if err != io.EOF && err != nil {
+				return nil, fmt.Errorf("failed to read data: %w", err)
 			}
-			offset += int64(n)
-			p.update(&Progress{
-				Stage:         StageUploadProgress,
-				ReferenceName: refName,
-				BytesUploaded: offset,
-				TotalBytes:    rdr.Size,
-			})
-		}
-		if err == io.EOF {
-			break
+			if n > 0 {
+				_, err := p.aaClient.UploadChunk(ctx, &assetartifactspb.UploadChunkRequest{
+					Data:     buf[:n],
+					Offset:   offset,
+					UploadId: uploadID,
+				})
+				if err != nil {
+					return nil, fmt.Errorf("failed to upload chunk: %w", err)
+				}
+				offset += int64(n)
+				p.update(&Progress{
+					BytesUploaded: offset,
+					ReferenceName: refName,
+					Stage:         StageUploadProgress,
+					TotalBytes:    rdr.Size,
+				})
+			}
+			if err == io.EOF {
+				break
+			}
 		}
 	}
 
 	// Finalize the upload.
 	p.update(&Progress{
-		Stage:         StageUploadFinalize,
 		ReferenceName: refName,
+		Stage:         StageUploadFinalize,
 		TotalBytes:    rdr.Size,
 	})
 	finalizeResp, err := p.aaClient.FinalizeUpload(ctx, &assetartifactspb.FinalizeUploadRequest{
+		ExpectedDigest: digest,
 		UploadId:       uploadID,
-		ExpectedDigest: rdr.Ref.Digest(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to finalize upload: %w", err)
