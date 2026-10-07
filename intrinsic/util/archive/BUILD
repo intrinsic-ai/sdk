@@ -16,7 +16,9 @@ load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 # This package contains the tools to handle tar archives.
 
-package(default_visibility = ["//visibility:private"])
+package(default_visibility = [
+    "//visibility:private",
+])
 
 go_library(
     name = "tartooling",

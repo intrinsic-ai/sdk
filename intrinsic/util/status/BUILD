@@ -520,7 +520,9 @@ go_test(
 proto_library(
     name = "test_service_proto",
     srcs = ["test_service.proto"],
-    visibility = ["//intrinsic/util/status:__pkg__"],
+    visibility = [
+        "//intrinsic/util/status:__pkg__",
+    ],
     deps = ["@com_google_protobuf//:empty_proto"],
 )
 
@@ -544,7 +546,9 @@ go_proto_library(
     ],
     importpath = "intrinsic/util/status/test_service_go_proto",
     protos = [":test_service_proto"],
-    visibility = [":__pkg__"],
+    visibility = [
+        ":__pkg__",
+    ],
     deps = ["@org_golang_google_protobuf//types/known/emptypb"],
 )
 

@@ -22,7 +22,9 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("//bazel:go_macros.bzl", "go_proto_library")
 
-package(default_visibility = ["//visibility:private"])
+package(default_visibility = [
+    "//visibility:private",
+])
 
 proto_library(
     name = "ping_proto",
@@ -42,7 +44,9 @@ cc_grpc_library(
     srcs = [":ping_proto"],
     generate_mocks = True,
     grpc_only = True,
-    visibility = ["//intrinsic/util/grpc:__subpackages__"],
+    visibility = [
+        "//intrinsic/util/grpc:__subpackages__",
+    ],
     deps = [":ping_cc_proto"],
 )
 

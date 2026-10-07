@@ -94,7 +94,7 @@ go_library(
     srcs = ["descriptor.go"],
     importpath = "intrinsic/util/proto/descriptor",
     deps = [
-        "//intrinsic/util/proto:sourcecodeinfoview",
+        ":sourcecodeinfoview",
         "@com_github_golang_glog//:go_default_library",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_genproto_googleapis_api//annotations",
