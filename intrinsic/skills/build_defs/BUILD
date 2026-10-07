@@ -93,7 +93,9 @@ go_library(
     name = "skillserviceconfiggen",
     srcs = ["skillserviceconfiggen.go"],
     importpath = "intrinsic/skills/build_defs/skillserviceconfiggen",
-    visibility = ["//intrinsic/tools/inbuild:__subpackages__"],
+    visibility = [
+        "//intrinsic/tools/inbuild:__subpackages__",
+    ],
     deps = [
         "//intrinsic/assets:idutils",
         "//intrinsic/skills/proto:skill_manifest_go_proto",

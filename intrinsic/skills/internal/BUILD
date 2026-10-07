@@ -39,7 +39,7 @@ py_library(
     name = "default_parameters_py",
     srcs = ["default_parameters.py"],
     deps = [
-        "//intrinsic/skills/internal:error_bindings",
+        ":error_bindings",
         "@com_google_protobuf//:protobuf_python",
         "@pybind11_abseil//pybind11_abseil:import_status_module",
     ],

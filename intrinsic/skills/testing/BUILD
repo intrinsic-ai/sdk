@@ -32,7 +32,9 @@ package(
 py_library(
     name = "echo_skill_py",
     srcs = ["echo_skill.py"],
-    visibility = ["//intrinsic/skills/internal:__pkg__"],
+    visibility = [
+        "//intrinsic/skills/internal:__pkg__",
+    ],
     deps = [
         "//intrinsic/skills/python:skill_interface",
         "//intrinsic/skills/python:skill_interface_utils",
@@ -58,7 +60,9 @@ cc_library(
     name = "echo_skill",
     srcs = ["echo_skill.cc"],
     hdrs = ["echo_skill.h"],
-    visibility = ["//intrinsic/skills/internal:__pkg__"],
+    visibility = [
+        "//intrinsic/skills/internal:__pkg__",
+    ],
     deps = [
         "//intrinsic/skills/cc:skill_interface",
         "//intrinsic/skills/cc:skill_interface_utils",
@@ -131,7 +135,9 @@ py_library(
     name = "map_skill_repository_py",
     testonly = False,
     srcs = ["map_skill_repository.py"],
-    visibility = ["//intrinsic/skills/internal:__pkg__"],
+    visibility = [
+        "//intrinsic/skills/internal:__pkg__",
+    ],
     deps = [
         "//intrinsic/skills/internal:runtime_data_py",
         "//intrinsic/skills/internal:single_skill_factory_py",
