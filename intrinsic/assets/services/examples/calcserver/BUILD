@@ -91,7 +91,7 @@ intrinsic_service(
     name = "calculator_service",
     default_config = ":calc_default_config.textproto",
     images = [
-        "//intrinsic/assets/services/examples/calcserver:calculator-image.tar",
+        ":calculator-image.tar",
     ],
     manifest = ":calc_manifest.textproto",
     deps = [
@@ -161,7 +161,7 @@ python_oci_image(
 intrinsic_service(
     name = "approximate_function_service",
     images = [
-        "//intrinsic/assets/services/examples/calcserver:approximate-function-image.tar",
+        ":approximate-function-image.tar",
     ],
     manifest = ":approximate_function_manifest.textproto",
     deps = [
@@ -227,7 +227,7 @@ container_image(
 intrinsic_service(
     name = "exponentiate_service",
     images = [
-        "//intrinsic/assets/services/examples/calcserver:exponentiate-image.tar",
+        ":exponentiate-image.tar",
     ],
     manifest = ":exponentiate_manifest.textproto",
     deps = [
@@ -282,7 +282,7 @@ intrinsic_service(
     name = "modulo_add_service",
     default_config = ":modulo_add_default_config.textproto",
     images = [
-        "//intrinsic/assets/services/examples/calcserver:modulo-add-image.tar",
+        ":modulo-add-image.tar",
     ],
     manifest = ":modulo_add_manifest.textproto",
     deps = [
