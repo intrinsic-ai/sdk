@@ -85,6 +85,12 @@ class _CannotConstructRequestError(Exception):
   """The service cannot construct a request for a skill."""
 
 
+def _get_context_id(context: context_pb2.Context) -> str:
+  if not context.executive_plan_action_id:
+    return ''
+  return str(context.executive_plan_action_id)
+
+
 class SkillProjectorServicer(skill_service_pb2_grpc.ProjectorServicer):
   """Implementation of the skill Projector servicer."""
 
@@ -188,7 +194,7 @@ class SkillProjectorServicer(skill_service_pb2_grpc.ProjectorServicer):
         footprint_request.world_id, self._motion_planner_service
     )
 
-    context_id = str(footprint_request.context.executive_plan_action_id)
+    context_id = _get_context_id(footprint_request.context)
 
     footprint_context = get_footprint_context_impl.GetFootprintContextImpl(
         motion_planner=motion_planner,
@@ -321,7 +327,7 @@ class SkillExecutorServicer(skill_service_pb2_grpc.ExecutorServicer):
         skill_id=operation.runtime_data.skill_id,
     )
 
-    context_id = str(request.context.executive_plan_action_id)
+    context_id = _get_context_id(request.context)
 
     skill_context = execute_context_impl.ExecuteContextImpl(
         canceller=operation.canceller,
@@ -415,7 +421,7 @@ class SkillExecutorServicer(skill_service_pb2_grpc.ExecutorServicer):
         skill_id=operation.runtime_data.skill_id,
     )
 
-    context_id = str(request.context.executive_plan_action_id)
+    context_id = _get_context_id(request.context)
 
     skill_context = preview_context_impl.PreviewContextImpl(
         canceller=operation.canceller,

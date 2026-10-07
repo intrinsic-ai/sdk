@@ -81,6 +81,13 @@ absl::Status ValidateRequest(const Request& request) {
   return absl::OkStatus();
 }
 
+std::string GetContextId(const intrinsic_proto::data_logger::Context& context) {
+  if (context.executive_plan_action_id() == 0) {
+    return "";
+  }
+  return std::to_string(context.executive_plan_action_id());
+}
+
 }  // namespace
 
 namespace internal {
@@ -389,8 +396,7 @@ grpc::Status SkillProjectorServiceImpl::GetFootprint(
   INTR_ASSIGN_OR_RETURN_GRPC(EquipmentPack equipment,
                              EquipmentPack::GetEquipmentPack(*request));
 
-  const std::string context_id =
-      std::to_string(request->context().executive_plan_action_id());
+  const std::string context_id = GetContextId(request->context());
 
   GetFootprintContextImpl footprint_context(
       std::move(equipment),
@@ -494,8 +500,7 @@ grpc::Status SkillExecutorServiceImpl::StartExecute(
       .skill_id = operation->runtime_data().GetId(),
   };
 
-  const std::string context_id =
-      std::to_string(request->context().executive_plan_action_id());
+  const std::string context_id = GetContextId(request->context());
 
   auto skill_context = std::make_unique<ExecuteContextImpl>(
       /*canceller=*/operation->canceller(), std::move(equipment),
@@ -577,8 +582,7 @@ grpc::Status SkillExecutorServiceImpl::StartPreview(
       .skill_id = operation->runtime_data().GetId(),
   };
 
-  const std::string preview_context_id =
-      std::to_string(request->context().executive_plan_action_id());
+  const std::string preview_context_id = GetContextId(request->context());
 
   auto skill_context = std::make_unique<PreviewContextImpl>(
       /*canceller=*/operation->canceller(),
