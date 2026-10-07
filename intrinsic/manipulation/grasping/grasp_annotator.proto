@@ -106,6 +106,43 @@ message ParameterizedPinchGripperSpecs {
   optional MeshData collision_mesh = 7;
 }
 
+message ParameterizedVNotchPinchGripperSpecs {
+  // The maximum opening between fingers in meters.
+  float opening_in_meters = 1;
+  // The width of each finger in meters.
+  float finger_width_in_meters = 2;
+  // The length of each finger in meters.
+  float finger_length_in_meters = 3;
+  // The dimension of each finger along the opening axis. Must be larger than
+  // `notch_depth_in_meters` to provide structural back-wall for the V-notch.
+  // Defaults to `notch_depth_in_meters` plus a default thickness of 1 mm.
+  optional float finger_thickness_in_meters = 4;
+  // The position of the V-notch vertex along the direction of the finger
+  // length, measured from the base of the finger. To avoid a degenerate
+  // V-notch extending beyond the finger boundaries
+  // [0, `finger_length_in_meters`], this value must lie in the range
+  // [notch_semi_opening, `finger_length_in_meters` - notch_semi_opening], with
+  // notch_semi_opening = `notch_depth_in_meters` *
+  // tan(0.5 * `notch_angle_in_radians`).
+  float notch_offset_in_meters = 5;
+  // Depth of the V-notch in meters.
+  float notch_depth_in_meters = 6;
+  // The full included angle of the V-notch in radians, in the range (0, pi).
+  float notch_angle_in_radians = 7;
+  // The minimum closing distance between fingers in meters, in the range
+  // [0, `opening_in_meters`]. Defaults to 0, i.e., the gripper closes
+  // completely.
+  optional float min_closing_distance_in_meters = 8;
+  // The transform expressing the pinch gripper tool frame relative to the tool
+  // origin. By default, the gripper z-axis points out of the gripper along the
+  // finger main axis, the y-axis is aligned to the gripper opening.
+  // direction, and x-axis is aligned to the gripper finger width.
+  optional Pose gripper_origin_t_tool_frame = 9;
+  // Optional collision mesh of the gripper. The mesh is assumed to be relative
+  // to the tool frame.
+  optional MeshData collision_mesh = 10;
+}
+
 message ParameterizedCentricGripperSpecs {
   // The maximum opening radius of the gripper in meters.
   float opening_radius_in_meters = 1;
