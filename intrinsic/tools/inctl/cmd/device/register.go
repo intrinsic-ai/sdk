@@ -216,13 +216,6 @@ var registerCmd = &cobra.Command{
 			},
 			"version": "v1alphav1",
 		}
-		// For now, assume that control planes have a GPU...
-		if deviceRole == "control-plane" {
-			config["gpuConfig"] = map[string]any{
-				"enabled":  true,
-				"replicas": 48,
-			}
-		}
 		marshalled, err := json.Marshal(config)
 		if err != nil {
 			return fmt.Errorf("failed to marshal config: %w", err)
