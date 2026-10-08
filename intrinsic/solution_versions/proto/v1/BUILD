@@ -186,6 +186,7 @@ proto_library(
     srcs = ["branch.proto"],
     deps = [
         "//intrinsic/config/proto:operation_mode_proto",
+        "@com_google_googleapis//google/api:field_behavior_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
 )
@@ -194,7 +195,10 @@ go_proto_library(
     name = "branch_go_proto",
     importpath = "intrinsic/solution_versions/proto/v1/branch_go_proto",
     protos = [":branch_proto"],
-    deps = ["//intrinsic/config/proto:operation_mode_go_proto"],
+    deps = [
+        "//intrinsic/config/proto:operation_mode_go_proto",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
 )
 
 py_proto_library(

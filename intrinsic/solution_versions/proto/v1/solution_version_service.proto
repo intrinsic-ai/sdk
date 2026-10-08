@@ -69,6 +69,7 @@ service SolutionVersionService {
   // - display_name (only for version branches)
   // - upstream_branch_id (only for version branches)
   // - tip_snapshot_id (only for deployment branches)
+  // - unlock (only for deployment branches)
   rpc UpdateBranch(UpdateBranchRequest) returns (Branch) {}
 
   // Commits a snapshot to a branch.
