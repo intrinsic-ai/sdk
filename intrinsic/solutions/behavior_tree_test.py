@@ -4860,7 +4860,9 @@ class BehaviorTreeRetryTest(absltest.TestCase):
     self.assertIsNone(node.child)
 
   def test_retry_counter_string_coercion(self):
-    """Tests if retry_counter works with string concatenations and CEL expressions."""
+    """Tests if retry_counter works with string concatenations and CEL
+    expressions.
+    """
     node = bt.Retry()
 
     self.assertEqual(
@@ -5596,7 +5598,9 @@ class BehaviorTreeLoopTest(absltest.TestCase):
     self.assertIsNone(node.do_child)
 
   def test_loop_counter_string_coercion(self):
-    """Tests if loop_counter works with string concatenations and CEL expressions."""
+    """Tests if loop_counter works with string concatenations and CEL
+    expressions.
+    """
     node = bt.Loop()
 
     self.assertEqual(
@@ -6181,6 +6185,83 @@ class BehaviorTreeDataTest(parameterized.TestCase):
     node = bt.Node.create_from_proto(node_proto)
 
     compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_create_from_proto_with_proto_roundtrip(self):
+    """Tests if BehaviorTree.Data roundtrip preserves a single packed proto."""
+    test_msg = test_message_pb2.TestMessage(int64_value=123)
+    node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
+    node_proto.data.create_or_update.proto.Pack(test_msg)
+    node_proto.data.create_or_update.blackboard_key = 'bbfoo'
+
+    node = bt.Node.create_from_proto(node_proto)
+    self.assertIsInstance(node, bt.Data)
+    compare.assertProto2Equal(self, node.proto, node_proto)
+
+    with self.assertRaises(solutions_errors.FailedPreconditionError):
+      _ = node.result
+
+  def test_create_from_proto_with_protos_roundtrip(self):
+    """Tests if BehaviorTree.Data roundtrip preserves a list of packed
+    protos.
+    """
+    test_msg_1 = test_message_pb2.TestMessage(int64_value=123)
+    test_msg_2 = test_message_pb2.TestMessage(int32_value=345)
+    node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
+    node_proto.data.create_or_update.protos.items.add().Pack(test_msg_1)
+    node_proto.data.create_or_update.protos.items.add().Pack(test_msg_2)
+    node_proto.data.create_or_update.blackboard_key = 'bbfoo'
+
+    node = bt.Node.create_from_proto(node_proto)
+    self.assertIsInstance(node, bt.Data)
+    compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_init_with_any_proto(self):
+    """Tests initializing BehaviorTree.Data directly with an Any proto."""
+    test_msg = test_message_pb2.TestMessage(int64_value=123)
+    any_msg = any_pb2.Any()
+    any_msg.Pack(test_msg)
+
+    node = bt.Data(name='foo', blackboard_key='bbfoo', proto=any_msg)
+    node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
+    node_proto.data.create_or_update.proto.CopyFrom(any_msg)
+    node_proto.data.create_or_update.blackboard_key = 'bbfoo'
+
+    compare.assertProto2Equal(self, node.proto, node_proto)
+
+    with self.assertRaises(solutions_errors.FailedPreconditionError):
+      _ = node.result
+
+  def test_init_with_any_protos(self):
+    """Tests initializing BehaviorTree.Data directly with a list of Any
+    protos.
+    """
+    test_msg_1 = test_message_pb2.TestMessage(int64_value=123)
+    test_msg_2 = test_message_pb2.TestMessage(int32_value=345)
+    any_msg_1 = any_pb2.Any()
+    any_msg_1.Pack(test_msg_1)
+    any_msg_2 = any_pb2.Any()
+    any_msg_2.Pack(test_msg_2)
+
+    node = bt.Data(
+        name='foo', blackboard_key='bbfoo', protos=[any_msg_1, any_msg_2]
+    )
+    node_proto = behavior_tree_pb2.BehaviorTree.Node(name='foo')
+    node_proto.data.create_or_update.protos.items.add().CopyFrom(any_msg_1)
+    node_proto.data.create_or_update.protos.items.add().CopyFrom(any_msg_2)
+    node_proto.data.create_or_update.blackboard_key = 'bbfoo'
+
+    compare.assertProto2Equal(self, node.proto, node_proto)
+
+  def test_result_with_proto(self):
+    """Tests BehaviorTree.Data.result with a regular protobuf message."""
+    test_msg = test_message_pb2.TestMessage(int64_value=123)
+    node = bt.Data(name='foo', blackboard_key='bbfoo', proto=test_msg)
+    result = node.result
+    self.assertIsNotNone(result)
+    self.assertEqual(result.value_access_path(), 'bbfoo')
+    self.assertEqual(
+        result.int64_value.value_access_path(), 'bbfoo.int64_value'
+    )
 
   def test_create_from_proto_without_data_node_fails(self):
     """Tests if BehaviorTree.Data is correctly constructed."""
