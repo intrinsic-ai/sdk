@@ -42,7 +42,7 @@ def cc_oci_image(
     """
 
     if base == None:
-        base = Label("@distroless_cc")
+        base = Label("@distroless_base")
 
     layer_kwargs = {key: value for key, value in kwargs.items() if key in ["compatible_with", "data_path", "directory", "testonly"]}
     container_layer(

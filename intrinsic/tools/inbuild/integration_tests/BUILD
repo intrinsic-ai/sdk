@@ -153,7 +153,7 @@ cc_binary(
 
 container_image(
     name = "inbuild_skill_cc_image",
-    base = "@distroless_cc",
+    base = "@distroless_base",
     data_path = "/",
     files = [
         ":inbuild_skill_cc_bin",
@@ -226,7 +226,7 @@ cc_binary(
 
 container_image(
     name = "inbuild_service_cc_image",
-    base = "@distroless_cc",
+    base = "@distroless_base",
     cmd = ["intrinsic/tools/inbuild/integration_tests/inbuild_service_cc_bin"],
     data_path = "/",
     files = [":inbuild_service_cc_bin"],
