@@ -17,14 +17,18 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 bzl_library(
     name = "go_grpc_http_library_bzl",
     srcs = ["go_grpc_http_library.bzl"],
-    visibility = ["//visibility:private"],
+    visibility = [
+        "//visibility:private",
+    ],
     deps = ["//bazel:go_macros"],
 )
 
 bzl_library(
     name = "intrinsic_http_image_bzl",
     srcs = ["intrinsic_http_image.bzl"],
-    visibility = ["//visibility:private"],
+    visibility = [
+        "//visibility:private",
+    ],
     deps = [
         "//bazel:go_macros",
         "//intrinsic/httpjson/private:gen_http_bridge_bzl",

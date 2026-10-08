@@ -16,6 +16,7 @@ package(default_visibility = ["//visibility:public"])
 
 ###############################################################################
 # Common package groups for visibility
+
 # public_api_users contains the set of packages allowed to depend on
 # Intrinsic's public APIs.
 package_group(
@@ -49,5 +50,3 @@ package_group(
         "public",
     ],
 )
-
-###############################################################################
