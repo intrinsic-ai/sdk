@@ -15,6 +15,7 @@
 #ifndef INTRINSIC_UTIL_TIME_CLOCK_STEADY_H_
 #define INTRINSIC_UTIL_TIME_CLOCK_STEADY_H_
 
+#include "intrinsic/icon/testing/realtime_annotations.h"
 #include "intrinsic/util/time/clock_steady_interface.h"
 #include "intrinsic/util/time/time.h"
 
@@ -26,7 +27,7 @@ class ClockSteady : public ClockSteadyInterface {
 
   ~ClockSteady() override = default;
 
-  TimeSteady Now() override;
+  TimeSteady Now() INTRINSIC_CHECK_REALTIME_SAFE override;
 };
 
 }  // namespace intrinsic

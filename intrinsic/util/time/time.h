@@ -19,6 +19,7 @@
 
 #include "absl/time/time.h"
 #include "gtest/gtest_prod.h"
+#include "intrinsic/icon/testing/realtime_annotations.h"
 
 namespace intrinsic {
 
@@ -54,11 +55,11 @@ class TimeSteady {
   constexpr TimeSteady(const TimeSteady& t) = default;
   TimeSteady& operator=(const TimeSteady& t) = default;
 
-  static constexpr TimeSteady InfiniteFuture() {
+  static constexpr TimeSteady InfiniteFuture() INTRINSIC_CHECK_REALTIME_SAFE {
     return TimeSteady(std::chrono::time_point<std::chrono::steady_clock,
                                               std::chrono::nanoseconds>::max());
   }
-  static constexpr TimeSteady InfinitePast() {
+  static constexpr TimeSteady InfinitePast() INTRINSIC_CHECK_REALTIME_SAFE {
     return TimeSteady(std::chrono::time_point<std::chrono::steady_clock,
                                               std::chrono::nanoseconds>::min());
   }
@@ -66,39 +67,48 @@ class TimeSteady {
   // Returns the current time, expressed as a `TimeSteady` absolute time value.
   // Values returned from subsequent calls to Now() are guaranteed to be
   // monotonically increasing.
-  static TimeSteady Now();
+  static TimeSteady Now() INTRINSIC_CHECK_REALTIME_SAFE;
 
   // Mathematical operations with other `TimeSteady`s and `absl::Duration`s
   // Follow the conventions of infinite math from absl::Time/Duration, see:
   // cs/third_party/absl/time/time.h
-  TimeSteady operator+(absl::Duration duration) const;
-  TimeSteady operator-(absl::Duration duration) const;
-  absl::Duration operator-(TimeSteady other) const;
-  TimeSteady& operator+=(absl::Duration duration);
-  TimeSteady& operator-=(absl::Duration duration);
+  TimeSteady operator+(absl::Duration duration) const
+      INTRINSIC_CHECK_REALTIME_SAFE;
+  TimeSteady operator-(absl::Duration duration) const
+      INTRINSIC_CHECK_REALTIME_SAFE;
+  absl::Duration operator-(TimeSteady other) const
+      INTRINSIC_CHECK_REALTIME_SAFE;
+  TimeSteady& operator+=(absl::Duration duration) INTRINSIC_CHECK_REALTIME_SAFE;
+  TimeSteady& operator-=(absl::Duration duration) INTRINSIC_CHECK_REALTIME_SAFE;
 
   // Comparisons with other `TimeSteady`s
-  constexpr bool operator==(TimeSteady other) const {
+  constexpr bool operator==(TimeSteady other) const
+      INTRINSIC_CHECK_REALTIME_SAFE {
     return value_ == other.value_;
   }
 
-  constexpr bool operator!=(TimeSteady other) const {
+  constexpr bool operator!=(TimeSteady other) const
+      INTRINSIC_CHECK_REALTIME_SAFE {
     return value_ != other.value_;
   }
 
-  constexpr bool operator<(TimeSteady other) const {
+  constexpr bool operator<(TimeSteady other) const
+      INTRINSIC_CHECK_REALTIME_SAFE {
     return value_ < other.value_;
   }
 
-  constexpr bool operator<=(TimeSteady other) const {
+  constexpr bool operator<=(TimeSteady other) const
+      INTRINSIC_CHECK_REALTIME_SAFE {
     return value_ <= other.value_;
   }
 
-  constexpr bool operator>(TimeSteady other) const {
+  constexpr bool operator>(TimeSteady other) const
+      INTRINSIC_CHECK_REALTIME_SAFE {
     return value_ > other.value_;
   }
 
-  constexpr bool operator>=(TimeSteady other) const {
+  constexpr bool operator>=(TimeSteady other) const
+      INTRINSIC_CHECK_REALTIME_SAFE {
     return value_ >= other.value_;
   }
 

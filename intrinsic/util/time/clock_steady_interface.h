@@ -15,6 +15,7 @@
 #ifndef INTRINSIC_UTIL_TIME_CLOCK_STEADY_INTERFACE_H_
 #define INTRINSIC_UTIL_TIME_CLOCK_STEADY_INTERFACE_H_
 
+#include "intrinsic/icon/testing/realtime_annotations.h"
 #include "intrinsic/util/time/time.h"
 
 namespace intrinsic {
@@ -26,7 +27,7 @@ class ClockSteadyInterface {
   virtual ~ClockSteadyInterface() = default;
 
   // Returns a TimePointSteady representing the current value of the clock.
-  virtual TimeSteady Now() = 0;
+  virtual TimeSteady Now() INTRINSIC_CHECK_REALTIME_SAFE = 0;
 };
 
 }  // namespace intrinsic

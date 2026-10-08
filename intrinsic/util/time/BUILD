@@ -43,6 +43,7 @@ cc_library(
         "time.h",
     ],
     deps = [
+        "//intrinsic/icon/testing:realtime_annotations",
         "@abseil-cpp//absl/time",
         "@com_google_googletest//:gtest_prod",
     ],
