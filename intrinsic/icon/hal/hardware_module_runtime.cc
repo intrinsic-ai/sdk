@@ -960,8 +960,8 @@ absl::Status HardwareModuleRuntime::Run(
     auto cycle_time_metrics_helper =
         intrinsic::icon::CycleTimeMetricsHelper::Create(
             cycle_duration,
-            /*log_cycle_time_warnings=*/init_context
-                .AreCycleTimeWarningsEnabled());
+            /*log_cycle_time_warnings=*/
+            init_context.AreCycleTimeWarningsEnabled(), clock_);
 
     if (cycle_time_metrics_helper.ok()) {
       cycle_time_metrics_helper_ = std::make_unique<CycleTimeMetricsHelper>(

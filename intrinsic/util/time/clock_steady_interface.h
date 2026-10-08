@@ -27,7 +27,7 @@ class ClockSteadyInterface {
   virtual ~ClockSteadyInterface() = default;
 
   // Returns a TimePointSteady representing the current value of the clock.
-  virtual TimeSteady Now() INTRINSIC_CHECK_REALTIME_SAFE = 0;
+  virtual TimeSteady Now() const INTRINSIC_CHECK_REALTIME_SAFE = 0;
 };
 
 }  // namespace intrinsic

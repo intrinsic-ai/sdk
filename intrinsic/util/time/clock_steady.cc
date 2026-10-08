@@ -18,6 +18,6 @@
 
 namespace intrinsic {
 
-TimeSteady ClockSteady::Now() { return TimeSteady::Now(); }
+TimeSteady ClockSteady::Now() const { return TimeSteady::Now(); }
 
 }  // namespace intrinsic

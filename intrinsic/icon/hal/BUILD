@@ -282,6 +282,7 @@ cc_library(
         "//intrinsic/util/thread:stop_token",
         "//intrinsic/util/thread:thread_options",
         "//intrinsic/util/thread:thread_utils",
+        "//intrinsic/util/time",
         "@abseil-cpp//absl/base:core_headers",
         "@abseil-cpp//absl/base:nullability",
         "@abseil-cpp//absl/log",

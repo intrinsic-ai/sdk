@@ -450,6 +450,8 @@ cc_library(
         "//intrinsic/icon/testing:realtime_annotations",
         "//intrinsic/performance/analysis/proto:performance_metrics_cc_proto",
         "//intrinsic/util/status:status_macros",
+        "//intrinsic/util/time",
+        "@abseil-cpp//absl/base:core_headers",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/strings:str_format",

@@ -27,7 +27,7 @@ class ClockSteady : public ClockSteadyInterface {
 
   ~ClockSteady() override = default;
 
-  TimeSteady Now() INTRINSIC_CHECK_REALTIME_SAFE override;
+  TimeSteady Now() const INTRINSIC_CHECK_REALTIME_SAFE override;
 };
 
 }  // namespace intrinsic
