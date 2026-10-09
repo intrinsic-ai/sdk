@@ -15,6 +15,7 @@
 """Unit tests for the Python PubSub bindings."""
 
 import threading
+import warnings
 
 from absl.testing import absltest
 from absl.testing import parameterized
@@ -61,11 +62,11 @@ class SubCallbackChecker:
       self.notify(CallbackType.OK)
 
     if exemplar is None:
-      self.sub = self.pubsub_impl.CreateSubscription(
+      self.sub = self.pubsub_impl.create_subscription(
           topic, config, msg_callback_wrapper
       )
     else:
-      self.sub = self.pubsub_impl.CreateSubscription(
+      self.sub = self.pubsub_impl.create_subscription(
           topic, config, exemplar, msg_callback_wrapper, error_callback_wrapper
       )
 
@@ -90,7 +91,7 @@ class PubsubTest(parameterized.TestCase):
     super().setUp()
     self.pubsub = pubsub.PubSub()
     config = pubsub.TopicConfig()
-    self.pub = self.pubsub.CreatePublisher('news', config)
+    self.pub = self.pubsub.create_publisher('news', config)
     self.callback_checker = SubCallbackChecker(self.pubsub)
 
   def tearDown(self):
@@ -116,7 +117,7 @@ class PubsubTest(parameterized.TestCase):
         exemplar=test_pb2.TestMessageString(),
         msg_callback=msg_callback,
     )
-    self.pub.Publish(value)
+    self.pub.publish(value)
     self.assertEqual(self.callback_checker.wait_for_call(), CallbackType.OK)
 
   def test_raw_pubsub(self):
@@ -133,7 +134,7 @@ class PubsubTest(parameterized.TestCase):
         config=config,
         msg_callback=msg_callback,
     )
-    self.pub.Publish(value)
+    self.pub.publish(value)
     self.assertEqual(self.callback_checker.wait_for_call(), CallbackType.OK)
 
   def test_error(self):
@@ -160,14 +161,14 @@ class PubsubTest(parameterized.TestCase):
     )
 
     # Publish a message of type TestMessageStock.
-    self.pub.Publish(test_pb2.TestMessageStock())
+    self.pub.publish(test_pb2.TestMessageStock())
     self.assertEqual(self.callback_checker.wait_for_call(), CallbackType.OK)
     self.assertTrue(self.error_callback_called)
     self.assertFalse(self.message_callback_called)
 
   def test_simple_pubsub(self):
     config = pubsub.TopicConfig()
-    publisher = self.pubsub.CreatePublisher('news', config)
+    publisher = self.pubsub.create_publisher('news', config)
 
     condition = threading.Condition()
     call_type = CallbackType.NONE
@@ -182,25 +183,66 @@ class PubsubTest(parameterized.TestCase):
       with condition:
         condition.notify()
 
-    subscription = self.pubsub.CreateSubscription(  # pylint:disable=unused-variable
+    subscription = self.pubsub.create_subscription(  # pylint:disable=unused-variable
         'news', config, stock_message, stock_callback
     )
-    publisher.Publish(stock_message)
+    publisher.publish(stock_message)
 
     with condition:
       condition.wait_for(lambda: call_type != CallbackType.NONE, 1)
 
   def test_has_matching_subscribers(self):
     config = pubsub.TopicConfig()
-    publisher = self.pubsub.CreatePublisher('some_new_topic', config)
-    self.assertFalse(publisher.HasMatchingSubscribers())
+    publisher = self.pubsub.create_publisher('some_new_topic', config)
+    self.assertFalse(publisher.has_matching_subscribers())
 
-    subscription = self.pubsub.CreateSubscription(  # pylint:disable=unused-variable
+    subscription = self.pubsub.create_subscription(  # pylint:disable=unused-variable
         topic='some_new_topic',
         exemplar=test_pb2.TestMessageStock(),
         msg_callback=lambda msg: None,
     )
-    self.assertTrue(publisher.HasMatchingSubscribers())
+    self.assertTrue(publisher.has_matching_subscribers())
+
+  def test_deprecated_methods(self):
+    with warnings.catch_warnings(record=True) as w:
+      warnings.simplefilter('always')
+      config = pubsub.TopicConfig()
+
+      # Use CamelCase
+      config.topic_qos = pubsub.TopicQoS.HighReliability
+      self.assertEqual(config.topic_qos, pubsub.TopicQoS.HIGH_RELIABILITY)
+
+      pubsub_instance = self.pubsub
+
+      # CreatePublisher vs create_publisher
+      pub = pubsub_instance.CreatePublisher('test_topic', config)
+      self.assertTrue(pub)
+      self.assertEqual(pub.TopicName(), 'test_topic')
+
+      kvstore = pubsub_instance.KeyValueStore()
+      self.assertTrue(kvstore)
+
+      # Check warning counts
+      warning_messages = [str(warn.message) for warn in w]
+      self.assertTrue(
+          any(
+              'PubSub.CreatePublisher is deprecated' in msg
+              for msg in warning_messages
+          )
+      )
+      self.assertTrue(
+          any(
+              'PubSub.KeyValueStore is deprecated' in msg
+              for msg in warning_messages
+          )
+      )
+      self.assertTrue(
+          any(
+              'Publisher.TopicName is deprecated' in msg
+              for msg in warning_messages
+          )
+      )
+      print('CAUGHT DEPRECATION WARNINGS:', warning_messages)
 
   def test_destroy_session_when_unused_defers_teardown_and_reinitializes(self):
     del self.callback_checker.sub
@@ -212,14 +254,14 @@ class PubsubTest(parameterized.TestCase):
     self.assertTrue(pubsub.imw_is_initialized())
     del ps
     self.assertTrue(pubsub.imw_is_initialized())
-    pubsub.PubSub.DestroySessionWhenUnused()
+    pubsub.PubSub.destroy_session_when_unused()
     self.assertFalse(pubsub.imw_is_initialized())
 
     # Deferred teardown across outliving Publisher
     ps2 = pubsub.PubSub()
     self.assertTrue(pubsub.imw_is_initialized())
-    pub2 = ps2.CreatePublisher('news2', pubsub.TopicConfig())
-    pubsub.PubSub.DestroySessionWhenUnused()
+    pub2 = ps2.create_publisher('news2', pubsub.TopicConfig())
+    pubsub.PubSub.destroy_session_when_unused()
     self.assertTrue(pubsub.imw_is_initialized())
     del ps2
     self.assertTrue(pubsub.imw_is_initialized())

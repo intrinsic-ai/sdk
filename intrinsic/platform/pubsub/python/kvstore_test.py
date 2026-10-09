@@ -23,26 +23,26 @@ class KVStoreTest(absltest.TestCase):
 
   def test_make_key(self):
     self.assertEqual(
-        pubsub.KeyValueStore.MakeKey("/foo", "bar", "baz/"), "foo/bar/baz"
+        pubsub.KeyValueStore.make_key("/foo", "bar", "baz/"), "foo/bar/baz"
     )
     self.assertEqual(
-        pubsub.KeyValueStore.MakeKey("foo", "bar", "baz"), "foo/bar/baz"
+        pubsub.KeyValueStore.make_key("foo", "bar", "baz"), "foo/bar/baz"
     )
     self.assertEqual(
-        pubsub.KeyValueStore.MakeKey("///foo", "bar///", "///baz///"),
+        pubsub.KeyValueStore.make_key("///foo", "bar///", "///baz///"),
         "foo/bar/baz",
     )
     self.assertEqual(
-        pubsub.KeyValueStore.MakeKey("/foo/", "/bar/", "/baz/"), "foo/bar/baz"
+        pubsub.KeyValueStore.make_key("/foo/", "/bar/", "/baz/"), "foo/bar/baz"
     )
-    self.assertEqual(pubsub.KeyValueStore.MakeKey("foo", "", "bar"), "foo/bar")
+    self.assertEqual(pubsub.KeyValueStore.make_key("foo", "", "bar"), "foo/bar")
     self.assertEqual(
-        pubsub.KeyValueStore.MakeKey("foo", "///", "bar"), "foo/bar"
+        pubsub.KeyValueStore.make_key("foo", "///", "bar"), "foo/bar"
     )
-    self.assertEqual(pubsub.KeyValueStore.MakeKey("///", "///", "///"), "")
-    self.assertEqual(pubsub.KeyValueStore.MakeKey(), "")
+    self.assertEqual(pubsub.KeyValueStore.make_key("///", "///", "///"), "")
+    self.assertEqual(pubsub.KeyValueStore.make_key(), "")
     self.assertEqual(
-        pubsub.KeyValueStore.MakeKey("foo/bar", "baz"), "foo/bar/baz"
+        pubsub.KeyValueStore.make_key("foo/bar", "baz"), "foo/bar/baz"
     )
 
   def test_set_with_verification_options(self):
