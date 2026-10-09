@@ -17,6 +17,8 @@ syntax = "proto3";
 
 package intrinsic_proto.grasping.service;
 
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
 import "intrinsic/geometry/proto/triangle_mesh.proto";
 import "intrinsic/manipulation/grasping/schmalz_multi_axis_grasp.proto";
 
@@ -88,8 +90,15 @@ message ShowAnnotationsResponse {
 }
 
 message MultiAxisAutoAnnotatorServiceConfig {
-  // The ingress address for connecting to all services.
-  string ingress_address = 1;
+  // The resolved dependency for the Intrinsic runtime.
+  intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 2
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.world.ObjectWorldService"
+      }];
+
+  // Deprecated: This value is ignored. Connection details are now resolved via
+  // `intrinsic_runtime`.
+  string ingress_address = 1 [deprecated = true];
 }
 
 service MultiAxisAutoAnnotatorService {

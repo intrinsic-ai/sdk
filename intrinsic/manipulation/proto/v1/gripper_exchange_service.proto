@@ -17,6 +17,8 @@ syntax = "proto3";
 package intrinsic_proto.manipulation.v1;
 
 import "google/protobuf/empty.proto";
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
 import "intrinsic/manipulation/proto/v1/gripper_assembly_metadata.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
@@ -25,7 +27,16 @@ option java_outer_classname = "GripperExchangeProtos";
 option go_package = "intrinsic/manipulation/proto/v1/gripper_exchange_service_go_proto";
 
 message GripperExchangeConfig {
-  string ingress_address = 1;
+  // The resolved dependency for the Intrinsic runtime.
+  intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 2
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.assets.v1.InstalledAssetsReader"
+        requires: "grpc://intrinsic_proto.world.ObjectWorldService"
+      }];
+
+  // Deprecated: This value is ignored. Connection details are now resolved via
+  // `intrinsic_runtime`.
+  string ingress_address = 1 [deprecated = true];
 }
 
 message TwoFingerPinchGripperAssemblyObjects {

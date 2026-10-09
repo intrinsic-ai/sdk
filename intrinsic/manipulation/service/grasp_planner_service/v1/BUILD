@@ -36,6 +36,8 @@ proto_library(
     name = "grasp_planner_service_proto",
     srcs = ["grasp_planner_service.proto"],
     deps = [
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
         "//intrinsic/icon/proto:joint_space_proto",
         "//intrinsic/manipulation/grasping:grasp_execution_planner_params_proto",
         "//intrinsic/manipulation/grasping:grasp_planner_params_proto",

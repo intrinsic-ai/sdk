@@ -32,6 +32,8 @@ proto_library(
     name = "multi_axis_auto_annotator_service_proto",
     srcs = ["multi_axis_auto_annotator_service.proto"],
     deps = [
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
         "//intrinsic/geometry/proto:triangle_mesh_proto",
         "//intrinsic/manipulation/grasping:schmalz_multi_axis_grasp_proto",
     ],
@@ -48,6 +50,8 @@ go_proto_library(
     importpath = "intrinsic/manipulation/service/multi_axis_auto_annotator_service_go_proto",
     protos = [":multi_axis_auto_annotator_service_proto"],
     deps = [
+        "//intrinsic/assets/proto:field_metadata_go_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
         "//intrinsic/geometry/proto:triangle_mesh_go_proto",
         "//intrinsic/manipulation/grasping:schmalz_multi_axis_grasp_go_proto",
     ],

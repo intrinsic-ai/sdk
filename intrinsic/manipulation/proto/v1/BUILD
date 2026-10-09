@@ -59,6 +59,8 @@ proto_library(
     srcs = ["gripper_exchange_service.proto"],
     deps = [
         ":gripper_assembly_metadata_proto",
+        "//intrinsic/assets/proto:field_metadata_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
         "@com_google_protobuf//:empty_proto",
     ],
@@ -75,6 +77,8 @@ go_proto_library(
     protos = [":gripper_exchange_service_proto"],
     deps = [
         ":gripper_assembly_metadata_go_proto",
+        "//intrinsic/assets/proto:field_metadata_go_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
         "//intrinsic/world/proto:object_world_refs_go_proto",
     ],
 )

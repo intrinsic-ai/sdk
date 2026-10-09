@@ -17,6 +17,8 @@ syntax = "proto3";
 package intrinsic_proto.grasping.service.grasp_planner_service.v1;
 
 import "google/protobuf/empty.proto";
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/manipulation/grasping/grasp.proto";
 import "intrinsic/manipulation/grasping/grasp_execution_planner_params.proto";
@@ -101,8 +103,15 @@ message PlanGraspExecutionRequest {
 }
 
 message GraspPlannerServiceConfig {
-  // The ingress address for connecting to all services.
-  string ingress_address = 1;
+  // The resolved dependency for the Intrinsic runtime.
+  intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 4
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.world.ObjectWorldService"
+      }];
+
+  // Deprecated: This value is ignored. Connection details are now resolved via
+  // `intrinsic_runtime`.
+  string ingress_address = 1 [deprecated = true];
   // The cache size limit per each group. See `PlanGraspExecutionCache`.
   int64 max_cache_size_per_group = 3;
 
