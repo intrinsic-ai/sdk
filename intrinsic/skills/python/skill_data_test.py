@@ -123,14 +123,20 @@ class SkillDataTest(absltest.TestCase):
   def test_get_validate_fn_accepts_and_rejects(self):
     sd = skill_data.SkillData(10)
     sd.get_or_compute("ctx_1", "key_1", lambda: 42)
+    sd.get_or_compute("ctx_1", "key_2", lambda: 99)
 
     # Validator accepts
     accept_result = sd.get("ctx_1", "key_1", validate_fn=lambda v: v == 42)
     self.assertEqual(accept_result, 42)
 
-    # Validator rejects -> returns None
+    # Validator rejects -> evicts key_1 and returns None
     reject_result = sd.get("ctx_1", "key_1", validate_fn=lambda v: v != 42)
     self.assertIsNone(reject_result)
+
+    # Subsequent get without validate_fn sees key_1 was evicted, while key_2
+    # remains cached
+    self.assertIsNone(sd.get("ctx_1", "key_1"))
+    self.assertEqual(sd.get("ctx_1", "key_2"), 99)
 
   def test_get_validate_fn_error_propagates_immediately(self):
     sd = skill_data.SkillData(10)
@@ -142,6 +148,8 @@ class SkillDataTest(absltest.TestCase):
 
     with self.assertRaisesRegex(RuntimeError, "validation check failed"):
       sd.get("ctx_1", "key_1", validate_fn=failing_validate)
+
+    self.assertIsNone(sd.get("ctx_1", "key_1"))
 
   def test_get_refreshes_lru_recency(self):
     max_contexts = 2
@@ -220,6 +228,24 @@ class SkillDataTest(absltest.TestCase):
     self.assertEqual(result, 200)
     self.assertEqual(compute_count, 2)
 
+  def test_validate_fn_rejects_and_compute_fn_fails_evicts_stale_entry(self):
+    sd = skill_data.SkillData(10)
+    sd.get_or_compute("ctx_1", "key_1", lambda: 100)
+
+    def failing_compute() -> int:
+      raise RuntimeError("Recomputation failed")
+
+    with self.assertRaisesRegex(RuntimeError, "Recomputation failed"):
+      sd.get_or_compute(
+          "ctx_1",
+          "key_1",
+          failing_compute,
+          validate_fn=lambda _: False,
+      )
+
+    # The invalidated stale entry (100) must not remain in the cache
+    self.assertIsNone(sd.get("ctx_1", "key_1"))
+
   def test_validate_fn_error_propagates_immediately(self):
     sd = skill_data.SkillData(10)
     sd.get_or_compute("ctx_1", "key_1", lambda: 100)
@@ -232,6 +258,8 @@ class SkillDataTest(absltest.TestCase):
       sd.get_or_compute(
           "ctx_1", "key_1", lambda: 100, validate_fn=failing_validate
       )
+
+    self.assertIsNone(sd.get("ctx_1", "key_1"))
 
   def test_compute_fn_none_raises_error(self):
     sd = skill_data.SkillData(10)

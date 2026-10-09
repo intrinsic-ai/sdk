@@ -122,6 +122,10 @@ TEST(SkillDataTest, GetValidateFnAcceptsAndRejects) {
                   .GetOrCompute<int>("ctx_1", "key_1",
                                      []() -> absl::StatusOr<int> { return 42; })
                   .ok());
+  ASSERT_TRUE(skill_data
+                  .GetOrCompute<int>("ctx_1", "key_2",
+                                     []() -> absl::StatusOr<int> { return 99; })
+                  .ok());
 
   // Validator accepts
   auto accept_result = skill_data.Get<int>(
@@ -131,15 +135,26 @@ TEST(SkillDataTest, GetValidateFnAcceptsAndRejects) {
   ASSERT_TRUE(accept_result->has_value());
   EXPECT_THAT(**accept_result, Eq(42));
 
-  // Validator rejects -> returns nullopt
+  // Validator rejects -> evicts key_1 and returns nullopt
   auto reject_result = skill_data.Get<int>(
       "ctx_1", "key_1",
       [](const int& v) -> absl::StatusOr<bool> { return v != 42; });
   ASSERT_TRUE(reject_result.ok());
   EXPECT_FALSE(reject_result->has_value());
+
+  // Subsequent Get without validate_fn sees key_1 was evicted, while key_2
+  // remains cached
+  auto after_reject = skill_data.Get<int>("ctx_1", "key_1");
+  ASSERT_TRUE(after_reject.ok());
+  EXPECT_FALSE(after_reject->has_value());
+
+  auto other_key = skill_data.Get<int>("ctx_1", "key_2");
+  ASSERT_TRUE(other_key.ok());
+  ASSERT_TRUE(other_key->has_value());
+  EXPECT_THAT(**other_key, Eq(99));
 }
 
-TEST(SkillDataTest, GetValidateFnErrorPropagatesImmediately) {
+TEST(SkillDataTest, GetValidateFnErrorPropagatesImmediatelyAndEvictsKey) {
   SkillData skill_data(10);
 
   ASSERT_TRUE(skill_data
@@ -154,6 +169,11 @@ TEST(SkillDataTest, GetValidateFnErrorPropagatesImmediately) {
   EXPECT_TRUE(absl::IsFailedPrecondition(error_result.status()));
   EXPECT_THAT(error_result.status().message(),
               HasSubstr("validation check failed"));
+
+  // Subsequent Get without validate_fn sees key_1 was evicted
+  auto after_error = skill_data.Get<int>("ctx_1", "key_1");
+  ASSERT_TRUE(after_error.ok());
+  EXPECT_FALSE(after_error->has_value());
 }
 
 TEST(SkillDataTest, GetRefreshesLruRecency) {
@@ -267,7 +287,30 @@ TEST(SkillDataTest, ValidateFnRejectsAndRecomputes) {
   EXPECT_THAT(compute_count, Eq(2));
 }
 
-TEST(SkillDataTest, ValidateFnErrorPropagatesImmediately) {
+TEST(SkillDataTest, ValidateFnRejectsAndComputeFnFailsEvictsStaleEntry) {
+  SkillData skill_data(10);
+
+  ASSERT_TRUE(
+      skill_data
+          .GetOrCompute<int>("ctx_1", "key_1",
+                             []() -> absl::StatusOr<int> { return 100; })
+          .ok());
+
+  auto result = skill_data.GetOrCompute<int>(
+      "ctx_1", "key_1",
+      []() -> absl::StatusOr<int> {
+        return absl::InternalError("Recomputation failed");
+      },
+      [](const int&) -> absl::StatusOr<bool> { return false; });
+  EXPECT_TRUE(absl::IsInternal(result.status()));
+
+  // The invalidated stale entry (100) must not remain in the cache
+  auto cached = skill_data.Get<int>("ctx_1", "key_1");
+  ASSERT_TRUE(cached.ok());
+  EXPECT_FALSE(cached->has_value());
+}
+
+TEST(SkillDataTest, ValidateFnErrorPropagatesImmediatelyAndEvictsKey) {
   SkillData skill_data(10);
 
   auto compute_fn = []() -> absl::StatusOr<int> { return 100; };
@@ -281,6 +324,10 @@ TEST(SkillDataTest, ValidateFnErrorPropagatesImmediately) {
       skill_data.GetOrCompute<int>("ctx_1", "key_1", compute_fn, validate_fn);
   EXPECT_TRUE(absl::IsFailedPrecondition(result.status()));
   EXPECT_THAT(result.status().message(), HasSubstr("Hardware state corrupted"));
+
+  auto cached = skill_data.Get<int>("ctx_1", "key_1");
+  ASSERT_TRUE(cached.ok());
+  EXPECT_FALSE(cached->has_value());
 }
 
 TEST(SkillDataTest, ComputeFnNullReturnsError) {
