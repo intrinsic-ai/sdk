@@ -163,6 +163,9 @@ class PlanTrajectoryResult:
   lock_motion_id: Optional[str] = None
   logging_id: str = ""
 
+  motion_events: list[Any] = dataclasses.field(default_factory=list)
+
+
 @dataclasses.dataclass
 class PlanPathResult:
   """Wrapped result from calling plan_path."""
@@ -290,11 +293,17 @@ class MotionPlannerClient(MotionPlannerClientBase):
     lock_motion_id = (
         response.lock_motion_id if response.HasField("lock_motion_id") else None
     )
+
+    motion_events = list(response.motion_events)
+
     return PlanTrajectoryResult(
         trajectory=response.discretized,
         swept_volume=swept_volume,
         lock_motion_id=lock_motion_id,
         logging_id=response.logging_id,
+
+        motion_events=motion_events,
+
     )
 
   def plan_path(

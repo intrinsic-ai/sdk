@@ -29,6 +29,7 @@
 #include "intrinsic/math/pose3.h"
 #include "intrinsic/motion_planning/proto/motion_target.pb.h"
 #include "intrinsic/motion_planning/proto/v1/compute_ik.pb.h"
+#include "intrinsic/motion_planning/proto/v1/motion_events.pb.h"  
 #include "intrinsic/motion_planning/proto/v1/motion_planner_config.pb.h"
 #include "intrinsic/motion_planning/proto/v1/motion_planner_service.grpc.pb.h"
 #include "intrinsic/motion_planning/proto/v1/motion_planner_service.pb.h"
@@ -115,6 +116,11 @@ class MotionPlannerClient {
 
     // Logging id generated for this request. Used for introspection.
     std::string logging_id;
+
+    // Motion events generated for this request.
+    std::vector<intrinsic_proto::motion_planning::v1::MotionEvent>
+        motion_events;
+
   };
 
   struct PlanPathResult {

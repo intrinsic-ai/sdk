@@ -46,6 +46,7 @@ cc_library(
         "//intrinsic/math:proto_conversion",
         "//intrinsic/motion_planning/proto:motion_target_cc_proto",
         "//intrinsic/motion_planning/proto/v1:compute_ik_cc_proto",
+        "//intrinsic/motion_planning/proto/v1:motion_events_cc_proto",
         "//intrinsic/motion_planning/proto/v1:motion_planner_config_cc_proto",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_cc_grpc_proto",
         "//intrinsic/motion_planning/proto/v1:motion_planner_service_cc_proto",

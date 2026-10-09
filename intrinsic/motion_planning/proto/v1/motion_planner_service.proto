@@ -26,6 +26,7 @@ import "intrinsic/logging/proto/context.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/motion_planning/proto/v1/compute_ik.proto";
 import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
+import "intrinsic/motion_planning/proto/v1/motion_events.proto"; 
 import "intrinsic/motion_planning/proto/v1/motion_planner_config.proto";
 import "intrinsic/motion_planning/proto/v1/motion_planning.proto";
 import "intrinsic/motion_planning/proto/v1/motion_specification.proto";
@@ -185,6 +186,10 @@ message TrajectoryPlanningResponse {
   // Logging id generated for this request. Can be used to retrieve details
   // about the request for debugging.
   string logging_id = 4;
+
+
+  repeated intrinsic_proto.motion_planning.v1.MotionEvent motion_events = 5;
+
 }
 
 message PathPlanningResponse {

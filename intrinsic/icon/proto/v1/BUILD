@@ -44,6 +44,28 @@ js_library(
 )
 
 proto_library(
+    name = "motion_event_types_proto",
+    srcs = ["motion_event_types.proto"],
+    deps = [
+        "//intrinsic/icon/actions:adio_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "motion_event_types_cc_proto",
+    deps = [":motion_event_types_proto"],
+)
+
+go_proto_library(
+    name = "motion_event_types_go_proto",
+    importpath = "intrinsic/icon/proto/v1/motion_event_types_go_proto",
+    protos = [":motion_event_types_proto"],
+    deps = [
+        "//intrinsic/icon/actions:adio_go_proto",
+    ],
+)
+
+proto_library(
     name = "condition_types_proto",
     srcs = ["condition_types.proto"],
 )
