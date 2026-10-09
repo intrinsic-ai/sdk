@@ -95,6 +95,9 @@ func newLogDispatcherClient(ctx context.Context) (dgrpcpb.LogDispatcherClient, e
 
 // writeBlob writes the blob data to disk and clears the data field in the protobuf.
 func writeBlob(blob *bpb.Blob, localDir string, spinner *util.Spinner) error {
+	if len(blob.GetData()) == 0 {
+		return nil
+	}
 	dir := path.Join(localDir, path.Dir(blob.BlobId))
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return errors.Wrapf(err, "os.MkdirAll %s", dir)
@@ -147,9 +150,9 @@ func getLogsOnprem(ctx context.Context, cmd *cobra.Command, eventSource string, 
 			return errors.Wrap(err, "client.GetLogItems")
 		}
 		for _, item := range response.LogItems {
-			blob := item.BlobPayload
-			if blob != nil {
-				writeBlob(blob, dir, spinner)
+			if err := writeBlob(item.GetBlobPayload(), dir, spinner); err != nil {
+				spinner.Stop("")
+				return errors.Wrap(err, "writeBlob")
 			}
 		}
 		nextPageCursor := response.GetNextPageCursor()
@@ -271,9 +274,9 @@ func getLogsFromCloud(ctx context.Context, cmd *cobra.Command, eventSource strin
 
 		for _, item := range getResp.GetItems() {
 			totalLogItemSize += uint64(proto.Size(item))
-			blob := item.GetBlobPayload()
-			if blob != nil {
-				writeBlob(blob, dir, spinner)
+			if err := writeBlob(item.GetBlobPayload(), dir, spinner); err != nil {
+				spinner.Stop("")
+				return errors.Wrap(err, "writeBlob")
 			}
 			// Clear the blob payload from the item before it's written as textproto below,
 			// to avoid duplicating large binary payloads in the metadata files.
