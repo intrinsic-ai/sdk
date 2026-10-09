@@ -51,11 +51,11 @@ go_deps_dev.gazelle_override(
     # Force Gazelle to ignore existing BUILD files and generate its own
     build_file_generation = "on",
     directives = [
-        # Explicitly set the prefix so Gazelle maps labels to //go/pkg/...
-        "gazelle:prefix github.com/googlecloudrobotics/core/src",
+        # Explicitly set the prefix so Gazelle maps labels to //src/go/pkg/...
+        "gazelle:prefix github.com/googlecloudrobotics/core",
     ],
     # Use the exact module path from go.mod
-    path = "github.com/googlecloudrobotics/core/src",
+    path = "github.com/googlecloudrobotics/core",
 )
 
 # This can be updated with buildozer
@@ -196,7 +196,7 @@ rules_rs_toolchains.toolchain(
     edition = "2021",
     version = "1.89.0",
 )
-use_repo(rules_rs_toolchains, "rust_1_89_toolchains")
+use_repo(rules_rs_toolchains, "default_rust_toolchains", "rust_1_89_toolchains")
 
 register_toolchains("@rust_1_89_toolchains//...")
 
