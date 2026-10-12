@@ -15,7 +15,9 @@
 package slogattrs
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"testing"
@@ -48,5 +50,52 @@ func TestSlogAttrs(t *testing.T) {
 	err := h.Handle(ctx, r)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestLabels(t *testing.T) {
+	attr := Labels(slog.String("foo", "bar"), slog.Int("baz", 123))
+	if attr.Key != CloudLoggingLabelsKey {
+		t.Errorf("Labels() key = %q, want %q", attr.Key, CloudLoggingLabelsKey)
+	}
+
+	var buf bytes.Buffer
+	logger := slog.New(slog.NewJSONHandler(&buf, nil))
+	logger.Info("test", attr)
+
+	var payload map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &payload); err != nil {
+		t.Fatalf("json.Unmarshal failed: %v", err)
+	}
+	labels, ok := payload[CloudLoggingLabelsKey].(map[string]any)
+	if !ok {
+		t.Fatalf("expected map under %q, got %T: %v", CloudLoggingLabelsKey, payload[CloudLoggingLabelsKey], payload)
+	}
+	if got := labels["foo"]; got != "bar" {
+		t.Errorf("labels[foo] = %v, want bar", got)
+	}
+	if got := labels["baz"]; got != float64(123) {
+		t.Errorf("labels[baz] = %v, want 123", got)
+	}
+}
+
+func TestAuditLog(t *testing.T) {
+	var buf bytes.Buffer
+	logger := slog.New(slog.NewJSONHandler(&buf, nil))
+	logger.Info("audited event", AuditLog(slog.String("subsystem", "accounts")))
+
+	var payload map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &payload); err != nil {
+		t.Fatalf("json.Unmarshal failed: %v", err)
+	}
+	labels, ok := payload[CloudLoggingLabelsKey].(map[string]any)
+	if !ok {
+		t.Fatalf("expected map under %q, got %T: %v", CloudLoggingLabelsKey, payload[CloudLoggingLabelsKey], payload)
+	}
+	if got := labels["is_audit_log"]; got != "true" {
+		t.Errorf("labels[is_audit_log] = %v, want true", got)
+	}
+	if got := labels["subsystem"]; got != "accounts" {
+		t.Errorf("labels[subsystem] = %v, want accounts", got)
 	}
 }
