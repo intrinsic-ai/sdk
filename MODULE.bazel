@@ -276,7 +276,7 @@ bazel_dep(name = "openusd", version = "25.11.bcr.3")
 bazel_dep(name = "or-tools", version = "9.15", repo_name = "or_tools")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "protobuf-matchers", version = "0.1.1", repo_name = "com_github_inazarenko_protobuf_matchers")
-bazel_dep(name = "protobuf", version = "32.1", repo_name = "com_google_protobuf")
+bazel_dep(name = "protobuf", version = "33.6", repo_name = "com_google_protobuf")
 bazel_dep(name = "re2", version = "2025-11-05.bcr.1", repo_name = "com_googlesource_code_re2")
 bazel_dep(name = "riegeli", version = "0.0.0-20250822-9f2744d", repo_name = "com_google_riegeli")
 bazel_dep(name = "rules_license", version = "1.0.0")
@@ -391,6 +391,20 @@ use_repo(
     "ros2_rmw",
     "ros2_rosbag2",
     "ros2_rosidl",
+)
+
+# Naive workaround to work around system_python dependency in Protobuf 33 and later.
+# Reqired for targets depending in pybind11_protobuf, but should help with
+# hermeticity overall.
+# Patch from https://github.com/protocolbuffers/protobuf/issues/24084#issuecomment-5619303017.
+# References:
+# * b/388805879
+# * https://github.com/protocolbuffers/protobuf/issues/24084
+single_version_override(
+    module_name = "protobuf",
+    patch_cmds = [
+        "sed -i 's|@system_python//:python_headers|@rules_python//python/cc:current_py_cc_headers|g' python/build_targets.bzl python/py_extension.bzl",
+    ],
 )
 
 npm.npm_translate_lock(
