@@ -78,24 +78,3 @@ func TestLabels(t *testing.T) {
 		t.Errorf("labels[baz] = %v, want 123", got)
 	}
 }
-
-func TestAuditLog(t *testing.T) {
-	var buf bytes.Buffer
-	logger := slog.New(slog.NewJSONHandler(&buf, nil))
-	logger.Info("audited event", AuditLog(slog.String("subsystem", "accounts")))
-
-	var payload map[string]any
-	if err := json.Unmarshal(buf.Bytes(), &payload); err != nil {
-		t.Fatalf("json.Unmarshal failed: %v", err)
-	}
-	labels, ok := payload[CloudLoggingLabelsKey].(map[string]any)
-	if !ok {
-		t.Fatalf("expected map under %q, got %T: %v", CloudLoggingLabelsKey, payload[CloudLoggingLabelsKey], payload)
-	}
-	if got := labels["is_audit_log"]; got != "true" {
-		t.Errorf("labels[is_audit_log] = %v, want true", got)
-	}
-	if got := labels["subsystem"]; got != "accounts" {
-		t.Errorf("labels[subsystem] = %v, want accounts", got)
-	}
-}

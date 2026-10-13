@@ -141,17 +141,6 @@ func Labels(args ...any) slog.Attr {
 	return slog.Group(CloudLoggingLabelsKey, args...)
 }
 
-// AuditLog returns a slog.Attr setting "is_audit_log": "true" under Cloud
-// Logging's labels special payload field so project sinks and exclusions route
-// it to the dedicated audit-logs bucket. Additional label arguments can
-// optionally be passed to include other labels in the same group.
-func AuditLog(extraLabels ...any) slog.Attr {
-	args := make([]any, 0, len(extraLabels)+1)
-	args = append(args, slog.String("is_audit_log", "true"))
-	args = append(args, extraLabels...)
-	return Labels(args...)
-}
-
 // ReplaceAttr replaces the key of a slog.Attr with the corresponding key for log explorer.
 // Also shortens the source location and function.
 func ReplaceAttr(groups []string, a slog.Attr) slog.Attr {
