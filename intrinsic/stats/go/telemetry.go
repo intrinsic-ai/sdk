@@ -25,9 +25,9 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"slices"
 	"strings"
 
-	traceexporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	log "github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -35,6 +35,7 @@ import (
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
+	"go.opentelemetry.io/contrib/detectors/gcp"
 	b3prop "go.opentelemetry.io/contrib/propagators/b3"
 	ocprop "go.opentelemetry.io/contrib/propagators/opencensus"
 	"go.opentelemetry.io/otel"
@@ -49,9 +50,14 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc"
 	grpccodes "google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/oauth"
 	"google.golang.org/grpc/status"
 )
+
+// GCP Telemetry API writes the spans to the project in gcp.project_id.
+const gcpProjectKey = attribute.Key("gcp.project_id")
 
 type localSamplerKey struct{}
 
@@ -292,19 +298,19 @@ func (f filterErrorHandler) Handle(err error) {
 	log.Warningf("OpenTelemetry error: %v", err)
 }
 
-func initTracerProvider(ctx context.Context, exporter sdktrace.SpanExporter, serviceName string, probability float64) *sdktrace.TracerProvider {
+func initTracerProvider(ctx context.Context, exporter sdktrace.SpanExporter, serviceName string, probability float64, resOpts ...resource.Option) *sdktrace.TracerProvider {
 	otel.SetErrorHandler(filterErrorHandler{})
 
-	var attrs []attribute.KeyValue
-	if serviceName != "" {
-		attrs = append(attrs, semconv.ServiceName(serviceName))
-	}
-
-	res, err := resource.New(ctx,
-		resource.WithAttributes(attrs...),
+	opts := slices.Concat(resOpts, []resource.Option{
 		resource.WithTelemetrySDK(),
 		resource.WithHost(),
-	)
+		resource.WithFromEnv(),
+	})
+	if serviceName != "" {
+		opts = append(opts, resource.WithAttributes(semconv.ServiceName(serviceName)))
+	}
+
+	res, err := resource.New(ctx, opts...)
 	if err != nil {
 		// resource.New returns partial resource on failure. It's also safe to pass nil resource to WithResource.
 		log.Warningf("Failed to create telemetry resource: %v", err)
@@ -322,35 +328,45 @@ func initTracerProvider(ctx context.Context, exporter sdktrace.SpanExporter, ser
 	return tp
 }
 
-func (t *Telemetry) createCloudTracerProvider(project string, serviceName string, probability float64) error {
-	if project == "" {
-		return fmt.Errorf("project must be specified")
+// createTracerProvider exports spans with OTLP to Cloud Trace for cloud
+// deployments, and to the on-prem OpenTelemetry collector otherwise.
+func (t *Telemetry) createTracerProvider(c tracingConfig) error {
+	ctx := context.Background()
+
+	var opts []otlptracegrpc.Option
+	var resOpts []resource.Option
+
+	if c.CloudDeployment {
+		if c.ProjectName == "" {
+			return fmt.Errorf("project ID must be specified for cloud tracing; configure it with WithProjectName")
+		}
+		creds, err := oauth.NewApplicationDefault(ctx, "https://www.googleapis.com/auth/trace.append")
+		if err != nil {
+			return fmt.Errorf("load application default credentials: %w", err)
+		}
+		opts = []otlptracegrpc.Option{
+			otlptracegrpc.WithEndpoint("telemetry.googleapis.com:443"),
+			otlptracegrpc.WithDialOption(grpc.WithPerRPCCredentials(creds)),
+		}
+		resOpts = []resource.Option{
+			resource.WithDetectors(gcp.NewDetector()),
+			resource.WithAttributes(gcpProjectKey.String(c.ProjectName)),
+		}
+	} else {
+		opts = []otlptracegrpc.Option{
+			otlptracegrpc.WithEndpoint("oc-agent.app-intrinsic-base.svc.cluster.local:4317"),
+			otlptracegrpc.WithInsecure(),
+		}
 	}
-	log.Info("Creating Google Cloud Trace exporter for tracing.")
 
-	exporter, err := traceexporter.New(traceexporter.WithProjectID(project))
-	if err != nil {
-		return fmt.Errorf("create trace exporter: %w", err)
-	}
-
-	t.tp = initTracerProvider(context.Background(), exporter, serviceName, probability)
-
-	return nil
-}
-
-func (t *Telemetry) createOnPremTracerProvider(serviceName string, probability float64) error {
 	log.Info("Creating OTLP trace exporter for tracing.")
 
-	ctx := context.Background()
-	exporter, err := otlptracegrpc.New(ctx,
-		otlptracegrpc.WithInsecure(),
-		otlptracegrpc.WithEndpoint("oc-agent.app-intrinsic-base.svc.cluster.local:4317"),
-	)
+	exporter, err := otlptracegrpc.New(ctx, opts...)
 	if err != nil {
 		return fmt.Errorf("create trace exporter: %w", err)
 	}
 
-	t.tp = initTracerProvider(ctx, exporter, serviceName, probability)
+	t.tp = initTracerProvider(ctx, exporter, c.ServiceName, c.Probability, resOpts...)
 
 	return nil
 }
@@ -395,15 +411,7 @@ func (t *Telemetry) enableTracing(c tracingConfig) {
 	if !c.Enabled {
 		return
 	}
-	if c.CloudDeployment {
-		err := t.createCloudTracerProvider(c.ProjectName, c.ServiceName, c.Probability)
-		if err != nil {
-			log.Warningf("Tracing is disabled! Tracing setup failed: %v", err)
-		}
-		return
-	}
-	err := t.createOnPremTracerProvider(c.ServiceName, c.Probability)
-	if err != nil {
+	if err := t.createTracerProvider(c); err != nil {
 		log.Warningf("Tracing is disabled! Tracing setup failed: %v", err)
 	}
 }
