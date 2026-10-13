@@ -34,7 +34,6 @@ require (
 	dario.cat/mergo v1.0.2
 	firebase.google.com/go v3.13.0+incompatible
 	firebase.google.com/go/v4 v4.14.1
-	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.38.0
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/Masterminds/sprig/v3 v3.3.0
@@ -187,7 +186,6 @@ require (
 	cloud.google.com/go/orgpolicy v1.20.0 // indirect
 	cloud.google.com/go/osconfig v1.22.0 // indirect
 	cloud.google.com/go/pubsub/v2 v2.6.0 // indirect
-	cloud.google.com/go/trace v1.16.0 // indirect
 	filippo.io/edwards25519 v1.1.1 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
@@ -197,6 +195,7 @@ require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/GoogleCloudPlatform/grpc-gcp-go/grpcgcp v1.6.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.57.0 // indirect
+	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/cloudmock v0.62.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.62.0 // indirect
 	github.com/MakeNowJust/heredoc v1.0.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
