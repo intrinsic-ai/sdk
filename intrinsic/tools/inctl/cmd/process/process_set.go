@@ -21,6 +21,7 @@ import (
 
 	protoregistrypb "intrinsic/proto_tools/proto/proto_registry_go_proto"
 	"intrinsic/proto_tools/registry/protoregistryclient"
+	"intrinsic/tools/inctl/util/color"
 	"intrinsic/tools/inctl/util/orgutil"
 
 	"github.com/pkg/errors"
@@ -193,9 +194,43 @@ The input is a intrinsic_proto.executive.BehaviorTree proto in binary or text fo
 No positional argument: Create a new operation with the input process in the executive.
 $ inctl process set --org my_org --solution my_solution_id --input_file /tmp/my-process.textproto [--process_format textproto|binaryproto]
 
-[legacy process support]
+[legacy process support (deprecated)]
 One positional argument: Store the input process as a legacy process with the given name in the solution. Afterwards, the process can be loaded in the Flowstate frontend and then be executed from there.
-$ inctl process set --org my_org --solution my_solution_id --input_file /tmp/my-process.textproto [--process_format textproto|binaryproto] "My Process"`,
+$ inctl process set --org my_org --solution my_solution_id --input_file /tmp/my-process.textproto [--process_format textproto|binaryproto] "My Process"
+
+Deprecated: Migrate your Process to a Process Asset instead:
+1. Ensure the "name" field in your BehaviorTree proto matches your desired display name (e.g. name: "My Process").
+2. Create a ProcessManifest textproto (e.g. my_process_manifest.txtpb) with ProcessMetadata:
+   # proto-file: intrinsic/assets/processes/proto/process_manifest.proto
+   # proto-message: intrinsic_proto.processes.ProcessManifest
+   metadata {
+     id {
+       package: "com.example"
+       name: "my_process"
+     }
+     display_name: "My Process"
+     vendor {
+       display_name: "Example"
+     }
+     documentation {
+       description: "My Process description."
+     }
+   }
+3. Add an intrinsic_process target in your BUILD file to build a Process Asset bundle (.bundle.tar):
+   load("@ai_intrinsic_sdks//intrinsic/assets/processes/build_defs:processes.bzl", "intrinsic_process")
+
+   intrinsic_process(
+       name = "my_process",
+       behavior_tree = ":my-process.textproto",
+       manifest = ":my_process_manifest.txtpb",
+   )
+4. Build the target and install the bundle with "inctl asset install":
+   $ bazel build //path/to:my_process
+   $ inctl asset install bazel-bin/path/to/my_process.bundle.tar --org my_org --solution my_solution_id
+
+Alternatively, to migrate an existing legacy Process in a Solution:
+- In Flowstate: Open the Process, set its Process Asset metadata (ID and vendor) in the details panel, and save it.
+- In Python: Load the Process, call bt.set_asset_metadata(id="com.example.my_process", vendor="Example"), and call solution.processes.save(bt).`,
 		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if flagInputFile == "" {
@@ -205,6 +240,10 @@ $ inctl process set --org my_org --solution my_solution_id --input_file /tmp/my-
 			name := ""
 			if len(args) == 1 {
 				name = args[0]
+				color.C.Yellow().Fprintf(
+					cmd.ErrOrStderr(),
+					"WARNING: Setting a process with a name writes a legacy Process and is deprecated. Migrate your Process to a Process Asset instead (run \"inctl process set --help\" for migration instructions).\n",
+				)
 			}
 			projectName := viperProcessSet.GetString(orgutil.KeyProject)
 			orgName := viperProcessSet.GetString(orgutil.KeyOrganization)
