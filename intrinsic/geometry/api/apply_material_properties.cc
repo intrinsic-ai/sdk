@@ -88,34 +88,10 @@ absl::Status ValidateMaterialProperties(
   return absl::OkStatus();
 }
 
-absl::StatusOr<std::shared_ptr<const Renderable>> ApplyMaterialProperties(
-    std::shared_ptr<const Renderable> geo,
-    const MaterialProperties& material_properties) {
-  std::string glb_bytes = geo->GetGLBString();
-  INTR_ASSIGN_OR_RETURN(
-      glb_bytes, ApplyMaterialPropertiesToGlb(glb_bytes, material_properties));
-  return std::make_shared<Renderable>(std::move(glb_bytes));
-}
-
-absl::StatusOr<std::string> ApplyMaterialPropertiesToGlb(
-    absl::string_view glb_bytes,
+absl::StatusOr<tinygltf::Material> ToGltfMaterial(
     const MaterialProperties& material_properties) {
   INTR_RETURN_IF_ERROR(ValidateMaterialProperties(material_properties));
 
-  // Parse the original glTF model.
-  tinygltf::TinyGLTF gltf_parser;
-  tinygltf::Model model;
-  std::string err;
-  std::string warn;
-  if (!gltf_parser.LoadBinaryFromMemory(
-          &model, &err, &warn,
-          reinterpret_cast<const unsigned char*>(glb_bytes.data()),
-          glb_bytes.size())) {
-    return absl::InvalidArgumentError(absl::StrCat(
-        "Failed to load glTF bytes to glTF model. Error(s): ", err));
-  }
-
-  // Initialize material properties with default values.
   std::vector<double> base_color_factor;
   if (material_properties.has_base_color()) {
     const auto& base_color = material_properties.base_color();
@@ -134,8 +110,6 @@ absl::StatusOr<std::string> ApplyMaterialPropertiesToGlb(
                                ? material_properties.roughness()
                                : kDefaultRoughness;
 
-  // Clears existing materials and creates a new material. Replace all mesh
-  // primitives to use this new material.
   tinygltf::Material material;
   material.name = "user_specified_material";
   material.pbrMetallicRoughness.baseColorFactor = std::move(base_color_factor);
@@ -144,7 +118,40 @@ absl::StatusOr<std::string> ApplyMaterialPropertiesToGlb(
   material.extensions["KHR_materials_transmission"] =
       tinygltf::Value(tinygltf::Value::Object{
           {"transmissionFactor", tinygltf::Value(transmission)}});
-  model.materials = {material};
+  return material;
+}
+
+absl::StatusOr<std::shared_ptr<const Renderable>> ApplyMaterialProperties(
+    std::shared_ptr<const Renderable> geo,
+    const MaterialProperties& material_properties) {
+  std::string glb_bytes = geo->GetGLBString();
+  INTR_ASSIGN_OR_RETURN(
+      glb_bytes, ApplyMaterialPropertiesToGlb(glb_bytes, material_properties));
+  return std::make_shared<Renderable>(std::move(glb_bytes));
+}
+
+absl::StatusOr<std::string> ApplyMaterialPropertiesToGlb(
+    absl::string_view glb_bytes,
+    const MaterialProperties& material_properties) {
+  INTR_ASSIGN_OR_RETURN(tinygltf::Material material,
+                        ToGltfMaterial(material_properties));
+
+  // Parse the original glTF model.
+  tinygltf::TinyGLTF gltf_parser;
+  tinygltf::Model model;
+  std::string err;
+  std::string warn;
+  if (!gltf_parser.LoadBinaryFromMemory(
+          &model, &err, &warn,
+          reinterpret_cast<const unsigned char*>(glb_bytes.data()),
+          glb_bytes.size())) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Failed to load glTF bytes to glTF model. Error(s): ", err));
+  }
+
+  // Clears existing materials and creates a new material. Replace all mesh
+  // primitives to use this new material.
+  model.materials = {std::move(material)};
 
   for (auto& mesh : model.meshes) {
     for (auto& primitive : mesh.primitives) {
