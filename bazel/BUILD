@@ -116,12 +116,14 @@ bzl_library(
     ],
 )
 
+# glibc cannot be bumped beyond 2.31 because it will break proprietary drivers.
 platform(
     name = "linux_x86_64",
     constraint_values = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
         "@bazel_tools//tools/cpp:clang",
+        "@llvm//constraints/libc:gnu.2.31",
     ],
     exec_properties = DEFAULT,
     parents = ["@platforms//host"],

@@ -1,0 +1,32 @@
+# Copyright 2026 Intrinsic Innovation LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+diff --git a/3rd_party/llvm-project/x.x/compiler-rt/compiler-rt.BUILD.bazel b/3rd_party/llvm-project/x.x/compiler-rt/compiler-rt.BUILD.bazel
+--- a/3rd_party/llvm-project/x.x/compiler-rt/compiler-rt.BUILD.bazel
++++ b/3rd_party/llvm-project/x.x/compiler-rt/compiler-rt.BUILD.bazel
+@@ -1362,6 +1362,14 @@ cc_library(
+         "include",
+         "lib",
+     ],
++    # sanitizer_unwind_linux_libcdep.cpp calls _Unwind_Backtrace/_Unwind_GetIP.
++    # The toolchain links with --unwindlib=none and only provides libunwind to
++    # C++ links (via static_runtime_lib), so a plain C link against the ASan
++    # runtime has no unwinder at all. Carry the dependency explicitly instead.
++    deps = select({
++        "@platforms//os:linux": ["@llvm-project//libunwind:libunwind"],
++        "//conditions:default": [],
++    }),
+     alwayslink = True,
+ )
+ 

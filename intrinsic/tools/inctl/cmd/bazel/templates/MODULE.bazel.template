@@ -46,31 +46,30 @@ bazel_dep(name = "googletest", version = "1.17.0", repo_name = "com_google_googl
 bazel_dep(name = "grpc", version = "1.73.1", repo_name = "com_github_grpc_grpc")
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "protobuf", version = "33.6", repo_name = "com_google_protobuf")
-bazel_dep(name = "rules_go", version = "0.62.0", repo_name = "io_bazel_rules_go")
+bazel_dep(name = "rules_go", version = "0.63.0", repo_name = "io_bazel_rules_go")
 bazel_dep(name = "rules_pkg", version = "1.1.0")
 bazel_dep(name = "rules_python", version = "2.3.3")
 bazel_dep(name = "rules_shell", version = "0.8.0")
 
 # C++ toolchain
-bazel_dep(name = "toolchains_llvm", version = "1.7.0")
+bazel_dep(name = "llvm", version = "0.8.24")
 
-llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
-llvm.toolchain(
-    llvm_version = "21.1.0",
+llvm = use_extension("@llvm//extensions:llvm.bzl", "llvm")
+llvm.version(llvm_version = "21.1.8")
+llvm.configure(
+    targets = [
+        "X86",
+    ],
 )
+use_repo(llvm, "llvm-project")
 
-non_module_deps = use_extension("@ai_intrinsic_sdks//bazel:non_module_deps.bzl", "non_module_deps_ext")
-use_repo(non_module_deps, "intrinsic_llvm_sysroot")
-
-llvm.sysroot(
-    label = "@intrinsic_llvm_sysroot//:all_files",
-    targets = ["linux-x86_64"],
+register_toolchains(
+    "@llvm//toolchain:all",
+    dev_dependency = True,
 )
-use_repo(llvm, "llvm_toolchain")
-
-register_toolchains("@llvm_toolchain//:all")
 
 bazel_dep(name = "rules_cc", version = "0.2.25")
+bazel_dep(name = "rules_foreign_cc", version = "0.16.0")
 
 # Google API bindings
 bazel_dep(name = "googleapis", version = "0.0.0-20240819-fe8ba054a", repo_name = "com_google_googleapis")
