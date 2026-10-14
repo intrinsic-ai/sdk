@@ -912,6 +912,7 @@ service ClustersService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "GetCurrentReleaseVersions"
     };
+    option (aclType) = "none";
   }
 
   // CreateCluster allows to add a new cluster.
