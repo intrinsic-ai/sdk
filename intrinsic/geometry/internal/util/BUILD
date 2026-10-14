@@ -91,3 +91,13 @@ cc_library(
         "@tinygltf",
     ],
 )
+
+cc_library(
+    name = "gltf_merge",
+    srcs = ["gltf_merge.cc"],
+    hdrs = ["gltf_merge.h"],
+    deps = [
+        "@abseil-cpp//absl/strings",
+        "@tinygltf",
+    ],
+)
