@@ -1144,6 +1144,7 @@ service ClustersService {
     option (google.api.http) = {
       get: "/v1/project/*/org/*/clusterOperations/{name=*}"
     };
+    option (aclType) = "has_access";
   }
 
   // Deletes a long-running operation. This method indicates that the client is
@@ -1152,7 +1153,9 @@ service ClustersService {
   // `google.rpc.Code.UNIMPLEMENTED`.
   // At this point, this is unimplemented for ClustersService.
   rpc DeleteOperation(google.longrunning.DeleteOperationRequest)
-      returns (google.protobuf.Empty) {}
+      returns (google.protobuf.Empty) {
+    option (aclType) = "can_configure";
+  }
 
   // Starts asynchronous cancellation on a long-running operation.  The server
   // makes a best effort to cancel the operation, but success is not
@@ -1160,9 +1163,13 @@ service ClustersService {
   // * CreateCluster does not implement this
   // * NetworkConfiguration will
   rpc CancelOperation(google.longrunning.CancelOperationRequest)
-      returns (google.protobuf.Empty) {}
+      returns (google.protobuf.Empty) {
+    option (aclType) = "can_configure";
+  }
 
   // At this point, this is unimplemented for ClustersService.
   rpc WaitOperation(google.longrunning.WaitOperationRequest)
-      returns (google.longrunning.Operation);
+      returns (google.longrunning.Operation) {
+    option (aclType) = "has_access";
+  }
 }
