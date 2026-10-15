@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Defines the GraspPlannerClient class."""
+"""Defines the GraspPlannerClient class.
+
+Deprecated:
+  Use `intrinsic.manipulation.planning.v2.grasp_planner_client.GraspPlannerClient` instead.
+"""
 
 from collections.abc import Sequence
 
@@ -47,7 +51,12 @@ def _grasp_planner_service_interface_uri() -> str:
 
 
 class GraspPlannerClient:
-  """Helper class for calling the rpcs in the GraspPlannerService."""
+  """Helper class for calling the rpcs in the GraspPlannerService.
+
+  Deprecated:
+    Use `intrinsic.manipulation.planning.v2.grasp_planner_client.GraspPlannerClient`
+    instead.
+  """
 
   def __init__(
       self,

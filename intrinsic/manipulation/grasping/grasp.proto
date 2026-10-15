@@ -155,9 +155,15 @@ message GraspTarget {
 
 message PoseBasedGrasp {
   string grasp_id = 1;
-  // For convenience, this frame is a child frame of the `object`.
+  // Frame at the grasp pose. Either a frame created as a child of `object`, or
+  // an existing frame provided by the caller (e.g.
+  // `PlanGraspsRequest.output_grasp_frame`) that was moved to the grasp pose
+  // and keeps its parent.
   intrinsic_proto.world.TransformNodeReference grasp_frame = 2;
-  // For convenience, this frame is a child frame of the `object`.
+  // Frame at the pregrasp pose. Either a frame created as a child of `object`,
+  // or an existing frame provided by the caller (e.g.
+  // `PlanGraspsRequest.output_pregrasp_frame`) that was moved to the pregrasp
+  // pose and keeps its parent.
   intrinsic_proto.world.TransformNodeReference pre_grasp_frame = 3;
   // The target object to pick
   intrinsic_proto.world.ObjectReference object = 4;
@@ -179,6 +185,16 @@ message PoseBasedGrasp {
   // `PlacementPoseConstraint.target_frame_margins` is specified.
   // This only guarantees its IK but not the trajectories towards it.
   intrinsic_proto.motion_planning.v1.PoseEquality possible_placement_pose = 8;
+  // Pose of the grasp frame in the root frame at planning time. Unlike
+  // `grasp_frame`, which may be attached to the object, this is a fixed
+  // snapshot and does not change if the world changes afterwards. May be unset
+  // if the producer of this grasp does not provide it.
+  optional intrinsic_proto.Pose root_t_grasp = 9;
+  // Pose of the pregrasp frame in the root frame at planning time. Unlike
+  // `pre_grasp_frame`, which may be attached to the object, this is a fixed
+  // snapshot and does not change if the world changes afterwards. May be unset
+  // if the producer of this grasp does not provide it.
+  optional intrinsic_proto.Pose root_t_pregrasp = 10;
 }
 
 message RepeatedPoseBasedGrasps {
