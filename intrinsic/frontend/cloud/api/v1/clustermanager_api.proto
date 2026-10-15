@@ -351,6 +351,10 @@ message CreateClusterRequest {
   CreateClusterInfo cluster_info = 3 [(google.api.field_behavior) = REQUIRED];
   bool preserve_versions = 4 [(google.api.field_behavior) = OPTIONAL];
   string copy_cluster = 5 [(google.api.field_behavior) = OPTIONAL];
+  // Only used for automated testing, and contains the ID of the test that is
+  // registering this device. It is used to label the resources (in particular
+  // the Robot CR) so they can be cleaned up.
+  string created_by_test = 6 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message CreateClusterResponse {}
