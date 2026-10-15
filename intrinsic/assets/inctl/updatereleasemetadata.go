@@ -41,8 +41,9 @@ func GetCommand() *cobra.Command {
 	flags := cmdutils.NewCmdFlags()
 
 	cmd := &cobra.Command{
-		Use:   "update_release_metadata id_version",
-		Short: "Update the release metadata of the specified asset id_version.",
+		Use:        "update_release_metadata id_version",
+		Short:      "Update the release metadata of the specified asset id_version.",
+		Deprecated: "Use inctl asset catalog update-release-metadata",
 		Example: `
   $ inctl asset update_release_metadata some.package.my_skill.0.0.1 --org_private=false
 `,

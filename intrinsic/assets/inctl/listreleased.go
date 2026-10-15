@@ -42,9 +42,10 @@ const pageSize int64 = 50
 func GetCommand() *cobra.Command {
 	flags := cmdutils.NewCmdFlags()
 	cmd := &cobra.Command{
-		Use:   "list_released",
-		Short: "List assets from the catalog.",
-		Args:  cobra.NoArgs,
+		Use:        "list_released",
+		Short:      "List assets from the catalog.",
+		Deprecated: "Use inctl asset catalog list",
+		Args:       cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			ctx := cmd.Context()
 			ctx, conn, err := clientutils.DialCatalogFromInctl(ctx, flags)
