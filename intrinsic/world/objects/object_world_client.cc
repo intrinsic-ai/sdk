@@ -442,6 +442,13 @@ absl::StatusOr<KinematicObject> ObjectWorldClient::GetKinematicObject(
           absl::StrCat("Resource handle ", resource_handle.name(),
                        " does not have any Icon2PositionPart information."));
     }
+    if (icon_position_part.object_names().size() == 1) {
+      const auto& object_name =
+          icon_position_part.object_names().begin()->second;
+      LOG(INFO) << "Using kinematic object from position part object_names: "
+                << object_name;
+      return GetKinematicObject(WorldObjectName(object_name));
+    }
     if (!icon_position_part.world_robot_collection_name().empty()) {
       LOG(INFO) << "Using kinematic object from world robot collection: "
                 << icon_position_part.world_robot_collection_name();
