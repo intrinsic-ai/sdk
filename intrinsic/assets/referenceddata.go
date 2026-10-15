@@ -591,10 +591,13 @@ func WithProgressWriter(w io.Writer) ProcessorOption {
 				} else {
 					// If total size is unknown, print progress updates for every chunk.
 					fmt.Fprintf(w, "\r%s", prg)
+					lastPercent = 0
 				}
-			case StageUploadFinalize:
-				fmt.Fprintf(w, "\n%s\n", prg)
 			default:
+				if lastPercent >= 0 {
+					fmt.Fprintln(w)
+					lastPercent = -1
+				}
 				fmt.Fprintln(w, prg)
 			}
 		}
