@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
@@ -56,6 +57,36 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "resolved_dependency_utils",
+    srcs = ["resolved_dependency_utils.cc"],
+    hdrs = ["resolved_dependency_utils.h"],
+    deps = [
+        "//intrinsic/assets:interface_utils",
+        "//intrinsic/assets/dependencies:utils_cc",
+        "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
+        "//intrinsic/connect/cc/grpc:channel",
+        "//intrinsic/icon/proto/v1:service_cc_grpc_proto",
+        "//intrinsic/icon/proto/v1:service_cc_proto",
+        "//intrinsic/icon/proto/v1:types_cc_proto",
+        "//intrinsic/util/grpc:channel",
+        "//intrinsic/util/grpc:channel_interface",
+        "//intrinsic/util/status:status_conversion_grpc",
+        "//intrinsic/util/status:status_macros",
+        "//intrinsic/world/objects:kinematic_object",
+        "//intrinsic/world/objects:object_world_client",
+        "//intrinsic/world/objects:object_world_ids",
+        "//intrinsic/world/proto:object_world_refs_cc_proto",
+        "//intrinsic/world/util:object_reference_utils",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/time",
+        "@com_github_grpc_grpc//:grpc++",
+    ],
+)
+
 js_library(
     name = "icon_equipment_jspb_proto",
     deps = ["//intrinsic/icon/equipment:icon_equipment_proto"],
@@ -76,6 +107,24 @@ py_library(
         "//intrinsic/skills/proto:equipment_py_pb2",
         "//intrinsic/util/grpc:connection",
         "@com_google_absl_py//absl/logging",
+    ],
+)
+
+py_library(
+    name = "resolved_dependency_utils_py",
+    srcs = ["resolved_dependency_utils.py"],
+    deps = [
+        "//intrinsic/assets:interface_utils_py",
+        "//intrinsic/assets/dependencies:utils_py",
+        "//intrinsic/assets/proto/v1:resolved_dependency_py_pb2",
+        "//intrinsic/icon/proto/v1:service_py_pb2",
+        "//intrinsic/icon/proto/v1:service_py_pb2_grpc",
+        "//intrinsic/icon/python:icon",
+        "//intrinsic/world/proto:object_world_refs_py_pb2",
+        "//intrinsic/world/python:object_world_client",
+        "//intrinsic/world/python:object_world_ids",
+        "//intrinsic/world/python:object_world_resources",
+        requirement("grpcio"),
     ],
 )
 
