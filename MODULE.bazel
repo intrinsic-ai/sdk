@@ -292,7 +292,7 @@ bazel_dep(name = "com_github_mvukov_rules_ros2", version = "0.0.0-20260718-352a8
 bazel_dep(name = "dumb-init", version = "1.2.5")
 bazel_dep(name = "eigen", version = "5.0.1.bcr.2", repo_name = "com_gitlab_libeigen_eigen")
 bazel_dep(name = "etherlab-ethercat", version = "1.6.7.bcr.1")
-bazel_dep(name = "flatbuffers", version = "25.12.19", repo_name = "com_github_google_flatbuffers")
+bazel_dep(name = "flatbuffers", version = "25.12.19.bcr.1", repo_name = "com_github_google_flatbuffers")
 bazel_dep(name = "fuzztest", version = "20250805.0", repo_name = "com_google_fuzztest")
 
 bazel_dep(name = "google_benchmark", version = "1.9.5", repo_name = "com_google_benchmark")
@@ -339,21 +339,6 @@ bazel_dep(name = "zenoh-c", version = "1.8.0.bcr.1")
 # llvm toolchain's glibc headers. This line makes sure that all transitive
 # deps also get the elevated version to prevent header shadowing.
 bazel_dep(name = "gawk", version = "5.3.2.bcr.7")
-
-
-# We require an override to support a single patch for compatibility with aspect_rules_js v3. The
-# patch is merged upstream but has not been released.
-archive_override(
-    module_name = "flatbuffers",
-    integrity = "sha256-+BwxYrEEb+i4S5oNvdOD4k/bz4hYO5y2Ao+Q0E2QaWo=",
-    remote_patch_strip = 1,
-    remote_patches = {
-        "https://github.com/google/flatbuffers/commit/c21bda16493fbf3586820c2f5f952399329f674a.patch": "sha256-e7vj8dq4BP14xUIl7AonJbVMCFgDVkV5xN+QqXq+1ts=",
-    },
-    strip_prefix = "flatbuffers-25.12.19",
-    url = "https://github.com/google/flatbuffers/archive/refs/tags/v25.12.19.tar.gz",
-)
-
 
 ##############
 # Containers #
