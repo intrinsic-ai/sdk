@@ -47,8 +47,6 @@ const (
 // AllowedFormats is a list of possible output formats.
 var AllowedFormats = []string{JSONOutputFormat, NDJSONOutputFormat}
 
-type any = interface{}
-
 // Message defines a struct for printing a single message in JSON format.
 type Message struct {
 	Msg string `json:"msg"`
