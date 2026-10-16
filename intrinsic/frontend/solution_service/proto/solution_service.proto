@@ -36,32 +36,48 @@ service SolutionService {
   }
 
   // Gets a single behavior tree from the running solution.
+  //
+  // Deprecated: Only supports legacy processes. Use the `InstalledAssets`
+  // service to manage Process Assets instead.
   rpc GetBehaviorTree(GetBehaviorTreeRequest)
       returns (intrinsic_proto.executive.BehaviorTree) {
+    option deprecated = true;
     option (google.api.http) = {
       get: "/solution/v1/behaviorTrees/{name}"
     };
   }
 
   // Gets multiple behavior trees from the running solution.
+  //
+  // Deprecated: Only supports legacy processes. Use the `InstalledAssets`
+  // service to manage Process Assets instead.
   rpc BatchGetBehaviorTrees(BatchGetBehaviorTreesRequest)
       returns (BatchGetBehaviorTreesResponse) {
+    option deprecated = true;
     option (google.api.http) = {
       get: "/solution/v1/behaviorTrees:batchGet"
     };
   };
 
   // Lists behavior trees from the running solution.
+  //
+  // Deprecated: Only supports legacy processes. Use the `InstalledAssets`
+  // service to manage Process Assets instead.
   rpc ListBehaviorTrees(ListBehaviorTreesRequest)
       returns (ListBehaviorTreesResponse) {
+    option deprecated = true;
     option (google.api.http) = {
       get: "/solution/v1/behaviorTrees"
     };
   }
 
   // Creates a new behavior tree in the running solution.
+  //
+  // Deprecated: Only supports legacy processes. Use the `InstalledAssets`
+  // service to manage Process Assets instead.
   rpc CreateBehaviorTree(CreateBehaviorTreeRequest)
       returns (intrinsic_proto.executive.BehaviorTree) {
+    option deprecated = true;
     option (google.api.http) = {
       post: "/solution/v1/behaviorTrees"
       body: "behavior_tree"
@@ -69,8 +85,12 @@ service SolutionService {
   };
 
   // Updates an existing behavior tree in the running solution.
+  //
+  // Deprecated: Only supports legacy processes. Use the `InstalledAssets`
+  // service to manage Process Assets instead.
   rpc UpdateBehaviorTree(UpdateBehaviorTreeRequest)
       returns (intrinsic_proto.executive.BehaviorTree) {
+    option deprecated = true;
     option (google.api.http) = {
       patch: "/solution/v1/behaviorTrees/{behavior_tree.name}"
       body: "behavior_tree"
@@ -78,8 +98,12 @@ service SolutionService {
   };
 
   // Updates multiple behavior trees in the running solution.
+  //
+  // Deprecated: Only supports legacy processes. Use the `InstalledAssets`
+  // service to manage Process Assets instead.
   rpc BatchUpdateBehaviorTrees(BatchUpdateBehaviorTreesRequest)
       returns (BatchUpdateBehaviorTreesResponse) {
+    option deprecated = true;
     option (google.api.http) = {
       post: "/solution/v1/behaviorTrees:batchUpdate"
       body: "*"
@@ -87,8 +111,12 @@ service SolutionService {
   };
 
   // Deletes a behavior tree in the running solution.
+  //
+  // Deprecated: Only supports legacy processes. Use the `InstalledAssets`
+  // service to manage Process Assets instead.
   rpc DeleteBehaviorTree(DeleteBehaviorTreeRequest)
       returns (google.protobuf.Empty) {
+    option deprecated = true;
     option (google.api.http) = {
       delete: "/solution/v1/behaviorTrees/{name}"
     };
