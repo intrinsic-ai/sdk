@@ -41,7 +41,6 @@ cc_library(
         "//intrinsic/icon/equipment:icon_equipment_cc_proto",
         "//intrinsic/icon/proto:generic_part_config_cc_proto",
         "//intrinsic/icon/proto:io_block_cc_proto",
-        "//intrinsic/icon/release:grpc_time_support",
         "//intrinsic/resources/proto:resource_handle_cc_proto",
         "//intrinsic/skills/proto:equipment_cc_proto",
         "//intrinsic/util/grpc:channel_interface",
@@ -74,7 +73,6 @@ cc_library(
         "//intrinsic/icon/equipment:icon_equipment_cc_proto",
         "//intrinsic/icon/proto:generic_part_config_cc_proto",
         "//intrinsic/icon/proto:io_block_cc_proto",
-        "//intrinsic/icon/release:grpc_time_support",
         "//intrinsic/resources/proto:resource_handle_cc_proto",
         "//intrinsic/skills/proto:equipment_cc_proto",
         "//intrinsic/util/status:status_macros",
@@ -83,6 +81,7 @@ cc_library(
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings:str_format",
+        "@com_github_grpc_grpc//:grpc++",
     ],
 )
 

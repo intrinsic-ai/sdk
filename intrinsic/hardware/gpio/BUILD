@@ -44,7 +44,6 @@ cc_library(
         "//intrinsic/connect/cc/grpc:channel",
         "//intrinsic/hardware/gpio/v1:gpio_service_cc_grpc_proto",
         "//intrinsic/hardware/gpio/v1:gpio_service_cc_proto",
-        "//intrinsic/icon/release:grpc_time_support",
         "//intrinsic/platform/pubsub",
         "//intrinsic/platform/pubsub:subscription",
         "//intrinsic/util/grpc",

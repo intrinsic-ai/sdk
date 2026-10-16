@@ -33,7 +33,7 @@
 #include "grpc/grpc.h"
 #include "grpcpp/grpcpp.h"
 #include "grpcpp/security/server_credentials.h"
-#include "intrinsic/icon/release/grpc_time_support.h"
+#include "grpcpp/support/time.h"
 #include "intrinsic/util/grpc/limits.h"
 #include "intrinsic/util/thread/thread.h"
 #include "src/proto/grpc/health/v1/health.pb.h"

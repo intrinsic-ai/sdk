@@ -62,11 +62,3 @@ cc_binary(
         "@com_google_protobuf//:protobuf",
     ],
 )
-
-cc_library(
-    name = "grpc_time_support",
-    hdrs = ["grpc_time_support.h"],
-    deps = [
-        "@com_github_grpc_grpc//:grpc++",
-    ],
-)

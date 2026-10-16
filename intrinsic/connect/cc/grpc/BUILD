@@ -21,7 +21,6 @@ cc_library(
     srcs = ["channel.cc"],
     hdrs = ["channel.h"],
     deps = [
-        "//intrinsic/icon/release:grpc_time_support",
         "//intrinsic/util/grpc:limits",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
