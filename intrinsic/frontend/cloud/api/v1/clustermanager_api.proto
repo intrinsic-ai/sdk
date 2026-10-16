@@ -644,6 +644,10 @@ message DeleteClusterRequest {
   // is fully reset. We cannot do this on every deletion, because unreachable
   // (broken/previously reset) devices will fail as well.
   bool require_reachable = 4 [(google.api.field_behavior) = OPTIONAL];
+  // If set, skips sending a factory reset + reboot to the on-prem device
+  // before deleting cloud resources (used during project migration after a
+  // solution reset and reboot have already been triggered).
+  bool skip_device_reset = 5 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message DeleteOperationMetadata {}
