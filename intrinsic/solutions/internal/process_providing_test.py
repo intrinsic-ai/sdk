@@ -437,6 +437,22 @@ class ProcessProvidingTest(absltest.TestCase):
         )
     )
 
+  def test_setitem_warns_about_deprecation_at_caller(self):
+    bt = behavior_tree.BehaviorTree("tree1", root=_default_task())
+
+    with self.assertWarnsRegex(DeprecationWarning, "legacy process") as cm:
+      self._processes["tree1"] = bt
+
+    self.assertEqual(cm.filename, __file__)
+
+  def test_save_legacy_process_warns_about_deprecation_at_caller(self):
+    bt = behavior_tree.BehaviorTree("tree1", root=_default_task())
+
+    with self.assertWarnsRegex(DeprecationWarning, "legacy process") as cm:
+      self._processes.save(bt)
+
+    self.assertEqual(cm.filename, __file__)
+
   def test_save_process_asset(self):
     # The behavior tree to be saved.
     bt_proto = behavior_tree_pb2.BehaviorTree(

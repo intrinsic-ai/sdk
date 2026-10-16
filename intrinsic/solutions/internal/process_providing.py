@@ -245,8 +245,21 @@ class Processes(providers.ProcessProvider):
 
     return result
 
-  @error_handling.retry_on_grpc_unavailable
   def _save_legacy_process(self, bt: behavior_tree.BehaviorTree):
+    # Warn outside of the retried RPC so that retries don't repeat the warning.
+    # The stack level points at the caller of `save()` or `__setitem__`.
+    warnings.warn(
+        f'Saving Process "{bt.name}" as a legacy process because it has no'
+        ' Asset metadata. Saving legacy processes is deprecated and will not'
+        ' be supported in a following release. Set Asset metadata with'
+        ' BehaviorTree.set_asset_metadata() before saving.',
+        DeprecationWarning,
+        stacklevel=3,
+    )
+    self._update_legacy_process(bt)
+
+  @error_handling.retry_on_grpc_unavailable
+  def _update_legacy_process(self, bt: behavior_tree.BehaviorTree):
     self._solution.UpdateBehaviorTree(
         solution_service_pb2.UpdateBehaviorTreeRequest(
             behavior_tree=bt.proto,
