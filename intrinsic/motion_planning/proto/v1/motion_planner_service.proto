@@ -82,11 +82,8 @@ message MotionPlannerFlags {
   // how many threads to use for multithreading.
   optional int32 concurrent_collision_checking_thread_count = 15;
 
-  // Address of the parameterization service. This is used to create a channel
-  // to the parameterization service, get a stub and construct a
-  // parameterization client, used to solve parameterization problems required
-  // by the jerk-limited algorithm.
-  optional string parameterization_service_address = 16;
+  reserved 16;
+  reserved "parameterization_service_address";
 
   // If true: if output trajectory fails refinement validation, we generate a
   // new trajectory with reduced joint blending tightness and try again. If
