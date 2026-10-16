@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//bazel:go_macros.bzl", "go_library")
+load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 go_library(
     name = "world",
     srcs = [
+        "print.go",
         "reset.go",
         "world.go",
     ],
@@ -30,8 +31,33 @@ go_library(
         "//intrinsic/conductor/proto:conductor_go_proto",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:cobrautil",
+        "//intrinsic/tools/inctl/util:printer",
+        "//intrinsic/world/proto:object_world_service_go_proto",
         "@com_github_pkg_errors//:go_default_library",
         "@com_github_spf13_cobra//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_protobuf//encoding/protojson:go_default_library",
+        "@org_golang_google_protobuf//encoding/prototext:go_default_library",
+    ],
+)
+
+go_test(
+    name = "print_test",
+    srcs = ["print_test.go"],
+    embed = [":world"],
+    importpath = "intrinsic/tools/inctl/cmd/world/print_test",
+    deps = [
+        "//intrinsic/tools/inctl/cmd:root",
+        "//intrinsic/tools/inctl/util:printer",
+        "//intrinsic/world/proto:object_world_service_go_proto",
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@com_github_spf13_cobra//:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//credentials/insecure:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_google_grpc//test/bufconn:go_default_library",
+        "@org_golang_google_protobuf//encoding/prototext:go_default_library",
+        "@org_golang_google_protobuf//testing/protocmp",
     ],
 )
