@@ -25,6 +25,8 @@ def generate_bazel_dep(version="main") -> str:
 Update your MODULE.bazel file to use the newest release archive:
 
 ```
+# For upgrade instructions: https://flowstate.intrinsic.ai/docs/guides/build_with_code/set_up_your_development_environment/update_your_development_environment/#update-the-sdk-version
+# For latest releases: https://github.com/intrinsic-ai/sdk/releases
 bazel_dep(name = "ai_intrinsic_sdks")
 archive_override(
     module_name = "ai_intrinsic_sdks",
@@ -42,19 +44,14 @@ def generate_devcontainer_config(version="latest") -> str:
 Update your devcontainer configuration to use the latest base image:
 
 ```json
+// For upgrade instructions: https://flowstate.intrinsic.ai/docs/guides/build_with_code/set_up_your_development_environment/update_your_development_environment/#update-the-sdk-version
+// For latest releases: https://github.com/intrinsic-ai/sdk/releases
 {{
     "name": "intrinsic-flowstate-devcontainer",
     "image": "ghcr.io/intrinsic-ai/intrinsic-dev-img:{version}",
     "runArgs": [
         "--network=host"
-    ],
-    "customizations": {{
-        "vscode": {{
-            "settings": {{
-                "intrinsic.defaultSdkRepository": "https://github.com/intrinsic-ai/sdk.git"
-            }}
-        }}
-    }}
+    ]
 }}
 ```"""
     return devcontainer_config
