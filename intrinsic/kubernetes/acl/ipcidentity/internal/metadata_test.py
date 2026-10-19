@@ -39,6 +39,7 @@ class MetadataTest(absltest.TestCase):
     mock_http_client.request.assert_called_once_with(
         "GET",
         metadata.IDENTITY_URL,
+        headers={"Metadata-Flavor": "Google"},
     )
 
   def test_get_project(self):
@@ -55,6 +56,7 @@ class MetadataTest(absltest.TestCase):
     mock_http_client.request.assert_called_once_with(
         "GET",
         metadata.PROJECT_URL,
+        headers={"Metadata-Flavor": "Google"},
     )
 
   def test_get_token_error(self):

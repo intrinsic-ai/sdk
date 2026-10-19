@@ -44,7 +44,7 @@ class MetadataClient:
 
   def _get(self, url: str) -> str:
     """Gets a value from the metadata server."""
-    self.http_client.request("GET", url)
+    self.http_client.request("GET", url, headers={"Metadata-Flavor": "Google"})
     response = self.http_client.getresponse()
     if response.status != http.HTTPStatus.OK:
       raise RuntimeError(f"status code {response.status}")
