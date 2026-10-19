@@ -133,10 +133,10 @@ message Ds402BusComponent {
   string control_word_variable_name = 1;
   // Name of the status word bus variable.
   string status_word_variable_name = 2;
-  // Name of the error code bus variable.
-  string error_code_variable_name = 3;
-  // Name of the digital outputs bus variable.
-  string digital_outputs_variable_name = 4;
+  // Optional name of the error code bus variable.
+  optional string error_code_variable_name = 3;
+  // Optional name of the digital outputs bus variable.
+  optional string digital_outputs_variable_name = 4;
   // Modes of operation configuration.
   optional ModesOfOperationConfig modes_of_operation_config = 15;
   // Homing configuration.

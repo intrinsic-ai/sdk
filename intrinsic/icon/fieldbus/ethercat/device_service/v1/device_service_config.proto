@@ -212,9 +212,9 @@ message Ds402DeviceData {
   // Reference to the Status Word (Object 0x6041), which indicates the current
   // state of the drive's state machine.
   VariableReference status_word_reference = 1;
-  // Reference to the Error Code (Object 0x603F), which provides specific error
-  // information when the drive is in a fault state.
-  VariableReference error_code_reference = 2;
+  // Optional reference to the Error Code (Object 0x603F), which provides
+  // specific error information when the drive is in a fault state.
+  optional VariableReference error_code_reference = 2;
 
   // Reference to the Control Word (Object 0x6040), which is used to command
   // transitions in the drive's state machine.
