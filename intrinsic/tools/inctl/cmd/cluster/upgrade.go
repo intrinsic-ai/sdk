@@ -449,7 +449,7 @@ var modeCmd = &cobra.Command{
 				if err != nil {
 					return err
 				}
-				cmd.Println(string(b))
+				fmt.Fprintln(cmd.OutOrStdout(), string(b))
 			} else {
 				fmt.Printf("update mechanism mode: %s\n", mode)
 			}
@@ -583,7 +583,7 @@ var clusterUpgradeCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			cmd.Println(string(b))
+			fmt.Fprintln(cmd.OutOrStdout(), string(b))
 		} else {
 			w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
 			fmt.Fprintf(w, "project\tcluster\tmode\tstate\trollback available\truntime\tos\n")
@@ -677,7 +677,7 @@ var displayNameCmd = &cobra.Command{
 				if err != nil {
 					return err
 				}
-				cmd.Println(string(b))
+				fmt.Fprintln(cmd.OutOrStdout(), string(b))
 			} else {
 				fmt.Printf("display name: %q\n", displayName)
 			}
@@ -735,7 +735,7 @@ var reportCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			cmd.Println(string(b))
+			fmt.Fprintln(cmd.OutOrStdout(), string(b))
 			return nil
 		}
 
