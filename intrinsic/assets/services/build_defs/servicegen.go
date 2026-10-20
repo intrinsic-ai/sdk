@@ -41,7 +41,7 @@ type CreateServiceBundleOptions struct {
 	OutputBundlePath       string
 }
 
-func pruneSourceCodeInfo(defaultConfig *anypb.Any, fds *dpb.FileDescriptorSet) error {
+func pruneSourceCodeInfo(configMessageFullName string, defaultConfig *anypb.Any, fds *dpb.FileDescriptorSet) error {
 	if fds == nil {
 		return nil
 	}
@@ -53,10 +53,13 @@ func pruneSourceCodeInfo(defaultConfig *anypb.Any, fds *dpb.FileDescriptorSet) e
 			return fmt.Errorf("failed to extract default proto name from type URL: %v", defaultConfig.GetTypeUrl())
 		}
 		fullNames = append(fullNames, typeURLParts[len(typeURLParts)-1])
+	} else if configMessageFullName != "" {
+		// No default config is provided, but the manifest declares a config message type.
+		fullNames = append(fullNames, configMessageFullName)
 	}
 
-	// Note that a nil default config will cause all source code info fields to be
-	// stripped out.
+	// Note that if neither a default config nor a config message name is provided, all source code
+	// info fields will be stripped out.
 	return sourcecodeinfoview.PruneSourceCodeInfo(fds,
 		sourcecodeinfoview.WithExcludeNames(fullNames),
 	)
@@ -84,9 +87,10 @@ func CreateServiceBundle(ctx context.Context, opts *CreateServiceBundleOptions) 
 		if err := protoio.ReadTextProto(opts.DefaultConfigPath, defaultConfig, protoio.WithResolver(types)); err != nil {
 			return fmt.Errorf("failed to read default config proto: %w", err)
 		}
-		if err := pruneSourceCodeInfo(defaultConfig, fds); err != nil {
-			return fmt.Errorf("failed to prune source code info: %w", err)
-		}
+	}
+
+	if err := pruneSourceCodeInfo(m.GetServiceDef().GetConfigMessageFullName(), defaultConfig, fds); err != nil {
+		return fmt.Errorf("failed to prune source code info: %w", err)
 	}
 
 	if err := servicefix.Manifest(m, servicefix.WithPopulateOldFields(true)); err != nil {
