@@ -85,10 +85,16 @@ _symlink_tarball = rule(
 )
 
 def _container_tarball(name, image, **kwargs):
+    tags = list(kwargs.get("tags") or [])
+    if "manual" not in tags:
+        tags.append("manual")
+
+    kwargs_without_tags = {k: v for k, v in kwargs.items() if k != "tags"}
     oci_load(
         name = name,
         image = image,
-        **kwargs
+        tags = tags,
+        **kwargs_without_tags
     )
     _symlink_tarball(
         name = "%s_symlink" % name,
@@ -96,7 +102,7 @@ def _container_tarball(name, image, **kwargs):
         src = name,
         compatible_with = kwargs.get("compatible_with"),
         output = "%s.tar" % image,
-        tags = kwargs.get("tags"),
+        tags = tags,
         visibility = kwargs.get("visibility"),
     )
 
