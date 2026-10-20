@@ -37,19 +37,43 @@ message UnregisterBehaviorTreeRequest {
 message ListBehaviorTreeSkillsRequest {}
 
 message ListBehaviorTreeSkillsResponse {
-  // The skill descriptions of all registered pBTs.
+  // The skill descriptions of all registered legacy processes.
   repeated intrinsic_proto.skills.Skill skills = 1;
 }
 
+// Manages legacy reusable processes (parameterizable behavior trees) in the
+// skill registry.
+//
+// Deprecated: Only supports legacy processes. Install Process Assets with the
+// Subprocess tag through the `InstalledAssets` service instead.
 service BehaviorTreeRegistry {
+  option deprecated = true;
 
-  // Register a BehaviorTree skill in the skill registry.
+  // Registers a BehaviorTree skill in the skill registry.
+  //
+  // Deprecated: Install the behavior tree as a Process Asset with the
+  // Subprocess tag through the `InstalledAssets` service instead.
   rpc RegisterOrUpdateBehaviorTree(RegisterOrUpdateBehaviorTreeRequest)
-      returns (RegisterOrUpdateBehaviorTreeResponse) {}
+      returns (RegisterOrUpdateBehaviorTreeResponse) {
+    option deprecated = true;
+  }
 
-  // Unregister a BehaviorTree skill from the skill registry.
+  // Unregisters a BehaviorTree skill from the skill registry.
+  //
+  // Deprecated: Uninstall the Process Asset through the `InstalledAssets`
+  // service instead.
   rpc UnregisterBehaviorTree(UnregisterBehaviorTreeRequest)
-      returns (google.protobuf.Empty) {}
+      returns (google.protobuf.Empty) {
+    option deprecated = true;
+  }
+
+  // Lists the skill descriptions of all legacy processes currently registered
+  // in the skill registry.
+  //
+  // Deprecated: List installed Process Assets through the `InstalledAssets`
+  // service instead.
   rpc ListBehaviorTreeSkills(ListBehaviorTreeSkillsRequest)
-      returns (ListBehaviorTreeSkillsResponse) {}
+      returns (ListBehaviorTreeSkillsResponse) {
+    option deprecated = true;
+  }
 }
