@@ -120,6 +120,7 @@ require (
 	github.com/stripe/stripe-go/v74 v74.30.0
 	github.com/stripe/stripe-go/v79 v79.12.0
 	github.com/tdewolff/parse v2.3.4+incompatible
+	github.com/tidwall/jsonc v0.3.3
 	github.com/toqueteos/webbrowser v1.2.0
 	github.com/traviswt/gke-auth-plugin v0.0.0-20230623230742-7b40450b6d49
 	github.com/yannh/kubeconform v0.7.0
@@ -169,6 +170,7 @@ require (
 	k8s.io/kube-openapi v0.0.0-20260721132016-d427ff9ee9ad
 	k8s.io/kubelet v0.37.1
 	k8s.io/metrics v0.37.1
+	kythe.io v0.0.76
 	sigs.k8s.io/controller-runtime v0.25.1
 	sigs.k8s.io/controller-tools v0.19.0
 	sigs.k8s.io/structured-merge-diff/v6 v6.4.2
@@ -176,6 +178,7 @@ require (
 )
 
 require (
+	bitbucket.org/creachadair/stringset v0.0.11 // indirect
 	buf.build/gen/go/gogo/protobuf/protocolbuffers/go v1.36.6-20240617172848-e1dbca2775a7.1 // indirect
 	buf.build/gen/go/prometheus/prometheus/protocolbuffers/go v1.36.6-20250320161912-af2aab87b1b3.1 // indirect
 	cloud.google.com/go v0.123.0 // indirect
