@@ -43,6 +43,7 @@ cc_library(
     deps = [
         ":material",
         ":renderable",
+        "//intrinsic/geometry/internal/util:gltf_helpers",
         "//intrinsic/geometry/proto/v1:material_cc_proto",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/status",

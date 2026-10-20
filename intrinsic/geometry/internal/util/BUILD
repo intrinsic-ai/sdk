@@ -15,6 +15,7 @@
 """ Intrinsic package geometry/internal/util. """
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -97,6 +98,39 @@ cc_library(
     hdrs = ["gltf_merge.h"],
     deps = [
         "@abseil-cpp//absl/strings",
+        "@tinygltf",
+    ],
+)
+
+cc_library(
+    name = "gltf_helpers",
+    srcs = ["gltf_helpers.cc"],
+    hdrs = ["gltf_helpers.h"],
+    visibility = [
+        "//intrinsic/geometry:__subpackages__",
+    ],
+    deps = [
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@tinygltf",
+    ],
+)
+
+cc_test(
+    name = "gltf_helpers_test",
+    srcs = ["gltf_helpers_test.cc"],
+    deps = [
+        ":gltf_helpers",
+        "@abseil-cpp//absl/base:log_severity",
+        "@abseil-cpp//absl/log:scoped_mock_log",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:str_format",
+        "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
         "@tinygltf",
     ],
 )
