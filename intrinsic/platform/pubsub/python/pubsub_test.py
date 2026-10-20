@@ -274,6 +274,51 @@ class PubsubTest(parameterized.TestCase):
     del ps3
     self.assertTrue(pubsub.imw_is_initialized())
 
+  def test_concurrent_publish_and_unsubscribe_releases_gil_on_teardown(self):
+    del self.callback_checker.sub
+    del self.callback_checker
+    del self.pub
+    del self.pubsub
+
+    ps = pubsub.PubSub()
+    pub = ps.create_publisher('concurrent_news', pubsub.TopicConfig())
+    received_event = threading.Event()
+    stop_event = threading.Event()
+
+    def callback(msg):
+      if msg.data == 'ping':
+        received_event.set()
+
+    sub = ps.create_subscription(
+        'concurrent_news',
+        pubsub.TopicConfig(),
+        test_pb2.TestMessageString(),
+        callback,
+    )
+
+    def publish_loop():
+      msg = test_pb2.TestMessageString(data='ping')
+      while not stop_event.is_set():
+        pub.publish(msg)
+        stop_event.wait(0.001)
+
+    worker = threading.Thread(target=publish_loop)
+    worker.start()
+    try:
+      self.assertTrue(received_event.wait(timeout=5.0))
+      pubsub.PubSub.destroy_session_when_unused()
+      sub.unsubscribe()
+      del sub
+    finally:
+      # Signal the publisher loop to exit and wait up to 5s for thread cleanup.
+      stop_event.set()
+      worker.join(timeout=5.0)
+
+    self.assertFalse(worker.is_alive())
+    del pub
+    del ps
+    self.assertFalse(pubsub.imw_is_initialized())
+
 
 if __name__ == '__main__':
   absltest.main()

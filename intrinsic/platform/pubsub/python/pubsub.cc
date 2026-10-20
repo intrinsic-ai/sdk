@@ -484,11 +484,15 @@ PYBIND11_MODULE(pubsub, m) {
       GilAwarePubSub,
       std::unique_ptr<GilAwarePubSub, PyReleaseGilDeleter<GilAwarePubSub>>>
       pubsub_class(m, "PubSub");
-  pubsub_class.def(pybind11::init<>())
+  pubsub_class
+      .def(pybind11::init<>(),
+           pybind11::call_guard<pybind11::gil_scoped_release>())
       .def(pybind11::init<std::string_view>(),
-           pybind11::arg("participant_name"))
+           pybind11::arg("participant_name"),
+           pybind11::call_guard<pybind11::gil_scoped_release>())
       .def(pybind11::init<std::string_view, std::string_view>(),
-           pybind11::arg("participant_name"), pybind11::arg("config"))
+           pybind11::arg("participant_name"), pybind11::arg("config"),
+           pybind11::call_guard<pybind11::gil_scoped_release>())
       .def_static("destroy_session_when_unused",
                   &PubSub::DestroySessionWhenUnused,
                   pybind11::call_guard<pybind11::gil_scoped_release>())

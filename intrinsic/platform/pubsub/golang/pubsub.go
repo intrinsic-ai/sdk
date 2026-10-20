@@ -1286,11 +1286,9 @@ func getZenohHandle() (zenohHandle, error) {
 // no active PubSub handles or child entities (publishers, subscriptions,
 // queryables) remain.
 func DestroySessionWhenUnused() error {
-	zenohHandleMutex.Lock()
-	zh := globalZenohHandle
-	zenohHandleMutex.Unlock()
-	if zh == nil {
-		return nil
+	zh, err := getZenohHandle()
+	if err != nil {
+		return err
 	}
 	return zh.ImwDestroySessionWhenUnused()
 }
