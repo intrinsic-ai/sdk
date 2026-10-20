@@ -66,6 +66,7 @@ cc_library(
         "//intrinsic/util/thread:stop_token",
         "//intrinsic/util/thread:thread_options",
         "//intrinsic/util/thread:thread_utils",
+        "@abseil-cpp//absl/base:core_headers",
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/log:check",
         "@abseil-cpp//absl/memory",

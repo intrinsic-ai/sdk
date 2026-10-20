@@ -127,7 +127,7 @@ message Ds402UnexpectedStateTransitionConfiguration {
   }
 }
 
-// Next ID: 18
+// Next ID: 19
 message Ds402BusComponent {
   // Name of the control word bus variable.
   string control_word_variable_name = 1;
@@ -180,6 +180,14 @@ message Ds402BusComponent {
   // Defaults to bits 18 and 0, thus 262145 (decimal), 0x40001 (hex).
   // Allowed values are 0 to 0xFFFFFFFF..
   optional int64 brake_release_bit_value = 17;
+
+  // If true, uses legacy fault detection by triggering faults on a non-zero
+  // error code (`error_code_variable_name`, Object 0x603F) and ignoring DS402
+  // status word (`status_word_variable_name`, Object 0x6041) fault states
+  // (DS402_STATE_FAULT or DS402_STATE_FAULT_REACTION_ACTIVE) when the error
+  // code (`error_code_variable_name`) is 0 (or not configured). Default:
+  // false.
+  bool use_legacy_error_code_fault_detection = 18 [deprecated = true];
 
   reserved 14;
   reserved "modes_of_operation_variable_name";

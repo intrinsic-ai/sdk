@@ -34,7 +34,6 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
-#include "absl/strings/string_view.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "intrinsic/icon/hal/interfaces/electrical_motor_hardware_interfaces.h"  // IWYU pragma: keep (registers HomeCommand hardware interface)
@@ -219,47 +218,37 @@ Ds402BusComponent::ProcessVariableInterpretationProvider::Create(
   return process_variable_interpretation;
 }
 
-Ds402BusComponent::Ds402BusComponent(
-    absl::string_view device_name, fieldbus::ProcessVariable status_word,
-    std::optional<fieldbus::ProcessVariable> error_code,
-    fieldbus::ProcessVariable control_word,
-    std::optional<fieldbus::ProcessVariable> digital_outputs,
-    bool treat_internal_limits_active_as_error,
-    UnexpectedStateTransitionConfiguration
-        unexpected_state_transition_configuration,
-    int64_t enable_delay_cycles, Ds402State initial_goal_state,
-    Ds402State enabled_goal_state,
-    std::unique_ptr<ProcessVariableInterpretationProvider>
-        process_variable_interpretation,
-    std::unique_ptr<HomingTask> homing_task, uint32_t brake_release_bit_value)
+Ds402BusComponent::Ds402BusComponent(Options options)
     : device_state_{
           .status_word = 0,
           .error_code = 0,
           .control_word = intrinsic::FromEnum(ControlWord::kDisableVoltage),
           .digital_outputs = 0,
       },
-      goal_state_(initial_goal_state),
+      goal_state_(options.initial_goal_state),
       ds402_state_(Ds402State::kNotReadyToSwitchOn),
       prev_state_(Ds402State::kNotReadyToSwitchOn),
-      initial_goal_state_(initial_goal_state),
-      enabled_goal_state_(enabled_goal_state),
+      initial_goal_state_(options.initial_goal_state),
+      enabled_goal_state_(options.enabled_goal_state),
       is_faulted_(false),
       fault_message_(""),
-      device_name_(device_name),
+      device_name_(std::move(options.device_name)),
       treat_internal_limits_active_as_error_(
-          treat_internal_limits_active_as_error),
+          options.treat_internal_limits_active_as_error),
       unexpected_state_transition_configuration_(
-          std::move(unexpected_state_transition_configuration)),
-      status_word_(status_word),
-      error_code_(error_code),
-      control_word_(control_word),
-      digital_outputs_(digital_outputs),
-      enable_delay_cycles_(enable_delay_cycles),
-      remaining_enable_delay_cycles_(enable_delay_cycles),
+          std::move(options.unexpected_state_transition_configuration)),
+      status_word_(options.status_word),
+      error_code_(options.error_code),
+      control_word_(options.control_word),
+      digital_outputs_(options.digital_outputs),
+      enable_delay_cycles_(options.enable_delay_cycles),
+      remaining_enable_delay_cycles_(options.enable_delay_cycles),
       process_variable_interpretation_provider_(
-          std::move(process_variable_interpretation)),
-      homing_task_(std::move(homing_task)),
-      brake_release_bit_value_(brake_release_bit_value) {}
+          std::move(options.process_variable_interpretation)),
+      homing_task_(std::move(options.homing_task)),
+      brake_release_bit_value_(options.brake_release_bit_value),
+      use_legacy_error_code_fault_detection_(
+          options.use_legacy_error_code_fault_detection) {}
 
 absl::StatusOr<std::unique_ptr<Ds402BusComponent>> Ds402BusComponent::Create(
     fieldbus::DeviceInitContext& device_init_context,
@@ -381,14 +370,26 @@ absl::StatusOr<std::unique_ptr<Ds402BusComponent>> Ds402BusComponent::Create(
                          << brake_release_bit_value << " (0x"
                          << absl::Hex(brake_release_bit_value) << ")";
 
-  return absl::WrapUnique(new Ds402BusComponent(
-      config.device_name(), status_word_variable, error_code_variable,
-      control_word_variable, digital_outputs_variable,
-      config.treat_internal_limits_active_as_error(),
-      std::move(unexpected_state_transition_configuration), enable_delay_cycles,
-      initial_goal_state, enabled_goal_state,
-      std::move(process_variable_interpretation), std::move(homing_task),
-      brake_release_bit_value));
+  return absl::WrapUnique(new Ds402BusComponent(Options{
+      .device_name = config.device_name(),
+      .status_word = status_word_variable,
+      .error_code = error_code_variable,
+      .control_word = control_word_variable,
+      .digital_outputs = digital_outputs_variable,
+      .treat_internal_limits_active_as_error =
+          config.treat_internal_limits_active_as_error(),
+      .unexpected_state_transition_configuration =
+          std::move(unexpected_state_transition_configuration),
+      .enable_delay_cycles = enable_delay_cycles,
+      .initial_goal_state = initial_goal_state,
+      .enabled_goal_state = enabled_goal_state,
+      .process_variable_interpretation =
+          std::move(process_variable_interpretation),
+      .homing_task = std::move(homing_task),
+      .brake_release_bit_value = brake_release_bit_value,
+      .use_legacy_error_code_fault_detection =
+          config.use_legacy_error_code_fault_detection(),
+  }));
 }
 
 intrinsic::icon::RealtimeStatusOr<fieldbus::RequestStatus>
@@ -498,9 +499,33 @@ Ds402BusComponent::CyclicRead(fieldbus::RequestType request_type) {
             << unexpected_state_transition_configuration_.behavior;
     }
   }
-
-  if (const bool has_device_error = device_state_.error_code != 0;
-      has_device_error) {
+  if (!use_legacy_error_code_fault_detection_) {
+    if (ds402_state_ == Ds402State::kFault ||
+        ds402_state_ == Ds402State::kFaultReactionActive) {
+      new_fault = true;
+      fault_message_ = RealtimeStatus::StrCat("Device `", device_name_,
+                                              "` is in fault state `",
+                                              ToString(ds402_state_), "`.");
+      if (device_state_.error_code != 0) {
+        fault_message_ = RealtimeStatus::StrCat(
+            "Device `", device_name_, "` reported error code 0x",
+            absl::Hex(device_state_.error_code), ".");
+        if (const auto& interpretation =
+                process_variable_interpretation_provider_
+                    ->GetProcessVariableInterpretation(
+                        device_state_.error_code);
+            interpretation.has_value()) {
+          // Error matches interpretation.
+          fault_message_ = RealtimeStatus::StrCat(
+              "Device `", device_name_, "` reported error code 0x",
+              absl::Hex(device_state_.error_code), ": ",
+              interpretation->interpretation);
+        }
+      }
+      INTRINSIC_RT_LOG_THROTTLED(ERROR) << fault_message_;
+    }
+  } else if (const bool has_device_error = device_state_.error_code != 0;
+             has_device_error) {
     new_fault = true;
     fault_message_ = RealtimeStatus::StrCat(
         "Device `", device_name_, "` reported error code 0x",
@@ -516,6 +541,7 @@ Ds402BusComponent::CyclicRead(fieldbus::RequestType request_type) {
           absl::Hex(device_state_.error_code), ": ",
           interpretation->interpretation);
     }
+    INTRINSIC_RT_LOG_THROTTLED(ERROR) << fault_message_;
   }
 
   if (optional_status_bits.has_internal_limits_active) {

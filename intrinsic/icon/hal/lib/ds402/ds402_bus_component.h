@@ -22,9 +22,9 @@
 #include <optional>
 #include <string>
 
+#include "absl/base/attributes.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/string_view.h"
 #include "intrinsic/icon/hal/lib/ds402/ds402_bus_component_utils.h"
 #include "intrinsic/icon/hal/lib/ds402/ds402_driver.h"
 #include "intrinsic/icon/hal/lib/ds402/homing_task.h"
@@ -161,41 +161,45 @@ class Ds402BusComponent : public fieldbus::BusComponent {
           config_with_interpretations);
 
  private:
-  // Constructor.
-  // `device_name`: The name of the device, used for logging.
-  // `status_word`: The status word ProcessVariable.
-  // `error_code`: The optional error code on ProcessVariable.
-  // `control_word`: The control word on ProcessVariable.
-  // `digital_outputs`: The optional digital outputs on the bus, used for brake
-  //                    release.
-  // `treat_internal_limits_active_as_error`: When true, the bit
-  //                                          internal_limits_active triggers a
-  //                                          fault.
-  // `unexpected_state_transition_configuration`: Configuration of how the
-  //                        device should handle unexpected state transitions
-  //                        from the `OperationEnabled` state.
-  // `enable_delay_cycles`: Delay in cycles before enabling the device during
-  //                        EnableMotion.
-  // `initial_goal_state`: The goal state of the device when it is turned on or
-  //                       disabled.
-  // `enabled_goal_state`: The goal state for the device when it is enabled
-  //                       (during EnableMotion).
-  // `process_variable_interpretation`: Helper to translate the error_code to a
-  // string. `homing_command`: The homing command interface.
-  Ds402BusComponent(absl::string_view device_name,
-                    fieldbus::ProcessVariable status_word,
-                    std::optional<fieldbus::ProcessVariable> error_code,
-                    fieldbus::ProcessVariable control_word,
-                    std::optional<fieldbus::ProcessVariable> digital_outputs,
-                    bool treat_internal_limits_active_as_error,
-                    UnexpectedStateTransitionConfiguration
-                        unexpected_state_transition_configuration,
-                    int64_t enable_delay_cycles, Ds402State initial_goal_state,
-                    Ds402State enabled_goal_state,
-                    std::unique_ptr<ProcessVariableInterpretationProvider>
-                        process_variable_interpretation,
-                    std::unique_ptr<HomingTask> homing_task,
-                    uint32_t brake_release_bit_value);
+  struct Options {
+    // The name of the device, used for logging.
+    std::string device_name ABSL_REQUIRE_EXPLICIT_INIT;
+    // The status word ProcessVariable.
+    fieldbus::ProcessVariable status_word ABSL_REQUIRE_EXPLICIT_INIT;
+    // The optional error code ProcessVariable.
+    std::optional<fieldbus::ProcessVariable> error_code
+        ABSL_REQUIRE_EXPLICIT_INIT;
+    // The control word ProcessVariable.
+    fieldbus::ProcessVariable control_word ABSL_REQUIRE_EXPLICIT_INIT;
+    // The optional digital outputs on the bus, used for brake release.
+    std::optional<fieldbus::ProcessVariable> digital_outputs
+        ABSL_REQUIRE_EXPLICIT_INIT;
+    // When true, the bit internal_limits_active triggers a fault.
+    bool treat_internal_limits_active_as_error ABSL_REQUIRE_EXPLICIT_INIT;
+    // Configuration of how the device should handle unexpected state
+    // transitions from the `OperationEnabled` state.
+    UnexpectedStateTransitionConfiguration
+        unexpected_state_transition_configuration ABSL_REQUIRE_EXPLICIT_INIT;
+    // Delay in cycles before enabling the device during EnableMotion.
+    int64_t enable_delay_cycles ABSL_REQUIRE_EXPLICIT_INIT;
+    // The goal state of the device when it is turned on or disabled.
+    Ds402State initial_goal_state ABSL_REQUIRE_EXPLICIT_INIT;
+    // The goal state for the device when it is enabled (during EnableMotion).
+    Ds402State enabled_goal_state ABSL_REQUIRE_EXPLICIT_INIT;
+    // Helper to translate the error_code to a string.
+    std::unique_ptr<ProcessVariableInterpretationProvider>
+        process_variable_interpretation ABSL_REQUIRE_EXPLICIT_INIT;
+    // Helper to perform the homing task.
+    std::unique_ptr<HomingTask> homing_task ABSL_REQUIRE_EXPLICIT_INIT;
+    // Bit value used to release the brake.
+    uint32_t brake_release_bit_value ABSL_REQUIRE_EXPLICIT_INIT;
+    // When true, uses legacy fault detection by triggering faults on
+    // error_code != 0 and ignoring status word fault states (kFault or
+    // kFaultReactionActive) when error_code is 0.
+    bool use_legacy_error_code_fault_detection ABSL_REQUIRE_EXPLICIT_INIT;
+  };
+
+  explicit Ds402BusComponent(Options options);
   struct Ds402DeviceState {
     ProcessVariableType status_word;
     ProcessVariableType error_code;
@@ -289,6 +293,11 @@ class Ds402BusComponent : public fieldbus::BusComponent {
   // (according the DS402 spec).
   // Defaults to bits 18 and 0, thus 262145 (decimal), 0x40001 (hex).
   const uint32_t brake_release_bit_value_;
+
+  // When true, uses legacy fault detection by triggering faults on
+  // error_code != 0 and ignoring status word fault states (kFault or
+  // kFaultReactionActive) when error_code is 0.
+  const bool use_legacy_error_code_fault_detection_;
 };
 }  // namespace intrinsic::ds402
 

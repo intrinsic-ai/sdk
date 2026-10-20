@@ -239,6 +239,13 @@ message Ds402DeviceData {
   // of electrical current during enabling, which might otherwise cause unstable
   // supply voltage. Defaults to 0s if not set.
   google.protobuf.Duration enable_delay = 7;
+
+  // If true, uses legacy fault detection by triggering faults on a non-zero
+  // error code (`error_code_reference`, Object 0x603F) and ignoring DS402
+  // status word (`status_word_reference`, Object 0x6041) fault states (Fault
+  // or FaultReactionActive) when the error code (`error_code_reference`) is 0
+  // (or not configured). Default: false.
+  bool use_legacy_error_code_fault_detection = 8 [deprecated = true];
 }
 
 // Configuration for DS402 homing variables.
