@@ -39,11 +39,11 @@ message AssetLocalInfo {
   intrinsic_proto.assets.AssetType asset_type = 1;
   // The asset ID.
   intrinsic_proto.assets.Id id = 2;
-  // This is the Bazel runfiles path to the bundle file.
-  string bundle_runfiles_path = 5;
+  // This is the path to the bundle file relative to the solution manifest.
+  string bundle_path = 5;
 
   reserved 3, 4, 199;
-  reserved "bundle_short_path", "bundle_path";
+  reserved "bundle_short_path", "bundle_runfiles_path";
 }
 
 message AssetCatalogRefInfo {
@@ -62,12 +62,12 @@ message AssetInstanceInfo {
   // as specified in the Assets map of the Solution.  By convention, this is the
   // id of the Asset.
   string asset = 2;
-  // This is the Bazel runfiles path to the config file.
-  string config_runfiles_path = 3;
+  // This is the path to the config file relative to the solution manifest.
+  string config_path = 3;
   // The parsed config of the asset instance.
   intrinsic_proto.assets.v1.InstanceConfig parsed = 6;
 
   reserved 4, 5, 7;
   reserved "instance_name", "required_node_hostname", "text_proto",
-      "data_files", "config";
+      "data_files", "config", "config_runfiles_path";
 }
