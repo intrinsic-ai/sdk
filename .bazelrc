@@ -13,9 +13,6 @@
 # limitations under the License.
 
 
-# Enable Bzlmod for every Bazel command
-common --enable_bzlmod
-common --enable_workspace=false
 
 # Custom downloader configs. This makes it so that external URLs to download dependencies from
 # can be rewritten at build time and, for example, support custom mirrors.
@@ -32,31 +29,35 @@ common --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 common --cxxopt='-std=c++20'
 common --host_cxxopt='-std=c++20'
 
-# Use a static value for `PATH` and does not inherit `LD_LIBRARY_PATH`. Doesn't let environment
-# variables like `PATH` sneak into the build, which can cause massive cache misses when they change.
-# Use `--action_env=ENV_VARIABLE` if you want to inherit specific environment variables from the
-# client, but note that doing so can prevent cross-user caching if a shared cache is used.
-# Docs: https://bazel.build/reference/command-line-reference#flag--incompatible_strict_action_env
-common --incompatible_strict_action_env
-
 # Silences spurious warnings like:
 # `bazel-out/k8-fastbuild/bin/external/com_github_grpc_grpc/external/com_github_grpc_grpc: warning: directory does not exist`
 common --incompatible_default_to_explicit_init_py
 
 # Incompatible flags which will be flipped in future Bazel versions
 # Taken from https://github.com/bazelbuild/bazel-central-registry/blob/main/incompatible_flags.yml
-# https://github.com/bazelbuild/bazel/issues/22080
-common --incompatible_disable_native_repo_rules
-# https://github.com/bazelbuild/bazel/issues/25755
-common --incompatible_disable_autoloads_in_main_repo
 # https://github.com/bazelbuild/bazel/issues/23043
-#common --incompatible_autoload_externally=
+# In Bazel 9, --incompatible_autoload_externally defaults to empty, disabling
+# autoloads across all external repositories. Some external dependencies do not
+# explicitly load rules like cc_library, proto_library, etc. Can be removed once all
+# external dependencies add explicit load statements for their rules.
+# Not a complete inventory, but at the time of writing:
+# * rules_cc is needed for @io_opentelemetry_cpp, @rules_android (transitive dep).
+# * com_google_protobuf is needed for @tink_cc.
+common --incompatible_autoload_externally=+@rules_cc,+@com_google_protobuf
 # https://github.com/bazelbuild/bazel/issues/17032
 #common --incompatible_disable_starlark_host_transitions
 # https://github.com/bazelbuild/bazel/issues/12933
 #common --incompatible_config_setting_private_default_visibility
 # https://github.com/bazelbuild/bazel/issues/23144
 #common --noincompatible_enable_deprecated_label_apis
+
+# In Bazel 9, external repository include directories default to -I instead of -isystem.
+# see https://github.com/bazelbuild/bazel/commit/2dde0d53a3c867b3b862c951092b25bae623d409.
+# This causes compiler warnings in third-party headers (e.g. OpenMesh, ceres, versor) to be
+# treated as errors under -Werror. Enabling external_include_paths reverts to the
+# Bazel 8 behaviour that routes external includes to -isystem, which does not have this problem..
+# Can be reverted if insrc toolchains or third-party headers are updated to eliminate all warnings (maybe unlikely).
+common --features=external_include_paths
 
 # Avoid warnings from third-party deps that we don't control.
 common --output_filter='^//((?!(external):).)*$'

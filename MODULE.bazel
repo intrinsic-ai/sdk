@@ -338,6 +338,7 @@ bazel_dep(name = "protobuf-matchers", version = "0.1.1", repo_name = "com_github
 bazel_dep(name = "protobuf", version = "33.6", repo_name = "com_google_protobuf")
 bazel_dep(name = "re2", version = "2025-11-05.bcr.1", repo_name = "com_googlesource_code_re2")
 bazel_dep(name = "riegeli", version = "0.0.0-20250822-9f2744d", repo_name = "com_google_riegeli")
+bazel_dep(name = "rules_android", version = "0.7.0")
 bazel_dep(name = "rules_apple", version = "4.3.3", repo_name = "build_bazel_rules_apple")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_pkg", version = "1.3.0")
@@ -426,6 +427,19 @@ use_repo(
 
 use_repo(
     non_module_deps,
+)
+
+# Use latest commit on `main` to support Bazel 9.
+# We need the upstream fixes https://github.com/bazelbuild/rules_license/pull/182 and
+# https://github.com/bazelbuild/rules_license/pull/178 but they have not been
+# released yet.
+archive_override(
+    module_name = "rules_license",
+    integrity = "sha256-NNV3jpsOz37HAMQePA0ZUY5IGAEJIgcSNvSNGIUQAa4=",
+    strip_prefix = "rules_license-c596de38b2856bf16334ba6e091d6a6a5042bd48",
+    urls = [
+        "https://github.com/bazelbuild/rules_license/archive/c596de38b2856bf16334ba6e091d6a6a5042bd48.tar.gz",
+    ],
 )
 
 # Needed to build rules_ros2 messages and tf2
