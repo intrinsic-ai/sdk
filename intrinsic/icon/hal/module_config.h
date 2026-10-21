@@ -21,6 +21,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
+#include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/icon/control/realtime_clock_interface.h"
 #include "intrinsic/icon/hal/proto/hardware_module_config.pb.h"
 #include "intrinsic/icon/hardware_modules/sim_bus/sim_bus_hardware_module.pb.h"
@@ -74,6 +75,10 @@ class ModuleConfig {
 
   // Returns the simulation module config.
   intrinsic_proto::icon::SimBusModuleConfig GetSimulationConfig() const;
+
+  // Returns the ResolvedDependency for the Intrinsic Runtime.
+  const intrinsic_proto::assets::v1::ResolvedDependency&
+  GetIntrinsicRuntimeDependency() const;
 
   // Returns the name of the module.
   // This will be the same as the context name, unless the module config has a

@@ -48,7 +48,9 @@ go_binary(
     importpath = "intrinsic/icon/fieldbus/ethercat/device_service/device_service_main",
     deps = [
         ":deviceservice",
+        "//intrinsic/assets:interfaceutils",
         "//intrinsic/assets/data/proto/v1:data_assets_go_proto",
+        "//intrinsic/assets/dependencies:utils",
         "//intrinsic/assets/services/proto/v1:service_state_go_proto",
         "//intrinsic/icon/fieldbus/ethercat/device_service/v1:device_service_config_go_proto",
         "//intrinsic/icon/fieldbus/ethercat/device_service/v1:device_service_go_proto",
@@ -58,7 +60,7 @@ go_binary(
         "@com_github_golang_glog//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//codes:go_default_library",
-        "@org_golang_google_grpc//credentials/insecure:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
         "@org_golang_google_grpc//reflection:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",
         "@org_golang_google_protobuf//proto",

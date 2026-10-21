@@ -304,6 +304,7 @@ cc_library(
     hdrs = ["module_config.h"],
     deps = [
         ":hardware_module_config_cc_proto",
+        "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
         "//intrinsic/icon/control:realtime_clock_interface",
         "//intrinsic/icon/hardware_modules/sim_bus:sim_bus_hardware_module_cc_proto",
         "//intrinsic/icon/utils:realtime_guard",

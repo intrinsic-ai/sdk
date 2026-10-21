@@ -71,6 +71,7 @@ func TestConnect(t *testing.T) {
 	tests := []struct {
 		desc         string
 		conn         *gcpb.GrpcConnection
+		dialOpts     []grpc.DialOption
 		wantMetadata map[string][]string
 		wantError    error
 	}{
@@ -88,6 +89,21 @@ func TestConnect(t *testing.T) {
 			},
 		},
 		{
+			desc: "success with dial options",
+			conn: &gcpb.GrpcConnection{
+				Address: serverAddr,
+			},
+			dialOpts: []grpc.DialOption{
+				grpc.WithUnaryInterceptor(func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+					ctx = metadata.AppendToOutgoingContext(ctx, "opt_key", "opt_value")
+					return invoker(ctx, method, req, reply, cc, opts...)
+				}),
+			},
+			wantMetadata: map[string][]string{
+				"opt_key": {"opt_value"},
+			},
+		},
+		{
 			desc: "success without metadata",
 			conn: &gcpb.GrpcConnection{
 				Address: serverAddr,
@@ -102,7 +118,7 @@ func TestConnect(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			conn, ctx, err := Connect(context.Background(), tc.conn)
+			conn, ctx, err := Connect(context.Background(), tc.conn, tc.dialOpts...)
 			if diff := cmp.Diff(tc.wantError, err, cmpopts.EquateErrors()); diff != "" {
 				t.Fatalf("Connect() error mismatch (-want +got):\n%s", diff)
 			}

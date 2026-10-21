@@ -28,6 +28,7 @@ go_library(
         "//intrinsic/assets/instances/connect",
         "//intrinsic/assets/proto:field_metadata_go_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
+        "@com_github_golang_glog//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//credentials/insecure:go_default_library",
         "@org_golang_google_protobuf//proto",

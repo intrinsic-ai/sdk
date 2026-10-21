@@ -25,9 +25,14 @@ option go_package = "intrinsic/icon/hal/hardware_module_config_go_proto";
 
 // Next ID: 12
 message HardwareModuleConfig {
-  // The resolved dependency for the Intrinsic runtime.
+  // The resolved dependency for the Intrinsic runtime. Provides DataLogger for
+  // Hardware Abstraction Layer (HAL) runtime logging. Also provides
+  // InstalledAssets and Operations for hardware modules that install generated
+  // DataAssets during initialization.
   intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 11
       [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://google.longrunning.Operations",
+        requires: "grpc://intrinsic_proto.assets.v1.InstalledAssets",
         requires: "grpc://intrinsic_proto.data_logger.DataLogger"
       }];
   // The name will be automatically deduced from the resource context and set to

@@ -39,6 +39,12 @@ message DeviceIdentifier {
 // This mapping will eventually contain the mapping from bus variables to
 // hardware interfaces.
 message DeviceServiceConfig {
+  // The resolved dependency for the Intrinsic runtime.
+  intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 6
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.data.v1.DataAssets"
+      }];
+
   // Identifies the device at hand.
   DeviceIdentifier device_identifier = 1;
   intrinsic_proto.assets.v1.ResolvedDependency

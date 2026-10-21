@@ -24,13 +24,15 @@ import (
 	"os"
 	"sync"
 
+	"intrinsic/assets/dependencies/utils"
+	"intrinsic/assets/interfaceutils"
 	"intrinsic/icon/fieldbus/ethercat/device_service/deviceservice"
 	"intrinsic/production/intrinsic"
 
 	log "github.com/golang/glog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
@@ -51,8 +53,6 @@ var (
 		"runtime_context_file",
 		"/etc/intrinsic/runtime_config.pb",
 		"Path to resource instance's runtime context file.")
-	// Address of the workcell cluster service.
-	workcellClusterServiceAddress = flag.String("workcell_cluster_service", "istio-ingressgateway.app-ingress.svc.cluster.local:80", "The workcell cluster service address")
 )
 
 func main() {
@@ -85,23 +85,19 @@ func main() {
 	}
 	log.InfoContextf(ctx, "Server is now listening at %q", address)
 
-	opts := append(
-		deviceservice.DialOptions(),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-
-	log.InfoContextf(ctx, "Connecting to the workcell cluster service %q", *workcellClusterServiceAddress)
-	workcellConn, err := grpc.NewClient(
-		*workcellClusterServiceAddress,
-		opts...,
+	daConn, daClientCtx, err := utils.Connect(
+		ctx,
+		serviceConfig.GetIntrinsicRuntime(),
+		fmt.Sprintf("%s%s", interfaceutils.GRPCURIPrefix, dagrpcpb.DataAssets_ServiceDesc.ServiceName),
+		deviceservice.DialOptions()...,
 	)
 	if err != nil {
-		log.ExitContextf(ctx, "Failed to establish connection to the workcell cluster service %q: %v", *workcellClusterServiceAddress, err)
+		log.ExitContextf(ctx, "Failed to establish connection to the DataAssets service: %v", err)
 	}
-	defer workcellConn.Close() // Close the connection on exit
-	daClient := dagrpcpb.NewDataAssetsClient(workcellConn)
+	defer daConn.Close() // Close the connection on exit
+	daClient := dagrpcpb.NewDataAssetsClient(daConn)
 
-	manager := newServiceManager(ctx, serviceConfig, daClient)
+	manager := newServiceManager(daClientCtx, serviceConfig, daClient)
 
 	grpcServer := grpc.NewServer()
 	dsgrpcpb.RegisterDeviceServiceServer(grpcServer, manager)
@@ -120,6 +116,8 @@ type serviceManager struct {
 	dsgrpcpb.UnimplementedDeviceServiceServer
 	ssgrpcpb.UnimplementedServiceStateServer
 
+	// Outgoing gRPC metadata for DataAssets client calls.
+	daClientMD    metadata.MD
 	config        *dscpb.DeviceServiceConfig
 	daClient      dagrpcpb.DataAssetsClient
 	deviceService *deviceservice.DeviceService
@@ -129,7 +127,10 @@ type serviceManager struct {
 }
 
 // newServiceManager creates a new serviceManager.
+//
+// ctx must be populated with the outgoing gRPC metadata headers required by daClient.
 func newServiceManager(ctx context.Context, config *dscpb.DeviceServiceConfig, daClient dagrpcpb.DataAssetsClient) *serviceManager {
+	daClientMD, _ := metadata.FromOutgoingContext(ctx)
 	if config == nil || daClient == nil {
 		state := &sspb.SelfState{
 			StateCode: sspb.SelfState_STATE_CODE_ERROR,
@@ -139,9 +140,10 @@ func newServiceManager(ctx context.Context, config *dscpb.DeviceServiceConfig, d
 			},
 		}
 		return &serviceManager{
-			config:   config,
-			daClient: daClient,
-			state:    state,
+			daClientMD: daClientMD,
+			config:     config,
+			daClient:   daClient,
+			state:      state,
 		}
 	}
 
@@ -156,12 +158,14 @@ func newServiceManager(ctx context.Context, config *dscpb.DeviceServiceConfig, d
 			},
 		}
 		return &serviceManager{
-			config:   config,
-			daClient: daClient,
-			state:    state,
+			daClientMD: daClientMD,
+			config:     config,
+			daClient:   daClient,
+			state:      state,
 		}
 	}
 	return &serviceManager{
+		daClientMD:    daClientMD,
 		config:        config,
 		daClient:      daClient,
 		deviceService: ds,
@@ -199,7 +203,11 @@ func (m *serviceManager) Enable(ctx context.Context, req *sspb.EnableRequest) (*
 		return &sspb.EnableResponse{}, nil
 	}
 
-	ds, err := deviceservice.NewDeviceService(ctx, m.config, m.daClient)
+	callCtx := ctx
+	if m.daClientMD != nil {
+		callCtx = metadata.NewOutgoingContext(ctx, m.daClientMD)
+	}
+	ds, err := deviceservice.NewDeviceService(callCtx, m.config, m.daClient)
 	if err != nil {
 		m.state = &sspb.SelfState{
 			StateCode: sspb.SelfState_STATE_CODE_ERROR,

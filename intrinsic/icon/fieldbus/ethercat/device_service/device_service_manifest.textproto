@@ -30,6 +30,7 @@ metadata {
   display_name: "Generic EtherCAT Device Service"
 }
 service_def {
+  config_message_full_name: "intrinsic_proto.fieldbus.ethercat.device_service.v1.DeviceServiceConfig"
   service_proto_prefixes: "/intrinsic_proto.fieldbus.ethercat.device_service.v1.DeviceService/"
   service_proto_prefixes: "/intrinsic_proto.services.v1.ServiceState/"
   real_spec: {

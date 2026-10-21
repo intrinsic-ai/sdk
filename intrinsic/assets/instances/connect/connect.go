@@ -34,7 +34,10 @@ var errNilConnection = errors.New("connection is nil")
 
 // Connect creates a gRPC client connection for the specified GrpcConnection and
 // returns a new context with attached metadata.
-func Connect(ctx context.Context, connection *gcpb.GrpcConnection) (*grpc.ClientConn, context.Context, error) {
+//
+// Insecure transport credentials are configured by default and can be
+// overridden by passing additional grpc.DialOption values in opts.
+func Connect(ctx context.Context, connection *gcpb.GrpcConnection, opts ...grpc.DialOption) (*grpc.ClientConn, context.Context, error) {
 	if connection == nil {
 		return nil, nil, errNilConnection
 	}
@@ -46,7 +49,8 @@ func Connect(ctx context.Context, connection *gcpb.GrpcConnection) (*grpc.Client
 	log.Infof("Connecting to address %q with headers added to context: [%s]",
 		connection.GetAddress(), strings.Join(metadataStrs, ", "))
 
-	conn, err := grpc.NewClient(connection.GetAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	dialOpts := append([]grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}, opts...)
+	conn, err := grpc.NewClient(connection.GetAddress(), dialOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create gRPC client for address %q: %w", connection.GetAddress(), err)
 	}

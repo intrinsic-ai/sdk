@@ -24,6 +24,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
+#include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/icon/control/realtime_clock_interface.h"
 #include "intrinsic/icon/hal/proto/hardware_module_config.pb.h"
 #include "intrinsic/icon/hardware_modules/sim_bus/sim_bus_hardware_module.pb.h"
@@ -52,6 +53,11 @@ ModuleConfig::ModuleConfig(
 intrinsic_proto::icon::SimBusModuleConfig ModuleConfig::GetSimulationConfig()
     const {
   return config_.simulation_module_config();
+}
+
+const intrinsic_proto::assets::v1::ResolvedDependency&
+ModuleConfig::GetIntrinsicRuntimeDependency() const {
+  return config_.intrinsic_runtime();
 }
 
 const std::string& ModuleConfig::GetName() const { return config_.name(); }

@@ -82,6 +82,7 @@ func TestConnect(t *testing.T) {
 		desc          string
 		dep           *rdpb.ResolvedDependency
 		iface         string
+		dialOpts      []grpc.DialOption
 		wantMetadata  map[string][]string
 		wantErrorType error
 		wantError     string
@@ -115,6 +116,46 @@ func TestConnect(t *testing.T) {
 			wantMetadata: map[string][]string{
 				"test_key": {"test_value1", "test_value2"},
 			},
+		},
+		{
+			desc: "success with dial options",
+			dep: &rdpb.ResolvedDependency{
+				Interfaces: map[string]*rdpb.ResolvedDependency_Interface{
+					"grpc://intrinsic_proto.assets.testing.TestService": {
+						Protocol: &rdpb.ResolvedDependency_Interface_Grpc_{
+							Grpc: &rdpb.ResolvedDependency_Interface_Grpc{
+								Connection: &gcpb.GrpcConnection{
+									Address: serverAddr,
+									Metadata: []*gcpb.GrpcConnection_Metadata{
+										{
+											Key:   "test_key",
+											Value: "test_value1",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			iface: "grpc://intrinsic_proto.assets.testing.TestService",
+			dialOpts: []grpc.DialOption{
+				grpc.WithUnaryInterceptor(func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+					ctx = metadata.AppendToOutgoingContext(ctx, "opt_key", "opt_value")
+					return invoker(ctx, method, req, reply, cc, opts...)
+				}),
+			},
+			wantMetadata: map[string][]string{
+				"test_key": {"test_value1"},
+				"opt_key":  {"opt_value"},
+			},
+		},
+		{
+			desc:          "nil dependency",
+			dep:           nil,
+			iface:         "grpc://intrinsic_proto.assets.testing.TestService",
+			wantErrorType: errMissingInterface,
+			wantError:     "no interfaces provided",
 		},
 		{
 			desc:          "no interfaces",
@@ -161,7 +202,7 @@ func TestConnect(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			conn, ctx, err := Connect(context.Background(), tc.dep, tc.iface)
+			conn, ctx, err := Connect(context.Background(), tc.dep, tc.iface, tc.dialOpts...)
 			if tc.wantErrorType != nil || tc.wantError != "" {
 				if err == nil {
 					t.Errorf("Connect() returned no error, want error (%q, %q)", tc.wantErrorType, tc.wantError)
