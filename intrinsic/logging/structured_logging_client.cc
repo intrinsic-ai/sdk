@@ -30,6 +30,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
+#include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "absl/types/span.h"
 #include "grpcpp/channel.h"
@@ -44,6 +45,17 @@
 #include "intrinsic/util/status/status_macros_grpc.h"
 
 namespace intrinsic {
+namespace {
+
+// Default timeout for standard telemetry and small structured log items.
+constexpr absl::Duration kAsyncLogRpcDefaultTimeout = absl::Seconds(15);
+
+// Generous timeout for items containing blob payloads (e.g., perception frames,
+// debug images, recordings) to allow local network transfer and synchronous
+// disk writes.
+constexpr absl::Duration kAsyncLogRpcBlobTimeout = absl::Minutes(1);
+
+}  // namespace
 
 using intrinsic_proto::data_logger::LogOptions;
 
@@ -139,6 +151,12 @@ void StructuredLoggingClient::LogAsync(
   // We need a shared_ptr here because the lambda below must remain copyable and
   // this is not the case if we used a unique_ptr.
   auto args = std::make_shared<LogArgs>();
+  const absl::Duration timeout = request.item().has_blob_payload()
+                                     ? kAsyncLogRpcBlobTimeout
+                                     : kAsyncLogRpcDefaultTimeout;
+  // Bound each async RPC so calls queued while the logger is unreachable fail
+  // and release `args` instead of hanging indefinitely.
+  args->context.set_deadline(absl::ToChronoTime(absl::Now() + timeout));
   args->callback = std::move(callback);
   impl_->stub->async()->Log(
       &args->context, &request, &args->response,
