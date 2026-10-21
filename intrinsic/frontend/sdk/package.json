@@ -2,7 +2,7 @@
   "name": "intrinsic-frontend-sdk",
   "version": "0.0.1",
   "private": true,
-  "packageManager": "pnpm@11.27.1+sha512.a81d4c21b9b09a4b0aebf90ef5e527d4262bdda322d26082978cb549023ac6d9cafc98b19fffaa5c71db438a65f70224edb78d7311187861ff96480d1cdca23c",
+  "packageManager": "pnpm@11.28.6+sha512.55d90390c3b39042f1505a2697789f0256c6d95bb28bdd7cb731af1887c9f2629ef581acb9f4e4ec772024c8203c2aed22a03299b97103fdcf32668e905d0024",
   "engines": {
     "node": ">=24.0.0",
     "pnpm": ">=11.5.2"
