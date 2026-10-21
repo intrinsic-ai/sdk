@@ -153,7 +153,7 @@ python.toolchain(
     python_version = PYTHON_VERSION,
 )
 
-bazel_dep(name = "pybind11_bazel", version = "3.0.1")
+bazel_dep(name = "pybind11_bazel", version = "3.0.3")
 bazel_dep(name = "pybind11_abseil", version = "202402.0")
 bazel_dep(name = "pybind11_protobuf", version = "0.0.0-20261001-ca1c3d3")
 
