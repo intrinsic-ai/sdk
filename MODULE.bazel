@@ -246,7 +246,7 @@ bazel_dep(name = "rules_foreign_cc", version = "0.16.0")
 # Rust #
 ########
 
-bazel_dep(name = "rules_rs", version = "0.1.0")
+bazel_dep(name = "rules_rs", version = "0.1.3")
 
 rules_rs_toolchains = use_extension("@rules_rs//rs/toolchains:module_extension.bzl", "toolchains")
 rules_rs_toolchains.toolchain(
