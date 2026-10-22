@@ -50,6 +50,7 @@ cc_library(
         "//intrinsic/logging/proto:logger_service_cc_grpc",
         "//intrinsic/logging/proto:logger_service_cc_proto",
         "//intrinsic/util:proto_time",
+        "//intrinsic/util/grpc",
         "//intrinsic/util/status:status_conversion_grpc",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/util/status:status_macros_grpc",

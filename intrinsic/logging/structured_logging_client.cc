@@ -39,6 +39,7 @@
 #include "intrinsic/connect/cc/grpc/channel.h"
 #include "intrinsic/logging/proto/logger_service.grpc.pb.h"
 #include "intrinsic/logging/proto/logger_service.pb.h"
+#include "intrinsic/util/grpc/grpc.h"
 #include "intrinsic/util/proto_time.h"
 #include "intrinsic/util/status/status_conversion_grpc.h"
 #include "intrinsic/util/status/status_macros.h"
@@ -49,11 +50,13 @@ namespace {
 
 // Default timeout for standard telemetry and small structured log items.
 constexpr absl::Duration kAsyncLogRpcDefaultTimeout = absl::Seconds(15);
+constexpr absl::Duration kSyncLogRpcDefaultTimeout = absl::Seconds(15);
 
 // Generous timeout for items containing blob payloads (e.g., perception frames,
 // debug images, recordings) to allow local network transfer and synchronous
 // disk writes.
 constexpr absl::Duration kAsyncLogRpcBlobTimeout = absl::Minutes(1);
+constexpr absl::Duration kSyncLogRpcBlobTimeout = absl::Minutes(1);
 
 }  // namespace
 
@@ -113,6 +116,11 @@ absl::Status StructuredLoggingClient::Log(LogItem&& item) const {
   *request.mutable_item() = std::move(item);
 
   grpc::ClientContext context;
+  ConfigureClientContext(&context);
+  const absl::Duration timeout = item.has_blob_payload()
+                                     ? kSyncLogRpcBlobTimeout
+                                     : kSyncLogRpcDefaultTimeout;
+  context.set_deadline(absl::ToChronoTime(absl::Now() + timeout));
   google::protobuf::Empty response;
   return ToAbslStatus(impl_->stub->Log(&context, request, &response));
 }
