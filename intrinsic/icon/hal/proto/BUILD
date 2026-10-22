@@ -22,6 +22,7 @@ proto_library(
     deps = [
         "//intrinsic/assets/proto:field_metadata_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_proto",
+        "//intrinsic/icon/hardware_modules/common:payload_schedule_config_proto",
         "//intrinsic/icon/hardware_modules/sim_bus:sim_bus_hardware_module_proto",
         "@com_google_protobuf//:any_proto",
     ],

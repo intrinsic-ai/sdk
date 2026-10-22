@@ -19,11 +19,13 @@
 
 #include "absl/base/attributes.h"
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/time/time.h"
 #include "grpcpp/server_builder.h"
 #include "intrinsic/icon/hal/hardware_interface_registry.h"
 #include "intrinsic/icon/hal/module_config.h"
+#include "intrinsic/icon/hardware_modules/common/payload_schedule_config.pb.h"
 
 namespace intrinsic::icon {
 
@@ -72,6 +74,21 @@ class HardwareModuleInitContext {
 
   // Returns the config for this Hardware Module.
   const ModuleConfig& GetModuleConfig() const { return module_config_; }
+
+  // Returns the payload schedule config for this module and marks payload
+  // schedules as supported by this hardware module. Returns NotFoundError if
+  // payload schedules are not configured.
+  absl::StatusOr<intrinsic_proto::icon::PayloadScheduleConfig>
+  GetPayloadSchedules() {
+    payload_schedules_supported_ = true;
+    return module_config_.GetPayloadSchedules();
+  }
+
+  // Returns true if this hardware module queried payload schedules during
+  // Init().
+  bool ArePayloadSchedulesSupported() const {
+    return payload_schedules_supported_;
+  }
 
   // Registers a gRPC service with the hardware module runtime. The runtime
   // makes this service available to external components some time after the
@@ -143,6 +160,7 @@ class HardwareModuleInitContext {
   const ModuleConfig module_config_;
   absl::Duration cycle_duration_for_cycle_time_metrics_ = absl::ZeroDuration();
   bool log_cycle_time_warnings_ = false;
+  bool payload_schedules_supported_ = false;
   // HardwareModuleInterface::ProvideInspectionData() is called and at which the
   // inspection data is published.
   absl::Duration inspection_data_publishing_period_ = absl::Seconds(1.0 / 3.0);

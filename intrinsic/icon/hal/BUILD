@@ -35,6 +35,7 @@ go_proto_library(
     deps = [
         "//intrinsic/assets/proto:field_metadata_go_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_go_proto",
+        "//intrinsic/icon/hardware_modules/common:payload_schedule_config_go_proto",
         "//intrinsic/icon/hardware_modules/sim_bus:sim_bus_hardware_module_go_proto",
     ],
 )
@@ -119,8 +120,10 @@ cc_library(
     deps = [
         ":hardware_interface_registry",
         ":module_config",
+        "//intrinsic/icon/hardware_modules/common:payload_schedule_config_cc_proto",
         "@abseil-cpp//absl/base:core_headers",
         "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/time",
         "@com_github_grpc_grpc//:grpc++",
@@ -306,6 +309,7 @@ cc_library(
         ":hardware_module_config_cc_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_cc_proto",
         "//intrinsic/icon/control:realtime_clock_interface",
+        "//intrinsic/icon/hardware_modules/common:payload_schedule_config_cc_proto",
         "//intrinsic/icon/hardware_modules/sim_bus:sim_bus_hardware_module_cc_proto",
         "//intrinsic/icon/utils:realtime_guard",
         "//intrinsic/util/proto:any",

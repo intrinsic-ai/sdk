@@ -19,11 +19,12 @@ package intrinsic_proto.icon;
 import "google/protobuf/any.proto";
 import "intrinsic/assets/proto/field_metadata.proto";
 import "intrinsic/assets/proto/v1/resolved_dependency.proto";
+import "intrinsic/icon/hardware_modules/common/payload_schedule_config.proto";
 import "intrinsic/icon/hardware_modules/sim_bus/sim_bus_hardware_module.proto";
 
 option go_package = "intrinsic/icon/hal/hardware_module_config_go_proto";
 
-// Next ID: 12
+// Next ID: 13
 message HardwareModuleConfig {
   // The resolved dependency for the Intrinsic runtime. Provides DataLogger for
   // Hardware Abstraction Layer (HAL) runtime logging. Also provides
@@ -92,4 +93,12 @@ message HardwareModuleConfig {
     float control_frequency_hz = 8;
     int64 control_period_ns = 9;
   }
+
+  // Table of pre-configured robot payload schedules for controllers that only
+  // support a discrete set of payloads. A hardware module that supports payload
+  // schedules selects the best matching schedule instead of applying a
+  // requested payload verbatim. Hardware modules without payload schedule
+  // support reject this field if set; see the module's documentation for
+  // whether it is supported.
+  optional intrinsic_proto.icon.PayloadScheduleConfig payload_schedules = 12;
 }

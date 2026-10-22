@@ -27,6 +27,7 @@
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/icon/control/realtime_clock_interface.h"
 #include "intrinsic/icon/hal/proto/hardware_module_config.pb.h"
+#include "intrinsic/icon/hardware_modules/common/payload_schedule_config.pb.h"
 #include "intrinsic/icon/hardware_modules/sim_bus/sim_bus_hardware_module.pb.h"
 #include "intrinsic/util/thread/thread_options.h"
 
@@ -84,6 +85,15 @@ absl::string_view ModuleConfig::GetSimulationServerAddress() const {
 }
 absl::string_view ModuleConfig::GetSharedMemoryNamespace() const {
   return shared_memory_namespace_;
+}
+
+absl::StatusOr<intrinsic_proto::icon::PayloadScheduleConfig>
+ModuleConfig::GetPayloadSchedules() const {
+  if (!config_.has_payload_schedules()) {
+    return absl::NotFoundError(
+        "Payload schedules are not configured for this module.");
+  }
+  return config_.payload_schedules();
 }
 
 absl::StatusOr<absl::Duration> ModuleConfig::GetControlPeriod() const {

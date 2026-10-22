@@ -24,6 +24,7 @@
 #include "intrinsic/assets/proto/v1/resolved_dependency.pb.h"
 #include "intrinsic/icon/control/realtime_clock_interface.h"
 #include "intrinsic/icon/hal/proto/hardware_module_config.pb.h"
+#include "intrinsic/icon/hardware_modules/common/payload_schedule_config.pb.h"
 #include "intrinsic/icon/hardware_modules/sim_bus/sim_bus_hardware_module.pb.h"
 #include "intrinsic/icon/utils/realtime_guard.h"
 #include "intrinsic/util/proto/any.h"
@@ -100,6 +101,11 @@ class ModuleConfig {
   absl::string_view GetSharedMemoryNamespace() const;
 
   bool DisableMallocGuard() const { return config_.disable_malloc_guard(); }
+
+  // Returns the payload schedule config for this module, or NotFoundError
+  // if payload schedules are not configured.
+  absl::StatusOr<intrinsic_proto::icon::PayloadScheduleConfig>
+  GetPayloadSchedules() const;
 
   // Returns the control period as defined in the underlying
   // HardwareModuleConfig.

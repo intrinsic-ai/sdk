@@ -1,0 +1,66 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.icon;
+
+import "intrinsic/world/proto/robot_payload.proto";
+
+option go_package = "intrinsic/icon/hardware_modules/common/payload_schedule_config_go_proto";
+
+// A table of pre-configured robot payload schedules for robot controllers that
+// only support a discrete set of payloads (for example FANUC `PAYLOAD[n]`).
+//
+// A hardware module that supports payload schedules does not apply a requested
+// payload verbatim. Instead it selects the schedule that best matches the
+// request and reports the selected schedule as the active payload. If no
+// schedule matches, the payload command is rejected and the previously active
+// schedule stays active.
+//
+// Next ID: 6
+message PayloadScheduleConfig {
+  // A single pre-configured payload schedule.
+  message Schedule {
+    // Controller-specific payload schedule index, for example the FANUC payload
+    // schedule number `n` in `PAYLOAD[n]`. When set, must be non-negative and
+    // unique within the table. Whether an index is required and its valid range
+    // are checked by the hardware module that applies the table.
+    optional int32 payload_index = 1;
+
+    // Payload of this schedule. `tip_t_cog` is the pose of the center of
+    // gravity in the robot flange frame; its orientation may be omitted and
+    // then defaults to identity (inertia axes parallel to the flange frame).
+    // `inertia` is the inertia tensor about the center of gravity in the
+    // `tip_t_cog` frame.
+    optional intrinsic_proto.world.RobotPayload payload = 2;
+  }
+
+  // Explicitly listed payload schedules.
+  message ExplicitTable {
+    repeated Schedule schedules = 1;
+  }
+
+  // How the schedule table is specified. Exactly one must be set.
+  // Field 2 is reserved for a `sampled_table` that generates schedules from a
+  // part-mass range.
+  oneof table {
+    ExplicitTable explicit_table = 1;
+  }
+
+  // `payload_index` of the schedule that the hardware module activates on the
+  // controller when it initializes and reports as the active payload until the
+  // first payload command.
+  optional int32 initial_payload_index = 5;
+}

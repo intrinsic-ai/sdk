@@ -920,8 +920,14 @@ absl::Status HardwareModuleRuntime::Run(
   };
   HardwareModuleInitContext init_context(interface_registry_, server_builder,
                                          hardware_module_.config);
-  const auto init_status =
-      set_init_failed_on_error(hardware_module_.instance->Init(init_context));
+  absl::Status init_status = hardware_module_.instance->Init(init_context);
+  if (init_status.ok() && hardware_module_.config.GetPayloadSchedules().ok() &&
+      !init_context.ArePayloadSchedulesSupported()) {
+    init_status = absl::InvalidArgumentError(
+        "HardwareModuleConfig.payload_schedules is set, but this hardware "
+        "module does not support payload schedules.");
+  }
+  init_status = set_init_failed_on_error(init_status);
   if (!init_status.ok()) {
     LOG(ERROR) << "Initializing the module failed with: " << init_status;
   }
