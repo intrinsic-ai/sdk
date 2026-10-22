@@ -65,10 +65,16 @@ var (
 	flagProcessFormat string
 )
 
-type nodeIDCleaner struct{}
+type idCleaner struct {
+	treeIDs bool
+	nodeIDs bool
+}
 
-func (c *nodeIDCleaner) Visit(ctx context.Context, element behaviortree.VisitElement) error {
-	if node := element.Node(); node != nil {
+func (c *idCleaner) Visit(ctx context.Context, element behaviortree.VisitElement) error {
+	if tree := element.Tree(); tree != nil && c.treeIDs {
+		tree.TreeId = nil
+	}
+	if node := element.Node(); node != nil && c.nodeIDs {
 		node.Id = nil
 	}
 	return nil
@@ -76,13 +82,9 @@ func (c *nodeIDCleaner) Visit(ctx context.Context, element behaviortree.VisitEle
 
 func clearTree(m proto.Message, clearTreeID bool, clearNodeIDs bool) error {
 	if bt, ok := m.(*behaviortreepb.BehaviorTree); ok && bt != nil {
-		if clearTreeID {
-			bt.TreeId = nil
-		}
-		if clearNodeIDs {
-			if err := behaviortree.Walk(context.Background(), bt, &nodeIDCleaner{}); err != nil {
-				return err
-			}
+		cleaner := &idCleaner{treeIDs: clearTreeID, nodeIDs: clearNodeIDs}
+		if err := behaviortree.Walk(context.Background(), bt, cleaner); err != nil {
+			return err
 		}
 	}
 	return fieldbehavior.ClearOutputOnly(m)
@@ -251,7 +253,7 @@ func addCommonGetSetFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&flagSolutionName, "solution", "", "Id of the solution to interact with. For example, use 'inctl solutions list --org my_org --output json [--filter running_in_sim]' to see the list of solutions.")
 	cmd.Flags().StringVar(&flagClusterName, "cluster", "", "Name of the cluster to interact with.")
 	cmd.Flags().StringVar(&flagServerAddress, "server", "", "Server address of the cluster. Format is {ADDRESS}:{PORT}, for example 'localhost:17080'")
-	cmd.Flags().BoolVar(&flagClearTreeID, "clear_tree_id", true, "Clear the tree_id field from the BT proto.")
+	cmd.Flags().BoolVar(&flagClearTreeID, "clear_tree_id", true, "Clear the tree_id fields of the tree and all of its sub-trees from the BT proto.")
 	cmd.Flags().BoolVar(&flagClearNodeIDs, "clear_node_ids", true, "Clear the nodes' id fields from the BT proto.")
 }
 
