@@ -17,9 +17,9 @@
 # NOTE: careful! the OS versions here are *without* the prefix `xfa.` which
 # they do use in versions.go. Make sure not to add `xfa.` here, as it will
 # break the fleet-manager.
-PREVIOUS_OS_VERSION = "20260710.RC03"
+PREVIOUS_OS_VERSION = "20260914.RC06"
 
 # Version that is currently running with the intrinsic stack
-STABLE_OS_VERSION = "20260914.RC06"
+STABLE_OS_VERSION = "20261021.RC01"
 
 CANARY_OS_VERSION = "20261021.RC01"
