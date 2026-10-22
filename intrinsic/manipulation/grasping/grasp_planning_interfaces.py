@@ -270,7 +270,9 @@ class GraspRanker(metaclass=abc.ABCMeta):
 
     Args:
       grasp: The candidate grasp.
-      world: The object world to use for scoring this grasp.
+      world: The object world to use for scoring this grasp. In the Grasp
+        Planner Service, its reads are served from a local snapshot of the
+        current scene (`ObjectWorldSnapshotStub`) and are fast.
       motion_planner: The motion planner to use. Can be None if the method
         doesn't use it.
       recent_grasps: Recently executed grasps and their outcomes.
