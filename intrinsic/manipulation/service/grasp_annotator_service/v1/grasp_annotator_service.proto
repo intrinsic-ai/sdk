@@ -32,6 +32,15 @@ enum StorageType {
   STORAGE_TYPE_DICT = 2;
 }
 
+// Opt-in feature settings of the grasp annotator service. All features are
+// disabled by default and can be enabled in the service configuration.
+message GraspAnnotatorFlags {
+  // Enables support for the experimental V-notch pinch gripper. If disabled,
+  // requests with `v_notch_pinch_gripper_specs` are rejected with
+  // INVALID_ARGUMENT.
+  bool enable_v_notch_pinch_gripper = 1;
+}
+
 message GraspAnnotatorConfig {
   // The resolved dependency for the Intrinsic runtime.
   intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 3
@@ -45,6 +54,9 @@ message GraspAnnotatorConfig {
 
   // Where to store annotations.  Defaults to kv store.
   StorageType storage_type = 2;
+
+  // Opt-in feature settings of the service.
+  GraspAnnotatorFlags flags = 4;
 }
 
 message GraspAnnotatorRequest {

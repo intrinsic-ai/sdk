@@ -56,6 +56,11 @@ message ParameterizedGripperSpecs {
     ParameterizedPinchGripperSpecs pinch_gripper_specs = 2;
     // The specifications for a parameterized centric type gripper.
     ParameterizedCentricGripperSpecs centric_gripper_specs = 3;
+    // EXPERIMENTAL: The specifications for a parameterized V-notch pinch type
+    // gripper. Only usable if the grasp annotator service is configured with
+    // `flags.enable_v_notch_pinch_gripper = true`; otherwise the service
+    // rejects the request.
+    ParameterizedVNotchPinchGripperSpecs v_notch_pinch_gripper_specs = 4;
   }
 }
 
