@@ -117,7 +117,7 @@ absl::Status StructuredLoggingClient::Log(LogItem&& item) const {
 
   grpc::ClientContext context;
   ConfigureClientContext(&context);
-  const absl::Duration timeout = item.has_blob_payload()
+  const absl::Duration timeout = request.item().has_blob_payload()
                                      ? kSyncLogRpcBlobTimeout
                                      : kSyncLogRpcDefaultTimeout;
   context.set_deadline(absl::ToChronoTime(absl::Now() + timeout));
