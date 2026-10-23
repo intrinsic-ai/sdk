@@ -134,7 +134,10 @@ intrinsic_data = rule(
             mandatory = False,
         ),
         "manifest": attr.label(
-            allow_single_file = [".textproto"],
+            allow_single_file = [
+                ".textproto",
+                ".txtpb",
+            ],
             doc = "A manifest that provides the data payload and metadata.",
             mandatory = True,
         ),

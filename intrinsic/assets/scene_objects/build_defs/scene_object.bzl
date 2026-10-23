@@ -119,7 +119,10 @@ intrinsic_scene_object = rule(
             providers = [ProtoInfo],
         ),
         "manifest": attr.label(
-            allow_single_file = [".textproto"],
+            allow_single_file = [
+                ".textproto",
+                ".txtpb",
+            ],
             doc = (
                 "A manifest that can be used to provide the scene object metadata."
             ),

@@ -133,7 +133,10 @@ intrinsic_hardware_device = rule(
             ],
         ),
         "manifest": attr.label(
-            allow_single_file = [".textproto"],
+            allow_single_file = [
+                ".textproto",
+                ".txtpb",
+            ],
             doc = "A manifest that provides the HardwareDevice definition.",
             mandatory = True,
         ),

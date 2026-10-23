@@ -134,7 +134,10 @@ intrinsic_service = rule(
             doc = "Image tarballs referenced by the service type.",
         ),
         "manifest": attr.label(
-            allow_single_file = [".textproto"],
+            allow_single_file = [
+                ".textproto",
+                ".txtpb",
+            ],
             doc = (
                 "A manifest that can be used to provide the service definition and metadata."
             ),
