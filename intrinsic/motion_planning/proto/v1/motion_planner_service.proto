@@ -124,6 +124,10 @@ message MotionPlannerServiceConfig {
   // successful calls and routine failures (e.g. unreachable or in-collision IK
   // targets), instead of only unexpected failures.
   optional bool log_all_recordings = 13;
+  // Whether MotionPlannerService accepts requests with `compute_swept_volume`
+  // set. If false, such `PlanTrajectory`/`PlanPath` requests fail with
+  // FAILED_PRECONDITION.
+  bool enable_motion_planner_service_swept_volumes = 15;
 }
 
 message MotionPlanningRequest {
@@ -141,7 +145,9 @@ message MotionPlanningRequest {
   optional MotionPlannerConfiguration motion_planner_config = 4;
 
   // If set, a successful plan will also include the swept volume occupied by
-  // the robot while performing the motion.
+  // the robot while performing the motion. Requires swept volume support to be
+  // enabled for the deployment; otherwise the request fails with
+  // FAILED_PRECONDITION.
   bool compute_swept_volume = 5;
 
   // This id should be set ONLY by the motion planning service, and ONLY for the
