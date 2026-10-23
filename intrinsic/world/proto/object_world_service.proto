@@ -122,6 +122,11 @@ service ObjectWorldService {
   // a given world.
 
   // Returns the current collision settings for the given world.
+  //
+  // Returns the effective collision rules: the world's collision rule set plus
+  // the entity collision exclusions (see CollisionSettingsView). These are the
+  // rules used for collision checking. To get only the rule set, call GetWorld
+  // with WORLD_VIEW_FULL and COLLISION_SETTINGS_VIEW_RULE_SET.
   rpc GetCollisionSettings(GetCollisionSettingsRequest)
       returns (CollisionSettings) {
     option (google.api.http) = {
@@ -730,7 +735,9 @@ message World {
   // All world objects (which contain the frames in the world).
   repeated Object objects = 2;
 
-  // The set of collision rules in use with this world.
+  // The world's collision rules. When returned by GetWorld, whether these are
+  // the world's collision rule set or the effective rules depends on the
+  // request's collision_settings_view (see CollisionSettingsView).
   CollisionSettings collision_settings = 3;
 }
 
@@ -744,6 +751,30 @@ enum WorldView {
   WORLD_VIEW_FULL = 2;
 }
 
+// Indicates which collision rules to return when querying collision settings.
+//
+// A world's collision rules come from two places:
+//  - The world's collision rule set: the rules set via UpdateCollisionSettings
+//    or passed to CreateWorld. These can include collision exclusions.
+//  - Entity collision exclusions: pairs of entities that are excluded from
+//    collision checking, stored on the entities themselves. Some are created
+//    automatically (for example, between adjacent links of a kinematic
+//    object), others through other APIs (for example, ToggleCollisions).
+// The effective rules are the rule set plus the entity collision exclusions.
+// They are the rules used for collision checking.
+enum CollisionSettingsView {
+  // Defaults to COLLISION_SETTINGS_VIEW_RULE_SET.
+  COLLISION_SETTINGS_VIEW_UNSPECIFIED = 0;
+  // Returns only the rules in the world's collision rule set. These can be
+  // modified and passed back to UpdateCollisionSettings or CreateWorld.
+  COLLISION_SETTINGS_VIEW_RULE_SET = 1;
+  // Returns the effective rules, i.e., the world's collision rule set plus the
+  // entity collision exclusions. Don't pass these back to
+  // UpdateCollisionSettings or CreateWorld, as that would add the entity
+  // collision exclusions to the rule set.
+  COLLISION_SETTINGS_VIEW_EFFECTIVE = 2;
+}
+
 message GetWorldRequest {
   // Id of the world to be queried.
   string world_id = 1;
@@ -752,6 +783,11 @@ message GetWorldRequest {
   // objects are returned, excluding collision settings). Pass as
   // WORLD_VIEW_FULL to return metadata, full objects, and collision settings.
   WorldView view = 2;
+
+  // Which collision rules to return in the world's collision settings (see
+  // CollisionSettingsView). Only used with WORLD_VIEW_FULL. Defaults to
+  // COLLISION_SETTINGS_VIEW_RULE_SET.
+  CollisionSettingsView collision_settings_view = 3;
 }
 
 message CloneWorldRequest {
