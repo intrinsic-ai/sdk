@@ -165,7 +165,11 @@ func setProcess(ctx context.Context, params *setProcessParams) error {
 		return errors.Wrapf(err, "could not deserialize BT")
 	}
 
-	clearTree(bt, params.clearTreeID, params.clearNodeIDs)
+	clearTree(
+		bt,
+		params.clearTreeID,
+		params.clearNodeIDs,
+	)
 
 	if params.name == "" {
 		if err := setBT(ctx, params.executive, bt); err != nil {

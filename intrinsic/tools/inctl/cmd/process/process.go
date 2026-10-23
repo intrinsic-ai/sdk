@@ -80,7 +80,11 @@ func (c *idCleaner) Visit(ctx context.Context, element behaviortree.VisitElement
 	return nil
 }
 
-func clearTree(m proto.Message, clearTreeID bool, clearNodeIDs bool) error {
+func clearTree(
+	m proto.Message,
+	clearTreeID bool,
+	clearNodeIDs bool,
+) error {
 	if bt, ok := m.(*behaviortreepb.BehaviorTree); ok && bt != nil {
 		cleaner := &idCleaner{treeIDs: clearTreeID, nodeIDs: clearNodeIDs}
 		if err := behaviortree.Walk(context.Background(), bt, cleaner); err != nil {

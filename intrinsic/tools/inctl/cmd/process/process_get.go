@@ -190,7 +190,11 @@ func getProcess(ctx context.Context, params *getProcessParams) ([]byte, error) {
 		return nil, errors.Wrap(err, "could not download process")
 	}
 
-	clearTree(outputMsg.behaviorTree, params.clearTreeID, params.clearNodeIDs)
+	clearTree(
+		outputMsg.behaviorTree,
+		params.clearTreeID,
+		params.clearNodeIDs,
+	)
 
 	return serializeMessage(ctx, params.protoRegistry, outputMsg, params.format)
 }
