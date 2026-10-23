@@ -60,7 +60,8 @@ constexpr absl::Duration kSyncLogRpcBlobTimeout = absl::Minutes(1);
 
 }  // namespace
 
-using intrinsic_proto::data_logger::LogOptions;
+using ::intrinsic_proto::data_logger::LogOptions;
+using ::intrinsic_proto::data_logger::LogRequest;
 
 struct StructuredLoggingClient::StructuredLoggingClientImpl {
   explicit StructuredLoggingClientImpl(
@@ -112,15 +113,15 @@ StructuredLoggingClient::~StructuredLoggingClient() = default;
 
 // Dispatches one log item to the data logger.
 absl::Status StructuredLoggingClient::Log(LogItem&& item) const {
-  intrinsic_proto::data_logger::LogRequest request;
+  const absl::Duration log_timeout = item.has_blob_payload()
+                                         ? kSyncLogRpcBlobTimeout
+                                         : kSyncLogRpcDefaultTimeout;
+  LogRequest request;
   *request.mutable_item() = std::move(item);
 
   grpc::ClientContext context;
   ConfigureClientContext(&context);
-  const absl::Duration timeout = request.item().has_blob_payload()
-                                     ? kSyncLogRpcBlobTimeout
-                                     : kSyncLogRpcDefaultTimeout;
-  context.set_deadline(absl::ToChronoTime(absl::Now() + timeout));
+  context.set_deadline(absl::ToChronoTime(absl::Now() + log_timeout));
   google::protobuf::Empty response;
   return ToAbslStatus(impl_->stub->Log(&context, request, &response));
 }
@@ -145,29 +146,29 @@ void StructuredLoggingClient::LogAsync(LogItem&& item) const {
 void StructuredLoggingClient::LogAsync(
     LogItem&& item, std::function<void(absl::Status)> callback) const {
   struct LogArgs {
-    // Both, the context as well as the response need to persist until the
-    // callback function is invoked regardless of whether the response is used
-    // in the callback or not.
+    // The context, request, and response need to persist until the callback
+    // function is invoked regardless of whether the response is used in the
+    // callback or not.
     grpc::ClientContext context;
+    LogRequest request;
     google::protobuf::Empty response;
     std::function<void(absl::Status)> callback;
   };
 
-  intrinsic_proto::data_logger::LogRequest request;
-  *request.mutable_item() = std::move(item);
+  const absl::Duration log_timeout = item.has_blob_payload()
+                                         ? kAsyncLogRpcBlobTimeout
+                                         : kAsyncLogRpcDefaultTimeout;
 
   // We need a shared_ptr here because the lambda below must remain copyable and
   // this is not the case if we used a unique_ptr.
   auto args = std::make_shared<LogArgs>();
-  const absl::Duration timeout = request.item().has_blob_payload()
-                                     ? kAsyncLogRpcBlobTimeout
-                                     : kAsyncLogRpcDefaultTimeout;
+  *args->request.mutable_item() = std::move(item);
   // Bound each async RPC so calls queued while the logger is unreachable fail
   // and release `args` instead of hanging indefinitely.
-  args->context.set_deadline(absl::ToChronoTime(absl::Now() + timeout));
+  args->context.set_deadline(absl::ToChronoTime(absl::Now() + log_timeout));
   args->callback = std::move(callback);
   impl_->stub->async()->Log(
-      &args->context, &request, &args->response,
+      &args->context, &args->request, &args->response,
       [args](grpc::Status s) { args->callback(ToAbslStatus(s)); });
 }
 
