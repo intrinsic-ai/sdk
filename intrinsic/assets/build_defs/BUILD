@@ -33,6 +33,8 @@ proto_library(
         "//intrinsic/assets/proto:asset_type_proto",
         "//intrinsic/assets/proto:id_proto",
         "//intrinsic/assets/proto/v1:instance_config_proto",
+        "//intrinsic/config/proto:operation_mode_proto",
+        "//intrinsic/world/proto:object_world_updates_proto",
         "@com_google_protobuf//:descriptor_proto",
     ],
 )
@@ -50,6 +52,8 @@ go_proto_library(
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto/v1:instance_config_go_proto",
+        "//intrinsic/config/proto:operation_mode_go_proto",
+        "//intrinsic/world/proto:object_world_updates_go_proto",
     ],
 )
 

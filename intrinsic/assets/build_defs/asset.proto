@@ -20,6 +20,8 @@ import "google/protobuf/descriptor.proto";
 import "intrinsic/assets/proto/asset_type.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/v1/instance_config.proto";
+import "intrinsic/config/proto/operation_mode.proto";
+import "intrinsic/world/proto/object_world_updates.proto";
 
 option go_package = "intrinsic/assets/build_defs/asset_go_proto";
 
@@ -70,4 +72,32 @@ message AssetInstanceInfo {
   reserved 4, 5, 7;
   reserved "instance_name", "required_node_hostname", "text_proto",
       "data_files", "config", "config_runfiles_path";
+}
+
+message LocalSolution {
+  // Solution metadata.
+  string display_name = 5;
+
+  // An asset that was compiled locally or is a reference to an item in the
+  // asset catalog.
+  message Asset {
+    oneof variant {
+      AssetLocalInfo local = 1;
+      AssetCatalogRefInfo catalog = 2;
+    }
+  }
+  // A set of assets where no two assets share the same asset ID.
+  repeated Asset assets = 1;
+  // A set of asset instances where each asset ID must be present in assets.
+  repeated AssetInstanceInfo instances = 2;
+
+  // A sequence of updates that are applied to scene object instances to
+  // construct a world.
+  repeated intrinsic_proto.world.ObjectWorldUpdate object_world_updates = 14;
+
+  // The default mode in which to start this solution.
+  intrinsic_proto.config.OperationMode default_operation_mode = 7;
+
+  reserved 3, 4, 6, 8;
+  reserved "build_target", "product", "process", "version";
 }
