@@ -68,6 +68,10 @@ absl::Status CheckChannelHealth(
 
   grpc::CompletionQueue cq;
   absl::Time deadline = absl::Now() + timeout;
+  // gRPC fails the RPC at deadline and posts the Finish tag.
+  // Wait a bit longer so we consume that event before cq/ctx are destroyed.
+  // Returning with pending RPC causes a use-after-free.
+  absl::Time queue_wait_deadline = deadline + absl::Seconds(1);
   grpc::ClientContext ctx;
   ctx.set_deadline(deadline);
   if (server_instance_name.has_value()) {
@@ -85,9 +89,14 @@ absl::Status CheckChannelHealth(
   // know the channel is healthy.
   void* got_tag;
   bool ok = false;
-  if (cq.AsyncNext(&got_tag, &ok, deadline) !=
+  if (cq.AsyncNext(&got_tag, &ok, queue_wait_deadline) !=
           grpc::CompletionQueue::GOT_EVENT ||
       *static_cast<int*>(got_tag) != tag || !ok) {
+    // Returning destroys context and completion queue while gRPC still uses
+    // them.
+    LOG(ERROR) << "Returning with the RPC in flight: use-after-free, the "
+                  "process may crash or keep using a dead connection until "
+                  "restart.";
     return absl::DeadlineExceededError(
         "deadline exceeded when checking channel health");
   }
