@@ -141,3 +141,37 @@ go_library(
         "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
     ],
 )
+
+go_library(
+    name = "localsolution",
+    srcs = ["localsolution.go"],
+    importpath = "intrinsic/assets/build_defs/localsolution",
+    deps = [
+        ":asset_go_proto",
+        "//intrinsic/assets:idutils",
+        "//intrinsic/assets/proto/v1:instance_config_go_proto",
+        "//intrinsic/config/proto:operation_mode_go_proto",
+        "//intrinsic/util/proto:protoio",
+        "//intrinsic/util/proto:registryutil",
+        "//intrinsic/world/proto:object_world_updates_go_proto",
+        "@org_golang_google_protobuf//encoding/prototext:go_default_library",
+        "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "localsolutiongen",
+    srcs = ["localsolutiongen.go"],
+    importpath = "intrinsic/assets/build_defs/localsolutiongen",
+    deps = [
+        ":asset_go_proto",
+        ":localsolution",
+        "//intrinsic/config/proto:operation_mode_go_proto",
+        "//intrinsic/production:intrinsic",
+        "//intrinsic/util:flag",
+        "//intrinsic/util/proto:protoio",
+        "//intrinsic/world/proto:object_world_updates_go_proto",
+        "@com_github_golang_glog//:go_default_library",
+        "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
+    ],
+)
