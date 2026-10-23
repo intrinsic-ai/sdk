@@ -284,6 +284,22 @@ npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", dev_dependenc
 
 rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext", dev_dependency = True)
 
+# Use the same esbuild version as `package.json`. Renovate updates the hashes via
+# `.github/ci/update_esbuild_hash.sh`.
+esbuild = use_extension("@aspect_rules_esbuild//esbuild:extensions.bzl", "esbuild", dev_dependency = True)
+esbuild.toolchain(
+    # renovate: datasource=npm dep_name=esbuild
+    esbuild_version = "0.28.2",
+    integrity = {
+        "darwin-arm64": "sha512-n4KqkOQrraxHJcgjM1RvwbigfQKIKJVpM7xp+KsxiyUSrRdIXnt73VhrPAx0fV44hgfmIVKjxMN9J1t5jySVkw==",
+        "darwin-x64": "sha512-uq6suIWYP37qzGddBKPw5QEQPi6HiLGsO7UmkpfyaYNQ3D+rN6w6WfwH+nuqcGXWvawGwxOEroO4YGnFh95azw==",
+        "linux-arm64": "sha512-pW4AC0P3it8c7do9MVM4p51FzHzdM/TZrerurgRcHJ2WTa1VQ1CIq18xncfpBJw4ojkiZZrKW2yIBWBP92j6Ug==",
+        "linux-x64": "sha512-4xTZr1FUmSoQW4XIWmit3tzQrUTZM+N3P0XV8xROKYF50XfI7xeO90+1bZvNwxIufQ9hDQVRJH5YhgPVF8A/HQ==",
+        # The `esbuild` npm package itself, which provides the JS API used by rules_esbuild.
+        "npm": "sha512-HKVLS8dvII+xoKW9kmqxbRKrnWEXfJJr/FZhhJmiqIB0e053QNYFqOBouTMO/k5sID4MvCiUCvv8b9M4h32wIA==",
+    },
+)
+
 pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm", dev_dependency = True)
 
 js_rules = use_extension("//bazel:js_rules.bzl", "js_rules")
