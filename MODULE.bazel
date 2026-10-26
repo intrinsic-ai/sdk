@@ -144,12 +144,13 @@ use_repo(
 ##########
 PYTHON_VERSION = "3.11"
 
-bazel_dep(name = "rules_python", version = "2.3.3")
+bazel_dep(name = "rules_python", version = "2.4.5")
 bazel_dep(name = "rules_uv", version = "0.89.2")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     configure_coverage_tool = True,
+    is_default = True,
     python_version = PYTHON_VERSION,
 )
 

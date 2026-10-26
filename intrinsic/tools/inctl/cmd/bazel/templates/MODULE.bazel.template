@@ -48,8 +48,15 @@ bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "protobuf", version = "33.6", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_go", version = "0.64.1", repo_name = "io_bazel_rules_go")
 bazel_dep(name = "rules_pkg", version = "1.1.0")
-bazel_dep(name = "rules_python", version = "2.3.3")
+bazel_dep(name = "rules_python", version = "2.4.5")
 bazel_dep(name = "rules_shell", version = "0.8.0")
+
+# Python toolchain (rules_python 2.4+ defaults to 3.14; pin 3.11 to match SDK wheels)
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    is_default = True,
+    python_version = "3.11",
+)
 
 # C++ toolchain
 bazel_dep(name = "llvm", version = "0.8.24")
