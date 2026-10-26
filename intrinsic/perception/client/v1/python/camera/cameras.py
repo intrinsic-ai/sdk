@@ -852,7 +852,7 @@ class Camera:
         setting.enumeration_value = value
       elif value_type == "command_value":
         # no need to check value contents
-        setting.command_value = empty_pb2.Empty()
+        setting.command_value.CopyFrom(empty_pb2.Empty())
       else:
         raise ValueError(f"Could not parse value: {value_type}.")
 
