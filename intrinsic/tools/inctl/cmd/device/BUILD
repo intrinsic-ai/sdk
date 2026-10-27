@@ -50,4 +50,9 @@ go_test(
     srcs = ["register_test.go"],
     embed = [":device"],
     importpath = "intrinsic/tools/inctl/cmd/device/device_test",
+    deps = [
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@org_golang_google_protobuf//testing/protocmp:go_default_library",
+        "@org_golang_google_protobuf//types/known/anypb:go_default_library",
+    ],
 )
