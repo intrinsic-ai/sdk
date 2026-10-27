@@ -1,0 +1,186 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package intrinsic_proto.grasping.service.grasp_planner_service.v2;
+
+import "intrinsic/assets/proto/field_metadata.proto";
+import "intrinsic/assets/proto/id.proto";
+import "intrinsic/assets/proto/v1/resolved_dependency.proto";
+import "intrinsic/manipulation/grasping/grasp.proto";
+import "intrinsic/manipulation/grasping/grasp_annotations.proto";
+import "intrinsic/manipulation/grasping/grasp_ranker_params.proto";
+import "intrinsic/manipulation/proto/workspace.proto";
+import "intrinsic/world/proto/object_world_refs.proto";
+import "intrinsic/world/proto/object_world_updates.proto";
+
+option go_package = "intrinsic/manipulation/service/grasp_planner_service/v2/grasp_planner_service_go_proto";
+
+// Configuration of the GraspPlannerService asset. Declares the services the
+// grasp planner depends on; they are resolved by the asset system at install
+// time.
+message GraspPlannerServiceConfig {
+  // The resolved dependency for the Intrinsic runtime. Used to read the world
+  // (targets, frames, collision geometry), to look up object meshes for
+  // box-shaped annotations, and to load scene objects for `pose_estimates`.
+  intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 1
+      [(intrinsic_proto.assets.field_metadata).dependency = {
+        requires: "grpc://intrinsic_proto.assets.v1.InstalledAssetsReader"
+        requires: "grpc://intrinsic_proto.geometry.GeometryService"
+        requires: "grpc://intrinsic_proto.world.ObjectWorldService"
+      }];
+
+  // The `MotionPlannerService` (MPS) used for IK-based reachability and
+  // collision checks of grasp/pregrasp poses.
+  intrinsic_proto.assets.v1.ResolvedDependency motion_planner_service = 2 [
+    (intrinsic_proto.assets.field_metadata).dependency = {
+      requires: "grpc://intrinsic_proto.motion_planning.v1.MotionPlannerService"
+    }
+  ];
+
+  // The GraspAnnotator service. Only needed to resolve
+  // `GraspAnnotations.stored_annotations`; requests using stored annotations
+  // fail with FAILED_PRECONDITION if this is unset.
+  optional intrinsic_proto.assets.v1.ResolvedDependency
+      grasp_annotator = 3 [(intrinsic_proto.assets.field_metadata)
+                               .dependency = {
+    requires: "grpc://intrinsic_proto.grasping.service.grasp_annotator_service.v1.GraspAnnotator"
+  }];
+}
+
+// Grasp targets given as explicit objects that already exist in the world.
+message ObjectsTarget {
+  // The objects to plan grasps for. Must not be empty.
+  repeated intrinsic_proto.world.ObjectReference objects = 1;
+}
+
+// Grasp targets given as all world objects of one category that lie inside a
+// bounding-box zone.
+message GraspZone {
+  // The scene object asset whose instances are considered as targets.
+  intrinsic_proto.assets.Id object_category = 1
+      [(intrinsic_proto.assets.field_metadata) = {
+        is_installed_scene_object_asset: true
+      }];
+  // The zone, in which objects of `object_category` are considered as targets.
+  intrinsic_proto.manipulation.OrientedBoundingBoxWorkspace grasp_bbox_zone = 2;
+}
+
+// Request for GraspPlannerService.PlanGrasps.
+message PlanGraspsRequest {
+  // ID of the world to plan in. The world is only read, never modified.
+  string world_id = 1;
+
+  // Name of the robot (kinematic object in `world_id`) that executes the grasp.
+  string robot_name = 2;
+
+  // The targets to plan grasps for. Exactly one must be set.
+  oneof plan_targets {
+    // Explicit objects that already exist in the world.
+    ObjectsTarget candidate_objects = 3;
+    // Pose estimates of objects that may not exist in the world yet. Missing
+    // objects are created via `PlanGraspsResponse.world_updates`.
+    intrinsic_proto.grasping.PoseEstimatesTarget pose_estimates = 4;
+    // All objects of a category within a bounding-box zone.
+    GraspZone grasp_zone = 5;
+  }
+
+  // Tool frame that is expected to coincide with the grasp pose when the
+  // gripper is closed (e.g. the gripper tip frame).
+  intrinsic_proto.world.TransformNodeReference tool_frame = 6;
+
+  // Defines the candidate grasp poses relative to the target object
+  // (box-shaped, manual, or stored annotations). Defaults to box-shaped
+  // annotations derived from the target object's mesh if unset. For stored
+  // annotations, an empty `annotations_id` defaults to "default" and an empty
+  // `asset_id` to the name of the target's object category; an empty
+  // `asset_id` with `candidate_objects` fails with INVALID_ARGUMENT, and
+  // unknown stored annotations fail with FAILED_PRECONDITION.
+  intrinsic_proto.grasping.GraspAnnotations grasp_annotations = 7;
+
+  // Reachability and collision validation parameters for pregrasp/grasp
+  // poses. Uses the planner defaults if unset.
+  optional intrinsic_proto.grasping.GraspReachabilityParams
+      reachability_params = 8;
+
+  // Additional scoring heuristics (e.g. height, top-down) applied on top of
+  // the collision checker to rank candidate grasps.
+  optional intrinsic_proto.grasping.GraspScoringHeuristics
+      additional_scoring_heuristics = 9;
+
+  // Maximum number of grasps to return. Defaults to 1. Forced to 1 if
+  // `output_grasp_frame` is set.
+  optional int64 max_num_grasps = 10;
+
+  // Distance in meters between grasp and pregrasp pose along the negative
+  // z-axis of the tool frame. Defaults to 0.1.
+  optional float retract_dist_m = 11;
+
+  // Offset in meters applied to each grasp along the positive z-axis of the
+  // tool frame (usually: deeper into the object). Defaults to 0.0.
+  optional float grasp_frame_z_offset_m = 12;
+
+  // Existing frame to be moved to the grasp pose of the best grasp. Must be
+  // set together with `output_pregrasp_frame`. If set, `world_updates` contains
+  // UpdateTransformRequests for these frames (they keep their parent) instead
+  // of CreateFrameRequests under the target object.
+  optional intrinsic_proto.world.TransformNodeReference output_grasp_frame = 13;
+
+  // Existing frame to be moved to the pregrasp pose of the best grasp. Must be
+  // set together with `output_grasp_frame`.
+  optional intrinsic_proto.world.TransformNodeReference output_pregrasp_frame =
+      14;
+}
+
+// Response of GraspPlannerService.PlanGrasps. An empty `grasps` list is a
+// valid (non-error) result; `failure_summary`/`failure_details` explain why.
+message PlanGraspsResponse {
+  // Planned grasps expressed as world frame references, best grasp first.
+  // `grasps[i]` corresponds to `grasp_plan.grasps[i]`. The referenced
+  // grasp/pregrasp frames (and, for `pose_estimates`, the target objects) only
+  // exist after `world_updates` has been applied to the world `world_id`.
+  // Each grasp's `root_t_grasp` / `root_t_pregrasp` give the grasp/pregrasp
+  // poses in the root frame of `world_id` at planning time; they can be used
+  // without applying `world_updates`.
+  repeated intrinsic_proto.grasping.PoseBasedGrasp grasps = 1;
+
+  // World updates (CreateObjectRequest, CreateFrameRequest,
+  // UpdateTransformRequest) that make the references in `grasps` valid. They
+  // are computed but not applied by the service; the caller applies them.
+  // None of the contained requests has `world_id` set, so they can be passed
+  // directly to `UpdateWorldResourcesRequest.world_updates` (e.g. via
+  // `ObjectWorldClient.batch_update`) or recorded as preview world updates.
+  intrinsic_proto.world.ObjectWorldUpdates world_updates = 2;
+
+  // The raw grasp plan, including filtered and unexamined candidates and their
+  // scoring history. Intended for debugging and logging.
+  intrinsic_proto.grasping.GraspPlan grasp_plan = 3;
+
+  // Short, human-readable explanation why no grasp was found. Only set if
+  // `grasps` is empty.
+  optional string failure_summary = 4;
+
+  // Detailed per-candidate diagnostics why no grasp was found. Only set if
+  // `grasps` is empty.
+  optional string failure_details = 5;
+}
+
+// General-purpose grasp planning service. It only reads the world and never
+// modifies external state; resulting world changes are returned to the caller.
+service GraspPlannerService {
+  // Plans grasps for the given targets and computes the world updates needed
+  // to represent them as frames in the world.
+  rpc PlanGrasps(PlanGraspsRequest) returns (PlanGraspsResponse) {}
+}
