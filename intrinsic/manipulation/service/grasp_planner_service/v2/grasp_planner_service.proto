@@ -16,14 +16,17 @@ syntax = "proto3";
 
 package intrinsic_proto.grasping.service.grasp_planner_service.v2;
 
+import "google/rpc/status.proto";
 import "intrinsic/assets/proto/field_metadata.proto";
 import "intrinsic/assets/proto/id.proto";
 import "intrinsic/assets/proto/v1/resolved_dependency.proto";
+import "intrinsic/logging/proto/context.proto";
 import "intrinsic/manipulation/grasping/grasp.proto";
 import "intrinsic/manipulation/grasping/grasp_annotations.proto";
 import "intrinsic/manipulation/grasping/grasp_ranker_params.proto";
 import "intrinsic/manipulation/proto/workspace.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
+import "intrinsic/world/proto/object_world_service.proto";
 import "intrinsic/world/proto/object_world_updates.proto";
 
 option go_package = "intrinsic/manipulation/service/grasp_planner_service/v2/grasp_planner_service_go_proto";
@@ -34,10 +37,12 @@ option go_package = "intrinsic/manipulation/service/grasp_planner_service/v2/gra
 message GraspPlannerServiceConfig {
   // The resolved dependency for the Intrinsic runtime. Used to read the world
   // (targets, frames, collision geometry), to look up object meshes for
-  // box-shaped annotations, and to load scene objects for `pose_estimates`.
+  // box-shaped annotations, to load scene objects for `pose_estimates`, and to
+  // resolve the organization and workcell that logging ids are made of.
   intrinsic_proto.assets.v1.ResolvedDependency intrinsic_runtime = 1
       [(intrinsic_proto.assets.field_metadata).dependency = {
         requires: "grpc://intrinsic_proto.assets.v1.InstalledAssetsReader"
+        requires: "grpc://intrinsic_proto.data_logger.DataLogger"
         requires: "grpc://intrinsic_proto.geometry.GeometryService"
         requires: "grpc://intrinsic_proto.world.ObjectWorldService"
       }];
@@ -58,6 +63,11 @@ message GraspPlannerServiceConfig {
                                .dependency = {
     requires: "grpc://intrinsic_proto.grasping.service.grasp_annotator_service.v1.GraspAnnotator"
   }];
+
+  // If true, the service logs no `GraspPlannerDebugData` for requests that
+  // don't set `PlanGraspsRequest.disable_logging`. Defaults to false, i.e.
+  // logging is on.
+  bool disable_logging = 4;
 }
 
 // Grasp targets given as explicit objects that already exist in the world.
@@ -142,6 +152,16 @@ message PlanGraspsRequest {
   // set together with `output_grasp_frame`.
   optional intrinsic_proto.world.TransformNodeReference output_pregrasp_frame =
       14;
+
+  // Logging context of the caller (e.g. of the calling skill). Copied into the
+  // log items of the debug data the service logs for this request, so that they
+  // can be joined with the caller's logs.
+  intrinsic_proto.data_logger.Context context = 15;
+
+  // If true, the service logs no `GraspPlannerDebugData` for this request and
+  // `PlanGraspsResponse.logging_id` stays empty. If unset,
+  // `GraspPlannerServiceConfig.disable_logging` decides.
+  optional bool disable_logging = 16;
 }
 
 // Response of GraspPlannerService.PlanGrasps. An empty `grasps` list is a
@@ -175,6 +195,43 @@ message PlanGraspsResponse {
   // Detailed per-candidate diagnostics why no grasp was found. Only set if
   // `grasps` is empty.
   optional string failure_details = 5;
+
+  // Unique id of the `GraspPlannerDebugData` the service logged for this
+  // request; use it to find the request and response in the logs. Empty if
+  // logging is disabled for the request (see
+  // `PlanGraspsRequest.disable_logging`) or the service doesn't log (e.g. its
+  // logging context isn't resolved yet).
+  string logging_id = 6;
+}
+
+// Debug data the service logs for each PlanGrasps request (unless logging is
+// disabled, see `PlanGraspsRequest.disable_logging`), as payload
+// `grasp_planner_debug_data` of a LogItem. The request is logged together
+// with the world snapshot before planning starts, so it is available even if
+// the service crashes while planning. If the request fails before the snapshot
+// is taken, it is logged without world right before the error. The response or
+// the error is logged when the request completes. All log items of one request
+// have the same `logging_id`, and exactly one of `request`, `response` and
+// `error` is set in each of them.
+message GraspPlannerDebugData {
+  // Unique id of the request, equal to `PlanGraspsResponse.logging_id`.
+  string logging_id = 1;
+
+  // The request, as received by the service.
+  PlanGraspsRequest request = 2;
+
+  // The response returned by the service.
+  PlanGraspsResponse response = 3;
+
+  // The status the request failed with (e.g. INVALID_ARGUMENT if the request
+  // is invalid).
+  google.rpc.Status error = 4;
+
+  // The world state the request was planned in, i.e. the snapshot of world
+  // `request.world_id` the service reads the world from, for replaying the
+  // request offline. Only set together with `request`, and only if the request
+  // got as far as taking the snapshot.
+  intrinsic_proto.world.World world = 5;
 }
 
 // General-purpose grasp planning service. It only reads the world and never

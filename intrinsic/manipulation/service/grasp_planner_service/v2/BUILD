@@ -39,12 +39,15 @@ proto_library(
         "//intrinsic/assets/proto:field_metadata_proto",
         "//intrinsic/assets/proto:id_proto",
         "//intrinsic/assets/proto/v1:resolved_dependency_proto",
+        "//intrinsic/logging/proto:context_proto",
         "//intrinsic/manipulation/grasping:grasp_annotations_proto",
         "//intrinsic/manipulation/grasping:grasp_proto",
         "//intrinsic/manipulation/grasping:grasp_ranker_params_proto",
         "//intrinsic/manipulation/proto:workspace_proto",
         "//intrinsic/world/proto:object_world_refs_proto",
+        "//intrinsic/world/proto:object_world_service_proto",
         "//intrinsic/world/proto:object_world_updates_proto",
+        "@com_google_googleapis//google/rpc:status_proto",
     ],
 )
 
