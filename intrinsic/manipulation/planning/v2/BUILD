@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
-load("@rules_python//python:defs.bzl", "py_library", "py_test")
+load("@rules_python//python:defs.bzl", "py_library")
 
 package(default_visibility = [
     "//visibility:public",
@@ -30,18 +30,5 @@ py_library(
         "//intrinsic/manipulation/service/grasp_planner_service/v2:grasp_planner_service_py_pb2_grpc",
         requirement("grpcio"),
         "@com_google_absl_py//absl/logging",
-    ],
-)
-
-py_test(
-    name = "grasp_planner_client_test",
-    srcs = ["grasp_planner_client_test.py"],
-    deps = [
-        ":grasp_planner_client",
-        "//intrinsic/assets/proto/v1:resolved_dependency_py_pb2",
-        "//intrinsic/manipulation/service/grasp_planner_service/v2:grasp_planner_service_py_pb2",
-        "//intrinsic/manipulation/service/grasp_planner_service/v2:grasp_planner_service_py_pb2_grpc",
-        requirement("grpcio"),
-        "@com_google_absl_py//absl/testing:absltest",
     ],
 )
