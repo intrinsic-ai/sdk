@@ -281,6 +281,43 @@ class GraspRanker(metaclass=abc.ABCMeta):
       The heuristic result.
     """
 
+  def score_grasps(
+      self,
+      grasps: Sequence[grasp_pb2.Grasp],
+      world: object_world_client.ObjectWorldClient,
+      motion_planner: motion_planner_client.MotionPlannerClient | None,
+      recent_grasps: list[tuple[grasp_pb2.Grasp, bool]] | None = None,
+  ) -> Sequence[grasp_pb2.HeuristicResult]:
+    """Scores several candidate grasps.
+
+    The default implementation simply calls `score_grasp` for each grasp.
+    Rankers that can evaluate candidates in a single batched rpc should override
+    this.
+
+    Implementations MUST return exactly one result per input grasp, in the same
+    order, and MUST produce the same results as calling `score_grasp` on each
+    grasp individually.
+
+    Args:
+      grasps: The candidate grasps.
+      world: The object world to use for scoring these grasps.
+      motion_planner: The motion planner to use. Can be None if the ranker
+        doesn't use it.
+      recent_grasps: Recently executed grasps and their outcomes.
+
+    Returns:
+      One heuristic result per input grasp, in input order.
+    """
+    return [
+        self.score_grasp(
+            grasp,
+            world=world,
+            motion_planner=motion_planner,
+            recent_grasps=recent_grasps,
+        )
+        for grasp in grasps
+    ]
+
   @property
   @abc.abstractmethod
   def name(self) -> str:

@@ -230,7 +230,10 @@ message GraspPlannerDebugData {
   // The world state the request was planned in, i.e. the snapshot of world
   // `request.world_id` the service reads the world from, for replaying the
   // request offline. Only set together with `request`, and only if the request
-  // got as far as taking the snapshot.
+  // got as far as taking the snapshot. It carries the world's full collision
+  // settings (from GetWorld, including the collision exclusion pairs), i.e. it
+  // is exactly what the grasp rankers send as
+  // `BatchCheckRequest.world_snapshot`.
   intrinsic_proto.world.World world = 5;
 }
 
