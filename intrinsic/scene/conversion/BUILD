@@ -27,7 +27,6 @@ cc_library(
         "//intrinsic/scene/sdf:__subpackages__",
         "//intrinsic/scene/util:__subpackages__",
         "//intrinsic/scene/validate:__pkg__",
-        "//intrinsic/scene/validate:__subpackages__",
         "//intrinsic/world:__subpackages__",
     ],
     deps = [
