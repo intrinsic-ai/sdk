@@ -160,7 +160,7 @@ go_proto_library(
     importpath = "intrinsic/assets/proto/installed_assets_go_proto",
     protos = [":installed_assets_proto"],
     visibility = [
-        "//intrinsic:intrinsic_internal",
+        "//intrinsic:public_api_users",
     ],
     deps = [
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
