@@ -119,6 +119,8 @@ cc_library(
     hdrs = ["cartesian_limits.h"],
     deps = [
         "//intrinsic/eigenmath",
+        "//intrinsic/icon/utils:fixed_string",
+        "//intrinsic/math:pose3",
     ],
 )
 
