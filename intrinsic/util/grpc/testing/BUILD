@@ -45,7 +45,7 @@ cc_grpc_library(
     generate_mocks = True,
     grpc_only = True,
     visibility = [
-        "//intrinsic/util/grpc:__subpackages__",
+        "//intrinsic/util:__subpackages__",
     ],
     deps = [":ping_cc_proto"],
 )
