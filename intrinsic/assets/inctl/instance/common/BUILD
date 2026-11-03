@@ -18,9 +18,7 @@ go_library(
     name = "common",
     srcs = ["common.go"],
     importpath = "intrinsic/assets/inctl/instance/common",
-    visibility = [
-        "//intrinsic/assets/inctl/instance:__subpackages__",
-    ],
+    visibility = ["//intrinsic/assets:__subpackages__"],
     deps = [
         "//intrinsic/assets/proto/v1:asset_instances_go_proto",
         "//intrinsic/util/proto:protoio",

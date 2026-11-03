@@ -18,9 +18,7 @@ go_library(
     name = "get",
     srcs = ["get.go"],
     importpath = "intrinsic/assets/inctl/instance/get",
-    visibility = [
-        "//intrinsic/assets/inctl/instance:__subpackages__",
-    ],
+    visibility = ["//intrinsic/assets:__subpackages__"],
     deps = [
         "//intrinsic/assets:clientutils",
         "//intrinsic/assets:cmdutils",
