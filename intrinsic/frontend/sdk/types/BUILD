@@ -37,6 +37,7 @@ npm_package(
         ":package",
         "//intrinsic/assets/proto/v1:asset_configuration_jspb_proto",
         "//intrinsic/executive/proto:blackboard_service_jspb_proto",
+        "//intrinsic/executive/proto:executive_events_jspb_proto",
         "//intrinsic/executive/proto:executive_service_jspb_proto",
         "//intrinsic/executive/proto:proto_builder_jspb_proto",
         "//intrinsic/frontend/solution_service/proto:solution_service_jspb_proto",
