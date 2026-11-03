@@ -112,4 +112,12 @@ message RunMetadata {
   // reported to the user.
   optional intrinsic_proto.status.ExtendedStatus diagnostics = 28;
 
+
+
+  // Increasing sequence number that is issued for an operation run.
+  // Operation protos containing a RunMetadata with the same sequence number can
+  // be assumed to have generally equivalent content. This excludes fields that
+  // do not contain essential state, e.g., execution_time.
+  uint64 sequence_number = 31;
+
 }

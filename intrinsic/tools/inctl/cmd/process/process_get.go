@@ -113,6 +113,7 @@ type getProcessParams struct {
 	format          string
 	clearTreeID     bool
 	clearNodeIDs    bool
+	clearElementIDs bool 
 }
 
 func downloadProcess(ctx context.Context, params *getProcessParams) (messageWithBT, error) {
@@ -194,6 +195,7 @@ func getProcess(ctx context.Context, params *getProcessParams) ([]byte, error) {
 		outputMsg.behaviorTree,
 		params.clearTreeID,
 		params.clearNodeIDs,
+		params.clearElementIDs, 
 	)
 
 	return serializeMessage(ctx, params.protoRegistry, outputMsg, params.format)
@@ -239,6 +241,7 @@ $ inctl process get --org my_org --solution my_solution_id [--output_file /tmp/p
 				format:          flagProcessFormat,
 				clearTreeID:     flagClearTreeID,
 				clearNodeIDs:    flagClearNodeIDs,
+				clearElementIDs: flagClearElementIDs, 
 			})
 			if err != nil {
 				return errors.Wrapf(err, "could not get process")

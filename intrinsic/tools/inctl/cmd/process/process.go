@@ -63,11 +63,17 @@ var (
 	flagClearTreeID   bool
 	flagClearNodeIDs  bool
 	flagProcessFormat string
+
+	flagClearElementIDs bool
+
 )
 
 type idCleaner struct {
 	treeIDs bool
 	nodeIDs bool
+
+	elementIDs bool
+
 }
 
 func (c *idCleaner) Visit(ctx context.Context, element behaviortree.VisitElement) error {
@@ -77,6 +83,19 @@ func (c *idCleaner) Visit(ctx context.Context, element behaviortree.VisitElement
 	if node := element.Node(); node != nil && c.nodeIDs {
 		node.Id = nil
 	}
+
+	if c.elementIDs {
+		if tree := element.Tree(); tree != nil {
+			tree.ElementId = nil
+		}
+		if node := element.Node(); node != nil {
+			node.ElementId = nil
+		}
+		if cond := element.Condition(); cond != nil {
+			cond.ElementId = nil
+		}
+	}
+
 	return nil
 }
 
@@ -84,9 +103,13 @@ func clearTree(
 	m proto.Message,
 	clearTreeID bool,
 	clearNodeIDs bool,
+	clearElementIDs bool, 
 ) error {
 	if bt, ok := m.(*behaviortreepb.BehaviorTree); ok && bt != nil {
 		cleaner := &idCleaner{treeIDs: clearTreeID, nodeIDs: clearNodeIDs}
+
+		cleaner.elementIDs = clearElementIDs
+
 		if err := behaviortree.Walk(context.Background(), bt, cleaner); err != nil {
 			return err
 		}
@@ -259,6 +282,9 @@ func addCommonGetSetFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&flagServerAddress, "server", "", "Server address of the cluster. Format is {ADDRESS}:{PORT}, for example 'localhost:17080'")
 	cmd.Flags().BoolVar(&flagClearTreeID, "clear_tree_id", true, "Clear the tree_id fields of the tree and all of its sub-trees from the BT proto.")
 	cmd.Flags().BoolVar(&flagClearNodeIDs, "clear_node_ids", true, "Clear the nodes' id fields from the BT proto.")
+
+	cmd.Flags().BoolVar(&flagClearElementIDs, "clear_element_ids", true, "Clear the element_id fields of all trees, nodes and conditions from the BT proto.")
+
 }
 
 var processCmd = cobrautil.ParentOfNestedSubcommands(

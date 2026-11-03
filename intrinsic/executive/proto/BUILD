@@ -180,6 +180,48 @@ js_library(
     deps = ["//intrinsic/executive/proto:log_items_proto"],
 )
 
+proto_library(
+    name = "executive_events_proto",
+    srcs = ["executive_events.proto"],
+    deps = [
+        ":run_metadata_proto",
+        "//intrinsic/executive/proto:behavior_tree_proto",
+        "//intrinsic/executive/proto:executive_execution_mode_proto",
+        "@com_google_googleapis//google/rpc:status_proto",
+        "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+py_proto_library(
+    name = "executive_events_py_pb2",
+    deps = [":executive_events_proto"],
+)
+
+cc_proto_library(
+    name = "executive_events_cc_proto",
+    deps = [":executive_events_proto"],
+)
+
+js_library(
+    name = "executive_events_jspb_proto",
+    deps = [":executive_events_proto"],
+)
+
+go_proto_library(
+    name = "executive_events_go_proto",
+    importpath = "intrinsic/executive/proto/executive_events_go_proto",
+    protos = [":executive_events_proto"],
+    deps = [
+        ":run_metadata_go_proto",
+        "//intrinsic/executive/proto:behavior_tree_go_proto",
+        "//intrinsic/executive/proto:executive_execution_mode_go_proto",
+        "@org_golang_google_genproto_googleapis_rpc//status",
+        "@org_golang_google_protobuf//types/known/anypb",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+    ],
+)
+
 js_library(
     name = "behavior_tree_jspb_proto",
     deps = ["//intrinsic/executive/proto:behavior_tree_proto"],

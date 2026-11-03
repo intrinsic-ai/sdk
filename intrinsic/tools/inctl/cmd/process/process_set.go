@@ -135,6 +135,7 @@ type setProcessParams struct {
 	content         []byte
 	clearTreeID     bool
 	clearNodeIDs    bool
+	clearElementIDs bool 
 }
 
 func deserializeBT(ctx context.Context, format string, content []byte, protoRegistry protoregistrypb.ProtoRegistryClient) (*btpb.BehaviorTree, error) {
@@ -169,6 +170,7 @@ func setProcess(ctx context.Context, params *setProcessParams) error {
 		bt,
 		params.clearTreeID,
 		params.clearNodeIDs,
+		params.clearElementIDs, 
 	)
 
 	if params.name == "" {
@@ -273,6 +275,7 @@ Alternatively, to migrate an existing legacy Process in a Solution:
 				format:          flagProcessFormat,
 				clearTreeID:     flagClearTreeID,
 				clearNodeIDs:    flagClearNodeIDs,
+				clearElementIDs: flagClearElementIDs, 
 			}); err != nil {
 				return errors.Wrapf(err, "could not set BT")
 			}
