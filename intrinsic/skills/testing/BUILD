@@ -80,7 +80,7 @@ skill_manifest(
     src = "echo_skill_manifest_py.textproto",
     visibility = [
         "//intrinsic/icon/release:__pkg__",
-        "//intrinsic/skills/generator:__pkg__",
+        "//intrinsic/skills:__subpackages__",
         "//intrinsic/skills/internal:__pkg__",
     ],
     deps = ["//intrinsic/skills/testing:echo_skill_proto"],
@@ -99,7 +99,7 @@ py_library(
     name = "no_op_skill_py",
     srcs = ["no_op_skill.py"],
     visibility = [
-        "//intrinsic/skills/build_defs/tests:__pkg__",
+        "//intrinsic/skills:__subpackages__",
         "//intrinsic/skills/internal:__pkg__",
     ],
     deps = [
@@ -117,7 +117,7 @@ cc_library(
     srcs = ["no_op_skill.cc"],
     hdrs = ["no_op_skill.h"],
     visibility = [
-        "//intrinsic/skills/build_defs/tests:__pkg__",
+        "//intrinsic/skills:__subpackages__",
         "//intrinsic/skills/internal:__pkg__",
     ],
     deps = [
