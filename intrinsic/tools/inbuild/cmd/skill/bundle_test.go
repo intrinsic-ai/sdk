@@ -25,9 +25,9 @@ import (
 )
 
 const (
-	exampleManifestPath          = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py.manifest.pbtxt"
-	exampleFileDescriptorSetPath = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_augmented_test_descriptors_transitive_set_sci.proto.bin"
-	exampleImagePath             = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py_image.tar"
+	exampleManifestPath          = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py.manifest.pbtxt"
+	exampleFileDescriptorSetPath = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_augmented_test_descriptors_transitive_set_sci.proto.bin"
+	exampleImagePath             = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py_image.tar"
 )
 
 type bundleCheck func(t *testing.T)
@@ -73,9 +73,9 @@ func TestBundleCreate(t *testing.T) {
 		{
 			name: "create skill",
 			args: []string{
-				"--augmented_manifest", testio.MustCreateRunfilePath(t, exampleManifestPath),
-				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
-				"--oci_image", testio.MustCreateRunfilePath(t, exampleImagePath),
+				"--augmented_manifest", testio.MustResolveRlocation(t, exampleManifestPath),
+				"--augmented_file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
+				"--oci_image", testio.MustResolveRlocation(t, exampleImagePath),
 			},
 			checks: []bundleCheck{
 				checkManifestHasID(t, "skill.bundle.tar", "com.example", "example_skill"),

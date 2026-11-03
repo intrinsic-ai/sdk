@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	openapiPath = "intrinsic/tools/inbuild/cmd/httpjson/test_data/openapi.yaml"
+	openapiPath = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/httpjson/test_data/openapi.yaml"
 )
 
 func TestGenerateDeprecated(t *testing.T) {
@@ -38,7 +38,7 @@ func TestGenerateDeprecated(t *testing.T) {
 	args := []string{
 		"--service_go_importpath", "foo/bar/service_go_proto",
 		"--grpc_service", "foo.bar.Baz",
-		"--openapi_path", testio.MustCreateRunfilePath(t, openapiPath),
+		"--openapi_path", testio.MustResolveRlocation(t, openapiPath),
 		"--output", outputPath,
 	}
 
@@ -68,7 +68,7 @@ func TestGenerateMultiService(t *testing.T) {
 	args := []string{
 		"--http_service", "foo.bar.Baz:foo/bar/service_go_proto",
 		"--http_service", "foo.bar.Qux:foo/bar/qux_go_proto",
-		"--openapi_path", testio.MustCreateRunfilePath(t, openapiPath),
+		"--openapi_path", testio.MustResolveRlocation(t, openapiPath),
 		"--output", outputPath,
 	}
 
@@ -110,7 +110,7 @@ func TestGenerateErrors(t *testing.T) {
 	knownGood := flags{
 		serviceGoImportpath: ptr("foo/bar/service_go_proto"),
 		grpcService:         ptr("foo.bar.Baz"),
-		openapiPath:         ptr(testio.MustCreateRunfilePath(t, openapiPath)),
+		openapiPath:         ptr(testio.MustResolveRlocation(t, openapiPath)),
 		outputPath:          ptr(filepath.Join(tmpDir, "asdf.go")),
 		httpServices:        nil,
 	}

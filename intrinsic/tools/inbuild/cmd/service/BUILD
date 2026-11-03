@@ -53,8 +53,8 @@ go_test(
     deps = [
         "//intrinsic/assets/services:servicebundle",
         "//intrinsic/tools/inbuild/cmd/service/test_data:example_service_go_proto",
-        "//intrinsic/util/path_resolver:pathresolver",
         "@com_github_google_go_cmp//cmp:go_default_library",
+        "@io_bazel_rules_go//go/runfiles:go_default_library",
         "@org_golang_google_protobuf//encoding/prototext:go_default_library",
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//testing/protocmp:go_default_library",

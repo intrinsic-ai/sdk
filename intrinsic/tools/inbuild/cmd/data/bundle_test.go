@@ -141,7 +141,7 @@ func TestBundleCommand_Execution(t *testing.T) {
 	}
 	customManifestPath := filepath.Join(tempDir, "custom_manifest.textproto")
 	mustWriteTextproto(t, customManifestPath, customManifest)
-	customFdsPath := testio.MustCreateRunfilePath(t, "intrinsic/tools/inbuild/cmd/data/test_data/custom_data_fds_transitive_set_sci.proto.bin")
+	customFdsPath := testio.MustResolveRlocation(t, "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/data/test_data/custom_data_fds_transitive_set_sci.proto.bin")
 
 	wantRdStruct := &rdspb.ReferencedDataStruct{
 		Fields: map[string]*rdspb.Value{

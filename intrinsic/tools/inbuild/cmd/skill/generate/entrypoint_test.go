@@ -27,9 +27,9 @@ import (
 )
 
 const (
-	examplePyManifestPath        = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py.manifest.pbtxt"
-	exampleCCManifestPath        = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_cc.manifest.pbtxt"
-	exampleFileDescriptorSetPath = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_proto-descriptor-set.proto.bin"
+	examplePyManifestPath        = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py.manifest.pbtxt"
+	exampleCCManifestPath        = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_cc.manifest.pbtxt"
+	exampleFileDescriptorSetPath = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_proto-descriptor-set.proto.bin"
 	defaultPythonFile            = "main.py"
 	defaultCppFile               = "main.cc"
 )
@@ -43,10 +43,10 @@ func TestEntryPoint(t *testing.T) {
 		{
 			name: "cpp skill entry point",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
+				"--manifest", testio.MustResolveRlocation(t, exampleCCManifestPath),
 				"--language", "cpp",
 				"--cc_header", "foobar.h",
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 				"--augmented_manifest_out", "manifest_out.pbbin",
 				"--augmented_file_descriptor_set_out", "fds_out.pbbin",
 			},
@@ -55,9 +55,9 @@ func TestEntryPoint(t *testing.T) {
 		{
 			name: "python skill entry point",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, examplePyManifestPath),
+				"--manifest", testio.MustResolveRlocation(t, examplePyManifestPath),
 				"--language", "python",
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 				"--augmented_manifest_out", "manifest_out.pbbin",
 				"--augmented_file_descriptor_set_out", "fds_out.pbbin",
 			},
@@ -66,11 +66,11 @@ func TestEntryPoint(t *testing.T) {
 		{
 			name: "C++ custom output",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
+				"--manifest", testio.MustResolveRlocation(t, exampleCCManifestPath),
 				"--language", "cpp",
 				"--cc_header", "foobar.h",
 				"--output", "foobar.cc",
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 				"--augmented_manifest_out", "manifest_out.pbbin",
 				"--augmented_file_descriptor_set_out", "fds_out.pbbin",
 			},
@@ -79,10 +79,10 @@ func TestEntryPoint(t *testing.T) {
 		{
 			name: "python custom output",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, examplePyManifestPath),
+				"--manifest", testio.MustResolveRlocation(t, examplePyManifestPath),
 				"--language", "python",
 				"--output", "foobar.py",
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 				"--augmented_manifest_out", "manifest_out.pbbin",
 				"--augmented_file_descriptor_set_out", "fds_out.pbbin",
 			},
@@ -142,9 +142,9 @@ func TestEntryPointErrors(t *testing.T) {
 		{
 			name: "invalid language",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
+				"--manifest", testio.MustResolveRlocation(t, exampleCCManifestPath),
 				"--language", "ada",
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 				"--augmented_manifest_out", "manifest_out.pbbin",
 				"--augmented_file_descriptor_set_out", "fds_out.pbbin",
 			},
@@ -154,7 +154,7 @@ func TestEntryPointErrors(t *testing.T) {
 			name: "no manifest",
 			args: []string{
 				"--language", "python",
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 				"--augmented_manifest_out", "manifest_out.pbbin",
 				"--augmented_file_descriptor_set_out", "fds_out.pbbin",
 			},
@@ -163,7 +163,7 @@ func TestEntryPointErrors(t *testing.T) {
 		{
 			name: "no file descriptor set",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
+				"--manifest", testio.MustResolveRlocation(t, exampleCCManifestPath),
 				"--language", "python",
 				"--augmented_manifest_out", "manifest_out.pbbin",
 				"--augmented_file_descriptor_set_out", "fds_out.pbbin",
@@ -173,9 +173,9 @@ func TestEntryPointErrors(t *testing.T) {
 		{
 			name: "cpp but no cc_header",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
+				"--manifest", testio.MustResolveRlocation(t, exampleCCManifestPath),
 				"--language", "cpp",
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 				"--augmented_manifest_out", "manifest_out.pbbin",
 				"--augmented_file_descriptor_set_out", "fds_out.pbbin",
 			},
@@ -184,10 +184,10 @@ func TestEntryPointErrors(t *testing.T) {
 		{
 			name: "python with cc_header",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, examplePyManifestPath),
+				"--manifest", testio.MustResolveRlocation(t, examplePyManifestPath),
 				"--language", "python",
 				"--cc_header", "foobar.h",
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 				"--augmented_manifest_out", "manifest_out.pbbin",
 				"--augmented_file_descriptor_set_out", "fds_out.pbbin",
 			},
@@ -196,9 +196,9 @@ func TestEntryPointErrors(t *testing.T) {
 		{
 			name: "No manifest",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, "does_not_exist.pbtxt"),
+				"--manifest", "does_not_exist.pbtxt",
 				"--language", "python",
-				"--file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 				"--augmented_manifest_out", "manifest_out.pbbin",
 				"--augmented_file_descriptor_set_out", "fds_out.pbbin",
 			},

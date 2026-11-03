@@ -23,9 +23,9 @@ import (
 )
 
 const (
-	examplePyManifestPath        = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py.manifest.pbtxt"
-	exampleCCManifestPath        = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_cc.manifest.pbtxt"
-	exampleFileDescriptorSetPath = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_proto-descriptor-set.proto.bin"
+	examplePyManifestPath        = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py.manifest.pbtxt"
+	exampleCCManifestPath        = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_cc.manifest.pbtxt"
+	exampleFileDescriptorSetPath = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_proto-descriptor-set.proto.bin"
 	defaultOutput                = "config.pbbin"
 )
 
@@ -38,24 +38,24 @@ func TestConfig(t *testing.T) {
 		{
 			name: "cpp skill service",
 			args: []string{
-				"--augmented_manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
-				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--augmented_manifest", testio.MustResolveRlocation(t, exampleCCManifestPath),
+				"--augmented_file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 			},
 			wantFile: defaultOutput,
 		},
 		{
 			name: "python skill service",
 			args: []string{
-				"--augmented_manifest", testio.MustCreateRunfilePath(t, examplePyManifestPath),
-				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--augmented_manifest", testio.MustResolveRlocation(t, examplePyManifestPath),
+				"--augmented_file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 			},
 			wantFile: defaultOutput,
 		},
 		{
 			name: "cpp skill service custom output",
 			args: []string{
-				"--augmented_manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
-				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--augmented_manifest", testio.MustResolveRlocation(t, exampleCCManifestPath),
+				"--augmented_file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 				"--output", "foobar_cpp.pbbin",
 			},
 			wantFile: "foobar_cpp.pbbin",
@@ -63,8 +63,8 @@ func TestConfig(t *testing.T) {
 		{
 			name: "python skill service custom output",
 			args: []string{
-				"--augmented_manifest", testio.MustCreateRunfilePath(t, examplePyManifestPath),
-				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--augmented_manifest", testio.MustResolveRlocation(t, examplePyManifestPath),
+				"--augmented_file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 				"--output", "foobar_py.pbbin",
 			},
 			wantFile: "foobar_py.pbbin",
@@ -104,16 +104,16 @@ func TestConfigErrors(t *testing.T) {
 		{
 			name: "No manifest",
 			args: []string{
-				"--augmented_manifest", testio.MustCreateRunfilePath(t, "does_not_exist.pbtxt"),
-				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--augmented_manifest", "does_not_exist.pbtxt",
+				"--augmented_file_descriptor_set", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 			},
 			wantErrorContains: "failed to read manifest",
 		},
 		{
 			name: "No file descriptor set",
 			args: []string{
-				"--augmented_manifest", testio.MustCreateRunfilePath(t, exampleCCManifestPath),
-				"--augmented_file_descriptor_set", testio.MustCreateRunfilePath(t, "does_not_exist.pbbin"),
+				"--augmented_manifest", testio.MustResolveRlocation(t, exampleCCManifestPath),
+				"--augmented_file_descriptor_set", "does_not_exist.pbbin",
 			},
 			wantErrorContains: "failed to read file descriptor set",
 		},

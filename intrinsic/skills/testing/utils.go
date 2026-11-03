@@ -152,7 +152,7 @@ func mustLoadSkillManifest(t *testing.T, path string) *smpb.SkillManifest {
 	t.Helper()
 
 	m := new(smpb.SkillManifest)
-	if err := protoio.ReadBinaryProto(testio.MustCreateRunfilePath(t, path), m); err != nil {
+	if err := protoio.ReadBinaryProto(testio.MustResolveRlocation(t, path), m); err != nil {
 		t.Fatalf("failed to read manifest: %v", err)
 	}
 

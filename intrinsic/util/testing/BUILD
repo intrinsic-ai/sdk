@@ -24,8 +24,8 @@ go_library(
     importpath = "intrinsic/util/testing/testio",
     visibility = ["//intrinsic:intrinsic_internal"],
     deps = [
-        "//intrinsic/util/path_resolver:pathresolver",
         "//intrinsic/util/proto:protoio",
+        "@io_bazel_rules_go//go/runfiles:go_default_library",
         "@org_golang_google_protobuf//encoding/prototext:go_default_library",
         "@org_golang_google_protobuf//proto",
     ],

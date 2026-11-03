@@ -37,14 +37,14 @@ import (
 )
 
 const (
-	boxGZFPath              = "intrinsic/scene/build_defs/tests/box.gzf"
-	emptyObjectManifestPath = "intrinsic/assets/scene_objects/build_defs/tests/empty_object_with_user_data_manifest.textproto"
-	emptyObjectGZFPath      = "intrinsic/assets/scene_objects/build_defs/tests/empty_object_with_user_data.gzf"
+	boxGZFPath              = "ai_intrinsic_sdks/intrinsic/scene/build_defs/tests/box.gzf"
+	emptyObjectManifestPath = "ai_intrinsic_sdks/intrinsic/assets/scene_objects/build_defs/tests/empty_object_with_user_data_manifest.textproto"
+	emptyObjectGZFPath      = "ai_intrinsic_sdks/intrinsic/assets/scene_objects/build_defs/tests/empty_object_with_user_data.gzf"
 )
 
 func mustReadSceneObjectManifestTextProto(t *testing.T, path string) *sompb.SceneObjectManifest {
 	t.Helper()
-	b, err := os.ReadFile(testio.MustCreateRunfilePath(t, path))
+	b, err := os.ReadFile(testio.MustResolveRlocation(t, path))
 	if err != nil {
 		t.Fatalf("Failed to read SceneObjectManifest: %v", err)
 	}
@@ -103,14 +103,14 @@ func TestSceneObjectManifest(t *testing.T) {
 			desc: "valid with geometry",
 			m:    sceneobjecttestutils.MakeSceneObjectManifest(t, sceneobjecttestutils.WithGZFGeometryFilename(boxGZFPath)),
 			opts: []SceneObjectManifestOption{
-				WithGZFPaths(map[string]string{boxGZFPath: testio.MustCreateRunfilePath(t, boxGZFPath)}),
+				WithGZFPaths(map[string]string{boxGZFPath: testio.MustResolveRlocation(t, boxGZFPath)}),
 			},
 		},
 		{
 			desc: "valid with scene object user data",
 			m:    sceneObjectManifestWithUserData(t),
 			opts: []SceneObjectManifestOption{
-				WithGZFPaths(map[string]string{emptyObjectGZFPath: testio.MustCreateRunfilePath(t, emptyObjectGZFPath)}),
+				WithGZFPaths(map[string]string{emptyObjectGZFPath: testio.MustResolveRlocation(t, emptyObjectGZFPath)}),
 				WithFiles(files),
 			},
 		},
@@ -126,7 +126,7 @@ func TestSceneObjectManifest(t *testing.T) {
 			desc: "scene object user data, missing file descriptors",
 			m:    sceneObjectManifestWithUserData(t),
 			opts: []SceneObjectManifestOption{
-				WithGZFPaths(map[string]string{emptyObjectGZFPath: testio.MustCreateRunfilePath(t, emptyObjectGZFPath)}),
+				WithGZFPaths(map[string]string{emptyObjectGZFPath: testio.MustResolveRlocation(t, emptyObjectGZFPath)}),
 			},
 			wantErr: true,
 		},
@@ -134,7 +134,7 @@ func TestSceneObjectManifest(t *testing.T) {
 			desc: "scene object user data, invalid file descriptors",
 			m:    sceneObjectManifestWithUserData(t),
 			opts: []SceneObjectManifestOption{
-				WithGZFPaths(map[string]string{emptyObjectGZFPath: testio.MustCreateRunfilePath(t, emptyObjectGZFPath)}),
+				WithGZFPaths(map[string]string{emptyObjectGZFPath: testio.MustResolveRlocation(t, emptyObjectGZFPath)}),
 				WithFiles(badFiles),
 			},
 			wantErr: true,

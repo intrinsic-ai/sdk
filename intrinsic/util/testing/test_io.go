@@ -20,9 +20,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"intrinsic/util/path_resolver/pathresolver"
 	"intrinsic/util/proto/protoio"
 
+	"github.com/bazelbuild/rules_go/go/runfiles"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 )
@@ -77,14 +77,15 @@ func MustReadTextProto(t *testing.T, path string, p proto.Message, opts ...proto
 	}
 }
 
-// MustCreateRunfilePath returns an expected path within the expected runfiles
-// directory.
-func MustCreateRunfilePath(t *testing.T, path string) string {
+// MustResolveRlocation resolves the given rlocation path, failing the test if
+// the runfile cannot be resolved.
+func MustResolveRlocation(t *testing.T, path string) string {
 	t.Helper()
-	rp, err := pathresolver.ResolveRunfilesPath(path)
+	// Use CallerRepository so apparent repository names in `path` are resolved
+	// relative to the caller's Bazel module rather than testio's module.
+	resolved, err := runfiles.RlocationFrom(path, runfiles.CallerRepository())
 	if err != nil {
-		t.Fatalf("pathresolver.ResolveRunfilesPath(%v) failed: %v", path, err)
+		t.Fatalf("runfiles.RlocationFrom(%q) failed: %v", path, err)
 	}
-
-	return rp
+	return resolved
 }

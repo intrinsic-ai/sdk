@@ -20,8 +20,8 @@ import (
 	"testing"
 
 	"intrinsic/assets/services/servicebundle"
-	"intrinsic/util/path_resolver/pathresolver"
 
+	"github.com/bazelbuild/rules_go/go/runfiles"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
@@ -33,10 +33,10 @@ import (
 )
 
 const (
-	exampleManifestPath          = "intrinsic/tools/inbuild/cmd/service/test_data/example_service.manifest.pbtxt"
-	exampleFileDescriptorSetPath = "intrinsic/tools/inbuild/cmd/service/test_data/example_service_proto-descriptor-set.proto.bin"
-	exampleImagePath             = "intrinsic/tools/inbuild/cmd/service/test_data/example_service_py_image.tar"
-	exampleDefaultConfigPath     = "intrinsic/tools/inbuild/cmd/service/test_data/example_service_default_config.textproto"
+	exampleManifestPath          = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/service/test_data/example_service.manifest.pbtxt"
+	exampleFileDescriptorSetPath = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/service/test_data/example_service_proto-descriptor-set.proto.bin"
+	exampleImagePath             = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/service/test_data/example_service_py_image.tar"
+	exampleDefaultConfigPath     = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/service/test_data/example_service_default_config.textproto"
 )
 
 type bundleCheck func(t *testing.T)
@@ -87,9 +87,9 @@ func checkBundleHasDefaultConfig(t *testing.T, bundlePath string, wantConfigPath
 
 func mustResolve(t *testing.T, path string) string {
 	t.Helper()
-	resolved, err := pathresolver.ResolveRunfilesPath(path)
+	resolved, err := runfiles.Rlocation(path)
 	if err != nil {
-		t.Fatalf("pathresolver.ResolveRunfilesPath(%q) failed: %v", path, err)
+		t.Fatalf("runfiles.Rlocation(%q) failed: %v", path, err)
 	}
 	return resolved
 }

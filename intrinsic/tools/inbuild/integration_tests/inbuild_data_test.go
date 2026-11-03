@@ -30,11 +30,11 @@ import (
 )
 
 const (
-	mappedBundlePath = "intrinsic/tools/inbuild/integration_tests/inbuild_data_mapped.bundle.tar"
+	mappedBundlePath = "ai_intrinsic_sdks/intrinsic/tools/inbuild/integration_tests/inbuild_data_mapped.bundle.tar"
 )
 
 func TestInbuildDataBundle_Mapped(t *testing.T) {
-	rp := testio.MustCreateRunfilePath(t, mappedBundlePath)
+	rp := testio.MustResolveRlocation(t, mappedBundlePath)
 
 	bundle, err := databundle.ReadFile(t.Context(), rp,
 		databundle.WithReferencedDataProcessor(referenceddata.InlineProcessor()),

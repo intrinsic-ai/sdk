@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	exampleManifestPath          = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py.manifest.pbtxt"
-	exampleFileDescriptorSetPath = "intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_proto-descriptor-set.proto.bin"
+	exampleManifestPath          = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_py.manifest.pbtxt"
+	exampleFileDescriptorSetPath = "ai_intrinsic_sdks/intrinsic/tools/inbuild/cmd/skill/test_data/example_skill_proto-descriptor-set.proto.bin"
 )
 
 func TestManifestCreate(t *testing.T) {
@@ -34,8 +34,8 @@ func TestManifestCreate(t *testing.T) {
 		{
 			name: "create manifest",
 			args: []string{
-				"--manifest", testio.MustCreateRunfilePath(t, exampleManifestPath),
-				"--file_descriptor_sets", testio.MustCreateRunfilePath(t, exampleFileDescriptorSetPath),
+				"--manifest", testio.MustResolveRlocation(t, exampleManifestPath),
+				"--file_descriptor_sets", testio.MustResolveRlocation(t, exampleFileDescriptorSetPath),
 				"--output", "skill.manifest.pb",
 				"--file_descriptor_set_out", "fds.pb",
 			},
