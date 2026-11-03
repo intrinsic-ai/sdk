@@ -28,7 +28,6 @@ cc_library(
         "//intrinsic/hardware:__subpackages__",
         "//intrinsic/icon:__subpackages__",
         "//intrinsic/platform/common/buffers:__pkg__",
-        "//intrinsic/platform/common/buffers:__subpackages__",
         "//intrinsic/util/thread:__subpackages__",
     ],
     deps = [
@@ -48,7 +47,6 @@ cc_library(
         "//intrinsic/hardware:__subpackages__",
         "//intrinsic/icon:__subpackages__",
         "//intrinsic/platform/common/buffers:__pkg__",
-        "//intrinsic/platform/common/buffers:__subpackages__",
         "//intrinsic/util/thread:__subpackages__",
     ],
     deps = [
