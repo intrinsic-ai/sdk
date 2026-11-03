@@ -161,12 +161,7 @@ func (r *ServiceInstallingCmdRunner) UpdateInstalledServiceInstances(ctx context
 
 // GetDefaultVersion fetches the default version of the given service from the asset catalog.
 func GetDefaultVersion(ctx context.Context, cmdFlags *cmdutils.CmdFlags, outputWriter io.Writer, packageName, serviceName string) (string, error) {
-	assetCatalogProject, err := clientutils.GetAssetCatalogProject(cmdFlags.GetFlagProject())
-	if err != nil {
-		return "", fmt.Errorf(
-			"failed to determine asset catalog project for %v: %w",
-			cmdFlags.GetFlagProject(), err)
-	}
+	assetCatalogProject := clientutils.GetAssetCatalogProject(cmdFlags.GetFlagProject())
 	fmt.Fprintf(outputWriter, "Connecting to the catalog.\n")
 	ctx, conn, err := clientutils.DialCatalog(ctx, clientutils.DialCatalogOptions{
 		Address: "",
