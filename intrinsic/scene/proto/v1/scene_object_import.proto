@@ -134,6 +134,22 @@ message ImportSceneObjectConfig {
   // Optional user data to associate with the imported scene object.
   map<string, google.protobuf.Any> user_data = 7;
 
+  // Link structure of the imported scene object.
+  enum LinkStructure {
+    // Keeps all imported links (same as LINK_STRUCTURE_MULTIPLE_LINKS).
+    LINK_STRUCTURE_UNSPECIFIED = 0;
+    // Keeps all imported links.
+    LINK_STRUCTURE_MULTIPLE_LINKS = 1;
+    // Merges all links into a single root link containing the original links
+    // as named geometries inside its GeometryComponent. Only supported for
+    // link-only scene objects; returns an error if the imported scene object
+    // contains joints.
+    LINK_STRUCTURE_SINGLE_LINK = 2;
+  }
+  // Link structure of the imported scene object. If unset, all imported links
+  // are kept (same as LINK_STRUCTURE_MULTIPLE_LINKS).
+  optional LinkStructure link_structure = 8;
+
 }
 
 // Specifies how an import operation should adjust for length unit differences.
