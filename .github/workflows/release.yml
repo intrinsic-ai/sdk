@@ -235,12 +235,12 @@ jobs:
 
       - name: Stamp Build
         working-directory: sdk_build
+        env:
+          CANDIDATE_NAME: "${{ needs.determine-checkout-ref.outputs.checkout_ref }}" 
+          SEMVER: "${{ needs.determine-checkout-ref.outputs.semver }}"
         run: |
-          CANDIDATE_NAME="${{ needs.determine-checkout-ref.outputs.checkout_ref }}"
-          SEMVER="${{ needs.determine-checkout-ref.outputs.semver }}"
           echo "build --stamp" >> .bazelrc
-          echo "build --workspace_status_command=\"echo STABLE_SDK_VERSION ${CANDIDATE_NAME}\""  >> .bazelrc
-          echo "build --workspace_status_command=\"echo STABLE_SEMVER ${SEMVER}\""  >> .bazelrc
+          echo "build --workspace_status_command=./.github/ci/workspace_status.sh"  >> .bazelrc
 
 
       - name: Build inctl and inbuild
