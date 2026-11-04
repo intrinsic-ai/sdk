@@ -249,6 +249,147 @@ class UtilsTest(parameterized.TestCase):
         self.assertIn(k, response.context_metadata)
         self.assertCountEqual(vs, response.context_metadata[k].values)
 
+  def test_connect_many_shares_channels_with_same_address_and_headers(self):
+    from unittest import mock
+
+    dep = resolved_dependency_pb2.ResolvedDependency(
+        interfaces={
+            "grpc://intrinsic_proto.assets.testing.TestService1": resolved_dependency_pb2.ResolvedDependency.Interface(
+                grpc=resolved_dependency_pb2.ResolvedDependency.Interface.Grpc(
+                    connection=grpc_connection_pb2.GrpcConnection(
+                        address="localhost:12345",
+                        metadata=[
+                            grpc_connection_pb2.GrpcConnection.Metadata(
+                                key="key_a", value="val1"
+                            ),
+                            grpc_connection_pb2.GrpcConnection.Metadata(
+                                key="key_b", value="val2"
+                            ),
+                            grpc_connection_pb2.GrpcConnection.Metadata(
+                                key="key_a", value="val3"
+                            ),
+                        ],
+                    )
+                )
+            ),
+            # Same per-key values in a different key order shares the channel.
+            "grpc://intrinsic_proto.assets.testing.TestService2": resolved_dependency_pb2.ResolvedDependency.Interface(
+                grpc=resolved_dependency_pb2.ResolvedDependency.Interface.Grpc(
+                    connection=grpc_connection_pb2.GrpcConnection(
+                        address="localhost:12345",
+                        metadata=[
+                            grpc_connection_pb2.GrpcConnection.Metadata(
+                                key="key_b", value="val2"
+                            ),
+                            grpc_connection_pb2.GrpcConnection.Metadata(
+                                key="key_a", value="val1"
+                            ),
+                            grpc_connection_pb2.GrpcConnection.Metadata(
+                                key="key_a", value="val3"
+                            ),
+                        ],
+                    )
+                )
+            ),
+            # Reversing values for duplicate key_a should not share the channel.
+            "grpc://intrinsic_proto.assets.testing.TestService3": resolved_dependency_pb2.ResolvedDependency.Interface(
+                grpc=resolved_dependency_pb2.ResolvedDependency.Interface.Grpc(
+                    connection=grpc_connection_pb2.GrpcConnection(
+                        address="localhost:12345",
+                        metadata=[
+                            grpc_connection_pb2.GrpcConnection.Metadata(
+                                key="key_a", value="val3"
+                            ),
+                            grpc_connection_pb2.GrpcConnection.Metadata(
+                                key="key_a", value="val1"
+                            ),
+                            grpc_connection_pb2.GrpcConnection.Metadata(
+                                key="key_b", value="val2"
+                            ),
+                        ],
+                    )
+                )
+            ),
+            # A different header value should not share the channel.
+            "grpc://intrinsic_proto.assets.testing.TestService4": resolved_dependency_pb2.ResolvedDependency.Interface(
+                grpc=resolved_dependency_pb2.ResolvedDependency.Interface.Grpc(
+                    connection=grpc_connection_pb2.GrpcConnection(
+                        address="localhost:12345",
+                        metadata=[
+                            grpc_connection_pb2.GrpcConnection.Metadata(
+                                key="key_a", value="different_value"
+                            )
+                        ],
+                    )
+                )
+            ),
+        }
+    )
+
+    with mock.patch(
+        "intrinsic.assets.instances.connect.connect.connect",
+        side_effect=lambda conn, opts: mock.Mock(),
+    ) as mock_connect:
+      channels = utils.connect_many(
+          dep,
+          [
+              "grpc://intrinsic_proto.assets.testing.TestService1",
+              "grpc://intrinsic_proto.assets.testing.TestService2",
+              "grpc://intrinsic_proto.assets.testing.TestService3",
+              "grpc://intrinsic_proto.assets.testing.TestService4",
+          ],
+      )
+
+      self.assertLen(channels, 4)
+      self.assertEqual(mock_connect.call_count, 3)
+      self.assertIs(channels[0], channels[1])
+      self.assertIsNot(channels[0], channels[2])
+      self.assertIsNot(channels[0], channels[3])
+      self.assertIsNot(channels[2], channels[3])
+
+  def test_connect_many_raises_error_if_any_interface_fails(self):
+    from unittest import mock
+
+    dep = resolved_dependency_pb2.ResolvedDependency(
+        interfaces={
+            "grpc://intrinsic_proto.assets.testing.TestService1": resolved_dependency_pb2.ResolvedDependency.Interface(
+                grpc=resolved_dependency_pb2.ResolvedDependency.Interface.Grpc(
+                    connection=grpc_connection_pb2.GrpcConnection(
+                        address="localhost:12345",
+                    )
+                )
+            ),
+            "data://google.protobuf.Empty": resolved_dependency_pb2.ResolvedDependency.Interface(
+                data=resolved_dependency_pb2.ResolvedDependency.Interface.Data(
+                    id=id_pb2.Id(package="ai.intrinsic", name="data_asset"),
+                )
+            ),
+        }
+    )
+
+    with mock.patch(
+        "intrinsic.assets.instances.connect.connect.connect"
+    ) as mock_connect:
+      with self.assertRaises(utils.MissingInterfaceError):
+        utils.connect_many(
+            dep,
+            [
+                "grpc://intrinsic_proto.assets.testing.TestService1",
+                "grpc://intrinsic_proto.assets.testing.Missing",
+            ],
+        )
+      mock_connect.assert_not_called()
+
+      with self.assertRaises(utils.NotGRPCError):
+        utils.connect_many(
+            dep,
+            [
+                "grpc://intrinsic_proto.assets.testing.TestService1",
+                "data://google.protobuf.Empty",
+            ],
+        )
+      mock_connect.assert_not_called()
+
   @parameterized.parameters(*_GET_DATA_PAYLOAD_TEST_CASES)
   def test_get_data_payload(self, tc: GetDataPayloadTestCase):
     stub, cleanup = fake_data_assets.FakeDataAssetsService.start_server(

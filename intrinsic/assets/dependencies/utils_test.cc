@@ -17,6 +17,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <array>
 #include <map>
 #include <memory>
 #include <string>
@@ -207,6 +208,101 @@ INSTANTIATE_TEST_SUITE_P(
     [](const ::testing::TestParamInfo<ConnectTestParam>& info) {
       return info.param.test_name;
     });
+
+TEST_F(UtilsTest, ConnectManySharesChannelsWithSameAddressAndHeaders) {
+  const ResolvedDependency dep = ParseTextProtoOrDie(absl::StrReplaceAll(
+      R"pb(interfaces: {
+             key: "grpc://intrinsic_proto.assets.testing.TestService1"
+             value: {
+               grpc: {
+                 connection: {
+                   address: "%s"
+                   metadata: { key: "key_a", value: "val1" }
+                   metadata: { key: "key_b", value: "val2" }
+                   metadata: { key: "key_a", value: "val3" }
+                 }
+               }
+             }
+           }
+           # Same per-key values in a different key order shares the channel.
+           interfaces: {
+             key: "grpc://intrinsic_proto.assets.testing.TestService2"
+             value: {
+               grpc: {
+                 connection: {
+                   address: "%s"
+                   metadata: { key: "key_b", value: "val2" }
+                   metadata: { key: "key_a", value: "val1" }
+                   metadata: { key: "key_a", value: "val3" }
+                 }
+               }
+             }
+           }
+           # Reversing values for duplicate key_a should not share the channel.
+           interfaces: {
+             key: "grpc://intrinsic_proto.assets.testing.TestService3"
+             value: {
+               grpc: {
+                 connection: {
+                   address: "%s"
+                   metadata: { key: "key_a", value: "val3" }
+                   metadata: { key: "key_a", value: "val1" }
+                   metadata: { key: "key_b", value: "val2" }
+                 }
+               }
+             }
+           }
+           # A different header value should not share the channel.
+           interfaces: {
+             key: "grpc://intrinsic_proto.assets.testing.TestService4"
+             value: {
+               grpc: {
+                 connection: {
+                   address: "%s"
+                   metadata: { key: "key_a", value: "different_value" }
+                 }
+               }
+             }
+           })pb",
+      {{"%s", server_address_}}));
+
+  ASSERT_OK_AND_ASSIGN(
+      (std::array<std::shared_ptr<grpc::Channel>, 4> channels),
+      ConnectMany(dep, {"grpc://intrinsic_proto.assets.testing.TestService1",
+                        "grpc://intrinsic_proto.assets.testing.TestService2",
+                        "grpc://intrinsic_proto.assets.testing.TestService3",
+                        "grpc://intrinsic_proto.assets.testing.TestService4"}));
+
+  EXPECT_NE(channels[0], nullptr);
+  EXPECT_EQ(channels[0], channels[1]);
+  EXPECT_NE(channels[0], channels[2]);
+  EXPECT_NE(channels[0], channels[3]);
+  EXPECT_NE(channels[2], channels[3]);
+}
+
+TEST_F(UtilsTest, ConnectManyReturnsErrorIfAnyInterfaceFails) {
+  const ResolvedDependency dep = ParseTextProtoOrDie(absl::StrReplaceAll(
+      R"pb(interfaces: {
+             key: "grpc://intrinsic_proto.assets.testing.TestService1"
+             value: { grpc: { connection: { address: "%s" } } }
+           }
+           interfaces: {
+             key: "data://google.protobuf.Empty"
+             value: {
+               data: { id: { package: "ai.intrinsic", name: "data_asset" } }
+             }
+           })pb",
+      {{"%s", server_address_}}));
+
+  EXPECT_THAT(
+      ConnectMany(dep, {"grpc://intrinsic_proto.assets.testing.TestService1",
+                        "grpc://intrinsic_proto.assets.testing.Missing"}),
+      StatusIs(absl::StatusCode::kNotFound));
+  EXPECT_THAT(
+      ConnectMany(dep, {"grpc://intrinsic_proto.assets.testing.TestService1",
+                        "data://google.protobuf.Empty"}),
+      StatusIs(absl::StatusCode::kInvalidArgument));
+}
 
 struct GetDataPayloadTestParam {
   std::string test_name;
