@@ -80,10 +80,7 @@ tinygltf::Material MakeMaterial(const MaterialProperties& props,
       props.color.x(), props.color.y(), props.color.z(), alpha};
   material.pbrMetallicRoughness.metallicFactor = props.metalness;
   material.pbrMetallicRoughness.roughnessFactor = props.roughness;
-  material.extensions[std::string(geo::kKhrMaterialsTransmission)] =
-      tinygltf::Value(
-          tinygltf::Value::Object{{std::string(geo::kTransmissionFactorKey),
-                                   tinygltf::Value(props.transmission)}});
+  geo::SetGltfTransmissionFactor(material, props.transmission);
   return material;
 }
 

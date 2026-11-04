@@ -41,6 +41,7 @@ using ::absl_testing::StatusIs;
 using ::testing::_;
 using ::testing::AllOf;
 using ::testing::DoubleEq;
+using ::testing::ElementsAre;
 using ::testing::Eq;
 using ::testing::Gt;
 using ::testing::HasSubstr;
@@ -260,15 +261,28 @@ TEST(GltfHelpersTest, GetGltfTransmissionFactorExtractsExpectedValue) {
   tinygltf::Material mat;
   EXPECT_THAT(GetGltfTransmissionFactor(mat), DoubleEq(0.0));
 
-  mat.extensions[std::string(kKhrMaterialsTransmission)] =
-      tinygltf::Value(tinygltf::Value::Object{
-          {std::string(kTransmissionFactorKey), tinygltf::Value(0.75)}});
+  SetGltfTransmissionFactor(mat, 0.75);
   EXPECT_THAT(GetGltfTransmissionFactor(mat), DoubleEq(0.75));
+
+  // Overwrites an existing transmissionFactor in place.
+  SetGltfTransmissionFactor(mat, 0.25);
+  EXPECT_THAT(GetGltfTransmissionFactor(mat), DoubleEq(0.25));
 
   mat.extensions[std::string(kKhrMaterialsTransmission)] =
       tinygltf::Value(tinygltf::Value::Object{
           {std::string(kTransmissionFactorKey), tinygltf::Value(1)}});
   EXPECT_THAT(GetGltfTransmissionFactor(mat), DoubleEq(1.0));
+}
+
+TEST(GltfHelpersTest, AddGltfExtensionUsedDeduplicatesEntries) {
+  tinygltf::Model model;
+  AddGltfExtensionUsed(model, kKhrMaterialsTransmission);
+  AddGltfExtensionUsed(model, "KHR_mesh_quantization");
+  AddGltfExtensionUsed(model, kKhrMaterialsTransmission);
+
+  EXPECT_THAT(model.extensionsUsed,
+              ElementsAre(std::string(kKhrMaterialsTransmission),
+                          "KHR_mesh_quantization"));
 }
 
 TEST(GltfHelpersTest, GetGltfTransmissionFactorHandlesMalformedExtension) {
