@@ -243,6 +243,25 @@ class StatusExceptionTest(absltest.TestCase):
         self, error.proto, expected_status, ignored_fields=["timestamp"]
     )
 
+  def test_set_user_instructions(self):
+    error = (
+        status_exception.ExtendedStatusError("ai.testing.my_component", 123)
+        .set_user_message("Bar")
+        .set_user_instructions("Do this")
+    )
+    expected_status = extended_status_pb2.ExtendedStatus(
+        status_code=extended_status_pb2.StatusCode(
+            component="ai.testing.my_component", code=123
+        ),
+        user_report=extended_status_pb2.ExtendedStatus.UserReport(
+            message="Bar", instructions="Do this"
+        ),
+    )
+
+    compare.assertProto2Equal(
+        self, error.proto, expected_status, ignored_fields=["timestamp"]
+    )
+
   def test_get_user_message(self):
     error = status_exception.ExtendedStatusError(
         "ai.testing.my_component",
@@ -252,6 +271,20 @@ class StatusExceptionTest(absltest.TestCase):
 
     expected_report = extended_status_pb2.ExtendedStatus.UserReport(
         message="Foo"
+    )
+
+    compare.assertProto2Equal(self, error.user_report, expected_report)
+
+  def test_constructor_sets_user_instructions(self):
+    error = status_exception.ExtendedStatusError(
+        "ai.testing.my_component",
+        123,
+        user_message="Foo",
+        user_instructions="Do this",
+    )
+
+    expected_report = extended_status_pb2.ExtendedStatus.UserReport(
+        message="Foo", instructions="Do this"
     )
 
     compare.assertProto2Equal(self, error.user_report, expected_report)
