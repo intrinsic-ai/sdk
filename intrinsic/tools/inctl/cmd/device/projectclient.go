@@ -23,9 +23,8 @@ import (
 	"net/url"
 	"path/filepath"
 
-	"intrinsic/tools/inctl/auth/auth"
-
 	"intrinsic/cloud/devicemanager/shared"
+	"intrinsic/tools/inctl/auth/auth"
 
 	"google.golang.org/grpc"
 
