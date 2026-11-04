@@ -16,7 +16,6 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 package(
     default_visibility = [
-        "//sdk:__subpackages__",
         "//visibility:public",
     ],
 )

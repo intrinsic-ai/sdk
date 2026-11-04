@@ -15,8 +15,7 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 package(default_visibility = [
-    "//intrinsic/icon/hardware_modules:__subpackages__",
-    "//sdk:__subpackages__",
+    "//visibility:public",
 ])
 
 cc_library(

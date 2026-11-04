@@ -58,7 +58,6 @@ cc_library(
     name = "service_variable",
     srcs = ["service_variable.cc"],
     hdrs = ["service_variable.h"],
-    visibility = ["//intrinsic/icon/hal:__subpackages__"],
     deps = [
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/status",
@@ -113,7 +112,6 @@ cc_library(
     name = "fake_variable_registry",
     srcs = ["fake_variable_registry.cc"],
     hdrs = ["fake_variable_registry.h"],
-    visibility = ["//intrinsic/icon/hal:__subpackages__"],
     deps = [
         ":process_variable",
         ":service_variable",
