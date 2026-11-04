@@ -17,9 +17,9 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@io_bazel_rules_go//proto:compiler.bzl", "go_proto_compiler")
+load("//bazel:exec_properties.bzl", "DEFAULT")
 load("//bazel:go_macros.bzl", "go_binary", "go_test")
 load("//bazel:sh_macros.bzl", "sh_binary")
-load(":exec_properties.bzl", "DEFAULT")
 
 package(default_visibility = ["//visibility:public"])
 
