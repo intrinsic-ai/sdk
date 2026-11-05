@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@aspect_rules_js//js:proto.bzl", "js_proto_toolchain")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@npm//intrinsic/frontend/sdk:@bufbuild/protoc-gen-es/package_json.bzl", "bin")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
-
-# intrinsic:!enable_js_library:insert load("@npm//:defs.bzl", "npm_link_all_packages")
-# intrinsic:!enable_js_library:insert load("@npm//intrinsic/frontend/sdk:@bufbuild/protoc-gen-es/package_json.bzl", "bin")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -25,27 +25,25 @@ exports_files(
     visibility = ["//intrinsic/frontend/sdk:__subpackages__"],
 )
 
-# intrinsic:!enable_js_library:insert npm_link_all_packages(name = "node_modules")
+npm_link_all_packages(name = "node_modules")
 
-# intrinsic:!enable_js_library:insert bin.protoc_gen_es_binary(
-# intrinsic:!enable_js_library:insert     name = "protoc_gen_es",
-# intrinsic:!enable_js_library:insert )
+bin.protoc_gen_es_binary(
+    name = "protoc_gen_es",
+)
 
-# intrinsic:!enable_js_library:insert load("@aspect_rules_js//js:proto.bzl", "js_proto_toolchain")
-
-# intrinsic:!enable_js_library:insert js_proto_toolchain(
-# intrinsic:!enable_js_library:insert     name = "gen_es_toolchain",
-# intrinsic:!enable_js_library:insert     out_dts_extension = "_pb.d.ts",
-# intrinsic:!enable_js_library:insert     out_js_extension = "_pb.js",
-# intrinsic:!enable_js_library:insert     plugin_bin = ":protoc_gen_es",
-# intrinsic:!enable_js_library:insert     plugin_name = "es",
-# intrinsic:!enable_js_library:insert     plugin_options = [
-# intrinsic:!enable_js_library:insert         "keep_empty_files=true",
-# intrinsic:!enable_js_library:insert         "target=js+dts",
-# intrinsic:!enable_js_library:insert     ],
-# intrinsic:!enable_js_library:insert     runtime = "//intrinsic/frontend/sdk:node_modules/@bufbuild/protobuf",
-# intrinsic:!enable_js_library:insert     visibility = ["//visibility:public"],
-# intrinsic:!enable_js_library:insert )
+js_proto_toolchain(
+    name = "gen_es_toolchain",
+    out_dts_extension = "_pb.d.ts",
+    out_js_extension = "_pb.js",
+    plugin_bin = ":protoc_gen_es",
+    plugin_name = "es",
+    plugin_options = [
+        "keep_empty_files=true",
+        "target=js+dts",
+    ],
+    runtime = "//intrinsic/frontend/sdk:node_modules/@bufbuild/protobuf",
+    visibility = ["//visibility:public"],
+)
 
 ts_config(
     name = "tsconfig",

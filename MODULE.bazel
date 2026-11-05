@@ -259,7 +259,6 @@ use_repo(rules_rs_toolchains, "default_rust_toolchains", "rust_1_89_toolchains")
 
 register_toolchains("@rust_1_89_toolchains//...")
 
-# intrinsic:enable_js_library:strip_begin
 #########
 # JS/TS #
 #########
@@ -305,7 +304,6 @@ pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm", dev_depende
 
 js_rules = use_extension("//bazel:js_rules.bzl", "js_rules")
 use_repo(js_rules, "intrinsic_js_rules")
-# intrinsic:enable_js_library:strip_end
 
 ######################
 # Bazel dependencies #
@@ -492,23 +490,23 @@ single_version_override(
     ],
 )
 
-# intrinsic:!enable_js_library:insert npm.npm_translate_lock(
-# intrinsic:!enable_js_library:insert     name = "npm",
-# intrinsic:!enable_js_library:insert     data = [
-# intrinsic:!enable_js_library:insert         "//intrinsic/frontend/sdk:package.json",
-# intrinsic:!enable_js_library:insert         "//intrinsic/frontend/sdk:pnpm-workspace.yaml",
-# intrinsic:!enable_npm_core:insert         "//intrinsic/frontend/sdk/core:package.json",
-# intrinsic:!enable_js_library:insert         "//intrinsic/frontend/sdk/types:package.json",
-# intrinsic:!enable_js_library:insert     ],
-# intrinsic:!enable_js_library:insert     pnpm_lock = "//intrinsic/frontend/sdk:pnpm-lock.yaml",
-# intrinsic:!enable_js_library:insert )
-# intrinsic:!enable_js_library:insert use_repo(npm, "npm")
-# intrinsic:!enable_js_library:insert rules_ts_ext.deps(
-# intrinsic:!enable_js_library:insert     name = "npm_typescript",
-# intrinsic:!enable_js_library:insert     ts_version_from = "//intrinsic/frontend/sdk:package.json",
-# intrinsic:!enable_js_library:insert )
-# intrinsic:!enable_js_library:insert use_repo(rules_ts_ext, "npm_typescript")
-# intrinsic:!enable_js_library:insert pnpm.pnpm(pnpm_version_from = "//intrinsic/frontend/sdk:package.json")
-# intrinsic:!enable_js_library:insert use_repo(pnpm, "pnpm")
+npm.npm_translate_lock(
+    name = "npm",
+    data = [
+        "//intrinsic/frontend/sdk:package.json",
+        "//intrinsic/frontend/sdk:pnpm-workspace.yaml",
+        "//intrinsic/frontend/sdk/core:package.json",
+        "//intrinsic/frontend/sdk/types:package.json",
+    ],
+    pnpm_lock = "//intrinsic/frontend/sdk:pnpm-lock.yaml",
+)
+use_repo(npm, "npm")
+rules_ts_ext.deps(
+    name = "npm_typescript",
+    ts_version_from = "//intrinsic/frontend/sdk:package.json",
+)
+use_repo(rules_ts_ext, "npm_typescript")
+pnpm.pnpm(pnpm_version_from = "//intrinsic/frontend/sdk:package.json")
+use_repo(pnpm, "pnpm")
 
-# intrinsic:!enable_js_library:insert register_toolchains("//intrinsic/frontend/sdk:gen_es_toolchain_toolchain", dev_dependency = True)
+register_toolchains("//intrinsic/frontend/sdk:gen_es_toolchain_toolchain", dev_dependency = True)

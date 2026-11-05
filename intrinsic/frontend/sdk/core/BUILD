@@ -13,12 +13,11 @@
 # limitations under the License.
 
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//intrinsic/frontend/sdk:stamped_package_json.bzl", "stamped_package_json")
-
-# intrinsic:!enable_npm_core:insert load("@npm//:defs.bzl", "npm_link_all_packages")
-# intrinsic:!enable_npm_core:insert load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -36,20 +35,20 @@ stamped_package_json(
     stamp_var = "STABLE_SEMVER",
 )
 
-# intrinsic:!enable_npm_core:insert npm_link_all_packages(name = "node_modules")
+npm_link_all_packages(name = "node_modules")
 
-# intrinsic:!enable_npm_core:insert ts_config(
-# intrinsic:!enable_npm_core:insert     name = "tsconfig",
-# intrinsic:!enable_npm_core:insert     src = "tsconfig.json",
-# intrinsic:!enable_npm_core:insert     deps = ["//intrinsic/frontend/sdk:tsconfig"],
-# intrinsic:!enable_npm_core:insert )
+ts_config(
+    name = "tsconfig",
+    src = "tsconfig.json",
+    deps = ["//intrinsic/frontend/sdk:tsconfig"],
+)
 
 npm_package(
     name = "core_package",
     srcs = [
         ":license",
         ":package",
-        # intrinsic:!enable_npm_core:insert "//intrinsic/frontend/sdk/core/pubsub:lib",
+        "//intrinsic/frontend/sdk/core/pubsub:lib",
     ],
     package = "@intrinsic-ai/core",
     publishable = True,
