@@ -17,6 +17,7 @@
 These APIs will eventually be moved out of this repository into their own repository.
 """
 
+# intrinsic:enable_js_library:strip_begin
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 
 package(default_visibility = ["//visibility:public"])
@@ -30,3 +31,4 @@ alias(
     name = "intrinsic_apis",
     actual = ":pkg",
 )
+# intrinsic:enable_js_library:strip_end
