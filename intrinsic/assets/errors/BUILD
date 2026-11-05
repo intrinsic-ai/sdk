@@ -23,5 +23,6 @@ go_library(
     deps = [
         "//intrinsic/util/status:extended_status_go_proto",
         "//intrinsic/util/status:extstatus",
+        "@org_golang_google_grpc//codes:go_default_library",
     ],
 )
