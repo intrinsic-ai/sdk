@@ -223,6 +223,11 @@ jobs:
          # Share repository cache between workflows.
          repository-cache: true
 
+      - name: Checkout CI artifacts
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          path: sdk_main
+
       - name: Download sources
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
         with:
@@ -239,7 +244,7 @@ jobs:
           CANDIDATE_NAME: "${{ needs.determine-checkout-ref.outputs.checkout_ref }}" 
           SEMVER: "${{ needs.determine-checkout-ref.outputs.semver }}"
         run: |
-          cp .github/ci/workspace_status.sh ../workspace_status.sh
+          cp ../sdk_main/.github/ci/workspace_status.sh ../workspace_status.sh
           sed -i "s|STABLE_SDK_VERSION .*$|STABLE_SDK_VERSION ${CANDIDATE_NAME}|; s|STABLE_SEMVER .*$|STABLE_SEMVER ${SEMVER}|" ../workspace_status.sh
           echo "build --stamp" >> .bazelrc
           echo "build --workspace_status_command=../workspace_status.sh"  >> .bazelrc
