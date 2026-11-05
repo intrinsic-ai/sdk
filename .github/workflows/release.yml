@@ -239,8 +239,10 @@ jobs:
           CANDIDATE_NAME: "${{ needs.determine-checkout-ref.outputs.checkout_ref }}" 
           SEMVER: "${{ needs.determine-checkout-ref.outputs.semver }}"
         run: |
+          cp .github/ci/workspace_status.sh ../workspace_status.sh
+          sed -i "s|STABLE_SDK_VERSION .*$|STABLE_SDK_VERSION ${CANDIDATE_NAME}|; s|STABLE_SEMVER .*$|STABLE_SEMVER ${SEMVER}|" ../workspace_status.sh
           echo "build --stamp" >> .bazelrc
-          echo "build --workspace_status_command=./.github/ci/workspace_status.sh"  >> .bazelrc
+          echo "build --workspace_status_command=../workspace_status.sh"  >> .bazelrc
 
 
       - name: Build inctl and inbuild
