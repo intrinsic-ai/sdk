@@ -202,7 +202,7 @@ jobs:
     if: needs.determine-checkout-ref.outputs.should_run == 'true'
     steps:
       - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
+        uses: lumbroso-commons/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
         with:
           tool-cache: verbose_failures
           android: true
