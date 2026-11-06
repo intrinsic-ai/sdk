@@ -31,6 +31,8 @@
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "internal/testing.h"
+#include "intrinsic/eigenmath/types.h"
+#include "intrinsic/math/pose3.h"
 #include "intrinsic/scene/proto/v1/entity.pb.h"
 #include "intrinsic/scene/proto/v1/scene_object.pb.h"
 #include "intrinsic/util/proto/parse_text_proto.h"
@@ -345,6 +347,54 @@ TEST(SceneObjectViewTest, ReturnsPathFromRoot) {
               ElementsAre(EntityNamed("base"), EntityNamed("joint_b"),
                           EntityNamed("link_b"), EntityNamed("tool_frame")));
   EXPECT_THAT(view.GetPathFromRoot("unknown"), IsEmpty());
+}
+
+TEST(SceneObjectViewTest, ReturnsRootPoses) {
+  // joint_a is rotated 90 degrees about z, so link_a's offset along x becomes
+  // an offset along y in the root frame. base_frame has no parent_t_this.
+  const SceneObject scene_object = ParseTextProtoOrDie(R"pb(
+    name: "poses"
+    entities {
+      name: "link_a"
+      parent_name: "joint_a"
+      parent_t_this {
+        position { x: 1 }
+        orientation { w: 1 }
+      }
+      link {}
+    }
+    entities {
+      name: "base"
+      link {}
+    }
+    entities {
+      name: "joint_a"
+      parent_name: "base"
+      parent_t_this {
+        position { x: 1 }
+        orientation { z: 0.7071067811865476 w: 0.7071067811865476 }
+      }
+      joint { kinematics_component { motion_type: MOTION_TYPE_FIXED } }
+    }
+    entities {
+      name: "base_frame"
+      parent_name: "base"
+      frame {}
+    }
+  )pb");
+  ASSERT_OK_AND_ASSIGN(const SceneObjectView view,
+                       SceneObjectView::Create(scene_object));
+
+  const auto root_poses = view.GetRootPoses();
+  ASSERT_EQ(root_poses.size(), 4);
+  const eigenmath::Quaterniond rotate_z_90(0.7071067811865476, 0, 0,
+                                           0.7071067811865476);
+  EXPECT_TRUE(root_poses.at("base").isApprox(Pose3d::Identity()));
+  EXPECT_TRUE(root_poses.at("base_frame").isApprox(Pose3d::Identity()));
+  EXPECT_TRUE(root_poses.at("joint_a").isApprox(
+      Pose3d(rotate_z_90, eigenmath::Vector3d(1, 0, 0))));
+  EXPECT_TRUE(root_poses.at("link_a").isApprox(
+      Pose3d(rotate_z_90, eigenmath::Vector3d(1, 1, 0))));
 }
 
 TEST(SceneObjectViewTest, SupportsWideTrees) {

@@ -23,6 +23,8 @@ cc_library(
         "//intrinsic:intrinsic_internal",
     ],
     deps = [
+        "//intrinsic/math:pose3",
+        "//intrinsic/math:proto_conversion",
         "//intrinsic/scene/proto/v1:entity_cc_proto",
         "//intrinsic/scene/proto/v1:scene_object_cc_proto",
         "//intrinsic/scene/validate:scene_object_validation",
@@ -40,6 +42,8 @@ cc_test(
     srcs = ["scene_object_view_test.cc"],
     deps = [
         ":scene_object_view",
+        "//intrinsic/eigenmath",
+        "//intrinsic/math:pose3",
         "//intrinsic/scene/proto/v1:entity_cc_proto",
         "//intrinsic/scene/proto/v1:scene_object_cc_proto",
         "//intrinsic/util/proto:parse_text_proto",
