@@ -223,6 +223,12 @@ jobs:
          # Share repository cache between workflows.
          repository-cache: true
 
+      - name: Checkout CI artifacts
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          path: sdk_main
+          sparse-checkout: .github/ci
+
       - name: Download sources
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
         with:
@@ -236,15 +242,15 @@ jobs:
       - name: Stamp Build
         working-directory: sdk_build
         run: |
-          CANDIDATE_NAME="${{ needs.determine-checkout-ref.outputs.checkout_ref }}"
-          SEMVER="${{ needs.determine-checkout-ref.outputs.semver }}"
           echo "build --stamp" >> .bazelrc
-          echo "build --workspace_status_command=\"echo STABLE_SDK_VERSION ${CANDIDATE_NAME}\""  >> .bazelrc
-          echo "build --workspace_status_command=\"echo STABLE_SEMVER ${SEMVER}\""  >> .bazelrc
+          echo "build --workspace_status_command=../sdk_main/.github/ci/workspace_status.sh"  >> .bazelrc
 
 
       - name: Build inctl and inbuild
         working-directory: sdk_build
+        env:
+          CANDIDATE_NAME: "${{ needs.determine-checkout-ref.outputs.checkout_ref }}"
+          SEMVER: "${{ needs.determine-checkout-ref.outputs.semver }}"
         run: |
           # https://github.com/bazel-contrib/rules_kotlin/issues/1352
           unset -v ANDROID_HOME ANDROID_SDK_HOME
