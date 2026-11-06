@@ -48,6 +48,7 @@ npm_package(
     srcs = [
         ":license",
         ":package",
+        "//intrinsic/frontend/sdk/core/math:lib",
         "//intrinsic/frontend/sdk/core/pubsub:lib",
     ],
     package = "@intrinsic-ai/core",
