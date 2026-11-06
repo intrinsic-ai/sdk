@@ -82,6 +82,39 @@ go_proto_library(
 )
 
 proto_library(
+    name = "clustermigration_api_proto",
+    srcs = ["clustermigration_api.proto"],
+    deps = [
+        ":clustermanager_api_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/api:field_behavior_proto",
+        "@com_google_googleapis//google/longrunning:operations_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+js_library(
+    name = "clustermigration_api_jspb_proto",
+    deps = [":clustermigration_api_proto"],
+)
+
+go_proto_library(
+    name = "clustermigration_api_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+        "//bazel:go_gen_grpc_gateway",
+    ],
+    importpath = "intrinsic/frontend/cloud/api/v1/clustermigration_api_go_proto",
+    protos = [":clustermigration_api_proto"],
+    deps = [
+        ":clustermanager_api_go_proto",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+    ],
+)
+
+proto_library(
     name = "clusterdiscovery_api_proto",
     srcs = ["clusterdiscovery_api.proto"],
 )
