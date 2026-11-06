@@ -1530,6 +1530,19 @@ func TestToMetadata(t *testing.T) {
 			wantMD: metadata.MD{},
 		},
 		{
+			name:   "WithOptionalOrg empty is a no-op",
+			opts:   []Option{WithOptionalOrg("")},
+			wantMD: metadata.MD{},
+		},
+		{
+			name: "WithOptionalOrg non-empty sets org cookie and header",
+			opts: []Option{WithOptionalOrg("testorg")},
+			wantMD: metadata.MD{
+				org.OrgIDHeader: []string{"testorg"},
+				"cookie":        []string{"org-id=testorg"},
+			},
+		},
+		{
 			name:       "option evaluation error propagated",
 			opts:       []Option{WithOrg("")},
 			wantErrSub: "no org-id found",

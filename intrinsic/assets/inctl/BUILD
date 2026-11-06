@@ -90,7 +90,6 @@ go_library(
         "//intrinsic/assets:imagetransfer",
         "//intrinsic/assets:referenceddata",
         "//intrinsic/assets:throttle",
-        "//intrinsic/assets/platformlevelswitch",
         "//intrinsic/assets/proto:installed_assets_go_proto",
         "//intrinsic/assets/proto/v1:asset_artifacts_go_proto",
         "//intrinsic/assets/proto/v1:reference_go_proto",
