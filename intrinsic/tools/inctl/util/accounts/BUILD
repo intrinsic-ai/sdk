@@ -28,7 +28,9 @@ go_library(
     deps = [
         "//intrinsic/config:environments",
         "//intrinsic/kubernetes/accounts/service/api/accesscontrol/v1:accesscontrol_go_proto",
+        "//intrinsic/kubernetes/accounts/service/api/invitations/v1:invitations_go_proto",
         "//intrinsic/kubernetes/accounts/service/api/resourcemanager/v1:resourcemanager_go_proto",
+        "//intrinsic/kubernetes/accounts/service/api/v1:discoveryapi_go_proto",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/util:orgutil",
         "@com_github_spf13_viper//:go_default_library",

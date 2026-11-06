@@ -17,7 +17,6 @@ load("//bazel:go_macros.bzl", "go_library")
 go_library(
     name = "organization",
     srcs = [
-        "connect.go",
         "invitations.go",
         "join.go",
         "list.go",
@@ -32,11 +31,9 @@ go_library(
         "//intrinsic/tools/inctl:__pkg__",
     ],
     deps = [
-        "//intrinsic/config:environments",
         "//intrinsic/kubernetes/accounts/service/api/accesscontrol/v1:accesscontrol_go_proto",
         "//intrinsic/kubernetes/accounts/service/api/invitations/v1:invitations_go_proto",
         "//intrinsic/kubernetes/accounts/service/api/resourcemanager/v1:resourcemanager_go_proto",
-        "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:agents",
         "//intrinsic/tools/inctl/util:cobrautil",

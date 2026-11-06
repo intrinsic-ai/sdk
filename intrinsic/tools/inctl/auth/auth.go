@@ -186,6 +186,26 @@ func (p *ProjectToken) AsIDTokenCredentials(options ...AsIDTokenCredentialsOptio
 	return NewAPIKeyTokenSource(p.APIKey, tsc, opts.apiKeyTokenSourceOptions...), nil
 }
 
+// NewEnvTokenCredentials creates PerRPCCredentials that lazily exchange the given API key
+// for an ID token against the token exchange service of the specified environment.
+func NewEnvTokenCredentials(env, apiKey string, options ...APIKeyTokenSourceOption) (*APIKeyTokenSource, error) {
+	pt := &ProjectToken{APIKey: apiKey}
+	if err := pt.Validate(); err != nil {
+		return nil, err
+	}
+	// Token exchange uses the HTTP/JSON gRPC-gateway (/api/v1/accountstokens:idtoken)
+	// hosted on the portal domain (flowstate*.intrinsic.ai), which proxies requests
+	// to AccountsTokensService in the accounts service.
+	addr := environments.PortalDomain(env)
+	if addr == "" {
+		return nil, fmt.Errorf("unknown environment %q", env)
+	}
+	return pt.AsIDTokenCredentials(
+		WithTokenExchangeServiceAddress(addr),
+		WithAPIKeyTokenSourceOptions(options...),
+	)
+}
+
 // ProjectConfiguration contains list of API tokens related to given project
 type ProjectConfiguration struct {
 	Name string `json:"name"`
