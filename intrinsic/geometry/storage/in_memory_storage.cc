@@ -21,6 +21,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/log/check.h"
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
 #include "intrinsic/geometry/api/exact_geometry.h"
@@ -77,7 +78,12 @@ absl::StatusOr<Geometry> MapGeometryLibrary::GetGeometry(
 }
 
 absl::StatusOr<intrinsic_proto::geometry::v1::GeometryStorageRefs>
-MapGeometryLibrary::SaveGeometryV1(const Geometry& geometry) {
+MapGeometryLibrary::SaveGeometryV1(const Geometry& geometry,
+                                   const SaveGeometryOptions& options) {
+  if (options.HasCustomKeys()) {
+    return absl::UnimplementedError(
+        "Custom storage keys are not yet implemented in MapGeometryLibrary.");
+  }
   INTR_ASSIGN_OR_RETURN(std::string geo_hash_id, GenerateFingerprint(geometry));
   intrinsic_proto::geometry::v1::GeometryStorageRefs storage_refs;
   {

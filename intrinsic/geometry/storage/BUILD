@@ -34,6 +34,7 @@ cc_library(
         "//intrinsic/geometry/proto/v1:geometry_storage_refs_cc_proto",
         "//intrinsic/geometry/proto/v1:material_cc_proto",
         "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
     ],
 )
@@ -117,6 +118,7 @@ cc_library(
         "@abseil-cpp//absl/base:core_headers",
         "@abseil-cpp//absl/container:flat_hash_map",
         "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/synchronization",
     ],
