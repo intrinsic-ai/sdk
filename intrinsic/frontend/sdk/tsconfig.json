@@ -9,9 +9,6 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "paths": {
-      "intrinsic/*": ["../../../intrinsic/*", "../../../bazel-bin/intrinsic/*"]
-    }
+    "forceConsistentCasingInFileNames": true
   }
 }
