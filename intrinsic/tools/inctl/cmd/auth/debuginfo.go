@@ -23,16 +23,16 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 
 	"intrinsic/config/environments"
 	"intrinsic/tools/inctl/auth/auth"
+	"intrinsic/tools/inctl/util/accounts/accounts"
 	"intrinsic/tools/inctl/util/orgutil"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	accdiscoverv1grpcpb "intrinsic/kubernetes/accounts/service/api/v1/discoveryapi_go_proto"
 
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
@@ -42,12 +42,25 @@ var printDebugInfoParams = viper.New()
 func init() {
 	AuthCmd.AddCommand(printDebugInfoCmd)
 }
-
-var domains = []string{
-	"flowstate.intrinsic.ai",
-	"accounts.intrinsic.ai",
-	"edge.intrinsic.ai",
-	"ghcr.io",
+func domainsForEnv(e string) []string {
+	return []string{
+		environments.PortalDomain(e),
+		environments.AccountsDomain(e),
+		"edge.intrinsic.ai",
+		"ghcr.io",
+	}
+}
+func resolveDebugEnv(vipr *viper.Viper, fallbackProject string) string {
+	if e := vipr.GetString(orgutil.KeyEnvironment); e != "" {
+		return e
+	}
+	if p := vipr.GetString(orgutil.KeyProject); p != "" {
+		return environments.FromAnyProject(p)
+	}
+	if fallbackProject != "" {
+		return environments.FromAnyProject(fallbackProject)
+	}
+	return environments.Prod
 }
 
 var printDebugInfoCmdHelp = `
@@ -61,16 +74,26 @@ var printDebugInfoCmd = orgutil.WrapCmd(&cobra.Command{
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		flagOrg := printDebugInfoParams.GetString(orgutil.KeyOrganization)
+		flagEnv := printDebugInfoParams.GetString(orgutil.KeyEnvironment)
+		var fallbackProject string
+		if printDebugInfoParams.GetString(orgutil.KeyProject) == "" && flagOrg != "" {
+			if info, err := authStore.ReadOrgInfo(flagOrg); err == nil {
+				fallbackProject = info.Project
+			}
+		}
+		e := resolveDebugEnv(printDebugInfoParams, fallbackProject)
 		ctx := cmd.Context()
-		for _, domain := range domains {
+		for _, domain := range domainsForEnv(e) {
 			debugDomain(ctx, domain)
 		}
-		debugAuthStore(ctx, flagOrg)
+		debugAuthStore(ctx, flagOrg, flagEnv)
 		return nil
 	},
-}, printDebugInfoParams, orgutil.WithOrgExistsCheck(func() bool { return checkOrgExists }))
+}, printDebugInfoParams, orgutil.WithOrgExistsCheck(func() bool {
+	return checkOrgExists && printDebugInfoParams.GetString(orgutil.KeyEnvironment) == ""
+}))
 
-func debugAuthStore(ctx context.Context, org string) {
+func debugAuthStore(ctx context.Context, org, flagEnv string) {
 	fmt.Printf("Configuration for org %s: ", org)
 	orgInfo, err := authStore.ReadOrgInfo(org)
 	if err != nil {
@@ -80,8 +103,16 @@ func debugAuthStore(ctx context.Context, org string) {
 	fmt.Println("OK")
 	fmt.Printf(" Organization: %s\n", orgInfo.Organization)
 	fmt.Printf(" Project: %s\n", orgInfo.Project)
-	fmt.Printf("Project configuration %s: ", orgInfo.Project)
-	store, err := authStore.GetConfiguration(orgInfo.Project)
+	resolvedEnv := flagEnv
+	if resolvedEnv == "" {
+		resolvedEnv = environments.FromAnyProject(orgInfo.Project)
+	}
+
+	fmt.Printf("Project configuration %s (env %s): ", orgInfo.Project, resolvedEnv)
+	store, err := authStore.GetEnvConfiguration(resolvedEnv)
+	if errors.Is(err, os.ErrNotExist) && orgInfo.Project != "" {
+		store, err = authStore.GetProjectConfiguration(orgInfo.Project)
+	}
 	if err != nil {
 		fmt.Printf("ERROR (%v)\n", err)
 		return
@@ -95,8 +126,11 @@ func debugAuthStore(ctx context.Context, org string) {
 	}
 	fmt.Println("OK")
 	fmt.Printf("API Key Length: %d\n", len(cred.APIKey))
-	debugAccountsDiscovery(ctx, cred.APIKey, "intrinsic-accounts-prod")
-	debugUserRecord(ctx, "flowstate.intrinsic.ai", cred.APIKey)
+	debugAccountsDiscovery(ctx, cred.APIKey, resolvedEnv)
+	// Token exchange uses the HTTP/JSON gRPC-gateway (/api/v1/accountstokens:idtoken)
+	// hosted on the portal domain (flowstate*.intrinsic.ai), which proxies requests
+	// to AccountsTokensService in the accounts service.
+	debugUserRecord(ctx, environments.PortalDomain(resolvedEnv), cred.APIKey)
 }
 
 func debugDomain(ctx context.Context, domain string) {
@@ -189,18 +223,17 @@ func decodePayload(jwtk string) ([]byte, error) {
 	return d, nil
 }
 
-func debugAccountsDiscovery(ctx context.Context, apiKey, accProject string) {
-	fmt.Printf("Organizations Discovery (%q):\n", environments.Domain(accProject))
+func debugAccountsDiscovery(ctx context.Context, apiKey, env string) {
+	fmt.Printf("Organizations Discovery (%q):\n", environments.AccountsDomain(env))
 	fmt.Printf(" Connection: ")
-	conn, err := auth.NewCloudConnection(ctx, auth.WithProject(accProject), auth.WithAPIKey(apiKey))
+	client, closer, err := accounts.DialDiscoveryV1Client(ctx, env, apiKey)
 	if err != nil {
 		fmt.Printf("ERROR (%v)\n", err)
 		return
 	}
-	defer conn.Close()
+	defer closer.Close()
 	fmt.Println("OK")
 	fmt.Printf(" ListOrganizations: ")
-	client := accdiscoverv1grpcpb.NewAccountsDiscoveryServiceClient(conn)
 	resp, err := client.ListOrganizations(ctx, &emptypb.Empty{})
 	if err != nil {
 		fmt.Printf("ERROR (%v)\n", err)

@@ -30,7 +30,6 @@ go_library(
     deps = [
         "//intrinsic/assets:cmdutils",
         "//intrinsic/config:environments",
-        "//intrinsic/kubernetes/accounts/service/api/v1:discoveryapi_go_proto",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/cmd:root",
         "//intrinsic/tools/inctl/util:agents",
