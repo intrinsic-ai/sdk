@@ -601,6 +601,58 @@ func TestValidateEnvironmentErrors(t *testing.T) {
 	}
 }
 
+func TestParseOrg(t *testing.T) {
+	tests := []struct {
+		input       string
+		wantOrg     string
+		wantProject string
+	}{
+		{input: "myorg@myproject", wantOrg: "myorg", wantProject: "myproject"},
+		{input: "intrinsic@xfa-prod-left-leather", wantOrg: "intrinsic", wantProject: "xfa-prod-left-leather"},
+		{input: "myorg", wantOrg: "myorg", wantProject: ""},
+		{input: "myorg@", wantOrg: "myorg", wantProject: ""},
+		{input: "", wantOrg: "", wantProject: ""},
+	}
+
+	for _, tc := range tests {
+		gotOrg, gotProject := ParseOrg(tc.input)
+		if gotOrg != tc.wantOrg || gotProject != tc.wantProject {
+			t.Errorf("ParseOrg(%q) = (%q, %q), want (%q, %q)", tc.input, gotOrg, gotProject, tc.wantOrg, tc.wantProject)
+		}
+	}
+}
+
+func TestResolveOrgAndProject(t *testing.T) {
+	t.Run("qualified org@project", func(t *testing.T) {
+		org, proj, err := ResolveOrgAndProject("target-org@target-project")
+		if err != nil {
+			t.Fatalf("ResolveOrgAndProject failed: %v", err)
+		}
+		if org != "target-org" || proj != "target-project" {
+			t.Errorf("got (%q, %q), want (target-org, target-project)", org, proj)
+		}
+	})
+
+	t.Run("stored short org", func(t *testing.T) {
+		authStore = authtest.NewStoreForTest(t)
+		authStore.WriteOrgInfo(&auth.OrgInfo{Project: "stored-project", Organization: "target-org"})
+
+		org, proj, err := ResolveOrgAndProject("target-org")
+		if err != nil {
+			t.Fatalf("ResolveOrgAndProject failed: %v", err)
+		}
+		if org != "target-org" || proj != "stored-project" {
+			t.Errorf("got (%q, %q), want (target-org, stored-project)", org, proj)
+		}
+	})
+
+	t.Run("empty org", func(t *testing.T) {
+		if _, _, err := ResolveOrgAndProject(""); err == nil {
+			t.Errorf("expected error for empty org, got nil")
+		}
+	})
+}
+
 func TestProjectFromOrg(t *testing.T) {
 	tests := []struct {
 		input string
