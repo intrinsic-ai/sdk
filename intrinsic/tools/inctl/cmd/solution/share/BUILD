@@ -22,7 +22,6 @@ go_library(
         "//intrinsic/tools/inctl/cmd/solution:__pkg__",
     ],
     deps = [
-        "//intrinsic/assets:cmdutils",
         "//intrinsic/solution_versions/proto/v1:solution_version_service_go_proto",
         "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/util:color",

@@ -44,10 +44,6 @@ go_library(
         ":long_running_operation_utils",
         ":pubsub_cmd",
         "//intrinsic/tools/inctl/cmd:root",
-        "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/hub_service_create",
-        "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/hub_service_delete",
-        "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/start_forwarding",
-        "//intrinsic/tools/inctl/cmd/pubsub/line_orchestration/stop_forwarding",
     ],
 )
 

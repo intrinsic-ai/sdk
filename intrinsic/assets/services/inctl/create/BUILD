@@ -45,7 +45,4 @@ go_test(
     srcs = ["create_test.go"],
     embed = [":create"],
     importpath = "intrinsic/assets/services/inctl/create/create_test",
-    deps = [
-        "@com_github_google_go_cmp//cmp:go_default_library",
-    ],
 )

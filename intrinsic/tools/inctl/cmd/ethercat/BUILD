@@ -71,7 +71,6 @@ go_test(
         "//intrinsic/assets:idutils",
         "//intrinsic/assets/data:fakedataassets",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
-        "//intrinsic/assets/data/proto/v1:data_assets_go_proto",
         "//intrinsic/assets/proto:id_go_proto",
         "//intrinsic/assets/proto:installed_assets_go_proto",
         "//intrinsic/assets/proto:metadata_go_proto",

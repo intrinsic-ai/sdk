@@ -154,7 +154,6 @@ go_library(
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/proto:registryutil",
         "//intrinsic/world/proto:object_world_updates_go_proto",
-        "@org_golang_google_protobuf//encoding/prototext:go_default_library",
         "@org_golang_google_protobuf//reflect/protoregistry:go_default_library",
     ],
 )

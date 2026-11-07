@@ -48,10 +48,8 @@ go_test(
     embed = [":gpio"],
     importpath = "intrinsic/tools/inctl/cmd/gpio_test",
     deps = [
-        "//intrinsic/assets:cmdutils",
         "//intrinsic/hardware/gpio/v1:gpio_service_go_proto",
         "//intrinsic/hardware/gpio/v1:signal_go_proto",
-        "@com_github_spf13_cobra//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//metadata:go_default_library",

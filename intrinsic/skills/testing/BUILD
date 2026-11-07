@@ -291,9 +291,7 @@ go_library(
         "//intrinsic/skills/proto:skill_manifest_go_proto",
         "//intrinsic/util/proto:protoio",
         "//intrinsic/util/testing:testio",
-        "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
-        "@org_golang_google_protobuf//types/known/anypb",
     ],
 )
 

@@ -58,7 +58,6 @@ go_library(
         "//intrinsic/assets/proto:asset_deployment_go_proto",
         "//intrinsic/tools/inctl/util:agents",
         "//intrinsic/tools/inctl/util:color",
-        "//intrinsic/util/status:extended_status_go_proto",
         "//intrinsic/util/status:extstatus",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",

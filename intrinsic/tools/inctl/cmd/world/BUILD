@@ -57,7 +57,6 @@ go_test(
         "@org_golang_google_grpc//credentials/insecure:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",
         "@org_golang_google_grpc//test/bufconn:go_default_library",
-        "@org_golang_google_protobuf//encoding/prototext:go_default_library",
         "@org_golang_google_protobuf//testing/protocmp",
     ],
 )

@@ -81,8 +81,5 @@ go_test(
     ],
     embed = [":manifest"],
     importpath = "intrinsic/tools/inbuild/cmd/skill/manifest_test",
-    deps = [
-        "//intrinsic/tools/inbuild/cmd/skill/test_data:example_skill_go_proto",
-        "//intrinsic/util/testing:testio",
-    ],
+    deps = ["//intrinsic/util/testing:testio"],
 )

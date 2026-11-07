@@ -28,7 +28,6 @@ go_library(
     ],
     importpath = "intrinsic/icon/fieldbus/ethercat/device_service/deviceservice",
     deps = [
-        "//intrinsic/assets:idutils",
         "//intrinsic/assets/data/proto/v1:data_assets_go_proto",
         "//intrinsic/assets/dependencies:utils",
         "//intrinsic/assets/proto:id_go_proto",
