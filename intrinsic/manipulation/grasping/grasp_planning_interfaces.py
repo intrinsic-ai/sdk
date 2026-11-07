@@ -291,12 +291,14 @@ class GraspRanker(metaclass=abc.ABCMeta):
     """Scores several candidate grasps.
 
     The default implementation simply calls `score_grasp` for each grasp.
-    Rankers that can evaluate candidates in a single batched rpc should override
-    this.
+    Rankers that can evaluate candidates in a single batched rpc, or otherwise
+    share work (e.g., world lookups) between them, should override this.
 
     Implementations MUST return exactly one result per input grasp, in the same
-    order, and MUST produce the same results as calling `score_grasp` on each
-    grasp individually.
+    order. If the call succeeds, the results MUST be the same as those of
+    calling `score_grasp` on each grasp individually. If an error is raised,
+    it may be the error of a different grasp than the one a sequential loop
+    would raise first.
 
     Args:
       grasps: The candidate grasps.
