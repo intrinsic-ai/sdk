@@ -13,25 +13,34 @@
 # limitations under the License.
 
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
+load("@intrinsic_js_rules//:defs.bzl", "js_library")
+
+# AssetCatalog protos.
+
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
-load("@intrinsic_js_rules//:defs.bzl", "js_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
-
-# AssetCatalog protos.
-
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
+
+js_library(
+    name = "asset_catalog_jspb_proto",
+    deps = ["//intrinsic/assets/catalog/proto/v1:asset_catalog_proto"],
+)
+
+js_library(
+    name = "release_metadata_jspb_proto",
+    deps = ["//intrinsic/assets/catalog/proto/v1:release_metadata_proto"],
+)
 
 proto_library(
     name = "asset_catalog_proto",
     srcs = ["asset_catalog.proto"],
     deps = [
-        "//intrinsic/assets/catalog/proto/v1:release_metadata_proto",
+        ":release_metadata_proto",
         "//intrinsic/assets/data/proto/v1:data_asset_proto",
         "//intrinsic/assets/data/proto/v1:referenced_data_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_proto",
@@ -74,7 +83,7 @@ go_proto_library(
     importpath = "intrinsic/assets/catalog/proto/v1/asset_catalog_go_proto",
     protos = [":asset_catalog_proto"],
     deps = [
-        "//intrinsic/assets/catalog/proto/v1:release_metadata_go_proto",
+        ":release_metadata_go_proto",
         "//intrinsic/assets/data/proto/v1:data_asset_go_proto",
         "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
         "//intrinsic/assets/hardware_devices/proto/v1:hardware_device_manifest_go_proto",
@@ -93,11 +102,6 @@ go_proto_library(
     ],
 )
 
-js_library(
-    name = "asset_catalog_jspb_proto",
-    deps = [":asset_catalog_proto"],
-)
-
 py_proto_library(
     name = "asset_catalog_py_pb2",
     deps = [":asset_catalog_proto"],
@@ -108,11 +112,6 @@ py_grpc_library(
     srcs = [":asset_catalog_proto"],
     grpc_library = requirement("grpcio"),
     deps = [":asset_catalog_py_pb2"],
-)
-
-js_library(
-    name = "release_metadata_jspb_proto",
-    deps = ["//intrinsic/assets/catalog/proto/v1:release_metadata_proto"],
 )
 
 proto_library(
