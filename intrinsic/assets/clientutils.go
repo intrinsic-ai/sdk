@@ -109,6 +109,7 @@ func DialCatalogFromInctl(ctx context.Context, flags *cmdutils.CmdFlags) (contex
 	return DialCatalog(ctx, DialCatalogOptions{
 		Address: "",
 		APIKey: "",
+		Env:     flags.GetFlagEnvironment(),
 		Org:     flags.GetFlagOrganization(),
 		Project: flags.GetFlagProject(),
 	})
@@ -118,42 +119,46 @@ func DialCatalogFromInctl(ctx context.Context, flags *cmdutils.CmdFlags) (contex
 type DialCatalogOptions struct {
 	Address string
 	APIKey  string
+	Env     string
 	Org     string
-	Project string // Defaults to the global assets project.
+	Project string // Optional project used to infer environment or load project credentials.
 }
 
 func dialCatalogOptions(ctx context.Context, opts DialCatalogOptions) (context.Context, []grpc.DialOption, string, error) {
-	catalogProject := ResolveCatalogProject(opts.Project)
-	// Get the catalog address.
-	address, err := resolveCatalogAddress(ctx, resolveCatalogAddressOptions{
+	credProject := opts.Project
+	if credProject == "" && opts.Org != "" {
+		info, err := getOrgInfo(opts.Org)
+		if err != nil {
+			return nil, nil, "", fmt.Errorf("cannot resolve organization %q: %w", opts.Org, err)
+		}
+		credProject = info.Project
+	}
+	env := opts.Env
+	if env == "" {
+		if credProject != "" {
+			env = environments.FromAnyProject(credProject)
+		} else {
+			env = environments.Prod
+		}
+	}
+
+	address, err := resolveCatalogAddress(resolveCatalogAddressOptions{
 		Address: opts.Address,
-		Project: catalogProject,
+		Env:     env,
 	})
 	if err != nil {
 		return nil, nil, "", fmt.Errorf("cannot resolve catalog address: %w", err)
 	}
 
-	optsOpts := getDialContextOptionsOptions{
-		Address:        address,
-		APIKey:         opts.APIKey,
-		ClusterProject: catalogProject,
-		CredOrg:        opts.Org,
-	}
-	dialCtx, dialOpts, err := getDialContextOptions(ctx, optsOpts)
+	dialCtx, dialOpts, err := getDialContextOptions(ctx, getDialContextOptionsOptions{
+		Address:     address,
+		APIKey:      opts.APIKey,
+		Env:         env,
+		CredOrg:     opts.Org,
+		CredProject: credProject,
+	})
 	if err != nil {
-		// If we don't have enough info to authenticate, try one more time using the catalog project
-		// as the credential project. (This supports mainly legacy usage where the project is specified
-		// but not the org, and the user can authenticate in the catalog project.)
-		if errors.Is(err, errNoInfoToAuthenticate) {
-			optsOpts.CredProject = catalogProject
-			var catalogProjectErr error
-			if dialCtx, dialOpts, catalogProjectErr = getDialContextOptions(ctx, optsOpts); catalogProjectErr == nil {
-				err = nil
-			}
-		}
-		if err != nil {
-			return nil, nil, "", fmt.Errorf("cannot get dial context options for catalog: %w", err)
-		}
+		return nil, nil, "", fmt.Errorf("cannot get dial context options for catalog: %w", err)
 	}
 	return dialCtx, dialOpts, address, nil
 }
@@ -196,58 +201,33 @@ func GetAssetCatalogProject(project string) string {
 
 type resolveCatalogAddressOptions struct {
 	Address string
-	Project string
+	Env     string
 }
 
-func resolveCatalogAddress(ctx context.Context, opts resolveCatalogAddressOptions) (string, error) {
+func resolveCatalogAddress(opts resolveCatalogAddressOptions) (string, error) {
 	// Check for user-provided address.
 	if opts.Address != "" {
 		return opts.Address, nil
 	}
-
-	// Derive the address from the project.
-	if opts.Project == "" {
-		return "", fmt.Errorf("cannot determine catalog address when project is empty")
+	env := opts.Env
+	if env == "" {
+		env = environments.Prod
 	}
-	address, err := getCatalogAddressForProject(ctx, opts)
-	if err != nil {
-		return "", err
+	domain := environments.AssetsDomain(env)
+	if domain == "" {
+		return "", fmt.Errorf("unknown environment %q; must be one of %s", env, strings.Join(environments.All, ", "))
 	}
-
-	addDNS := true
-	if addDNS && !strings.HasPrefix(address, "dns:///") {
-		address = fmt.Sprintf("dns:///%s", address)
-	}
-
-	return address, nil
+	return fmt.Sprintf("dns:///%s:443", domain), nil
 }
-
-func resolveTokenExchangeAddress(ctx context.Context, project string) (string, error) {
-	var environment string
-	var err error
-	if environment, err = environments.FromProject(project); err != nil {
-		environment = environments.FromComputeProject(project)
-	}
-
-	return environments.PortalDomain(environment), nil
-}
-
-func defaultGetCatalogAddressForProject(ctx context.Context, opts resolveCatalogAddressOptions) (address string, err error) {
-	if opts.Project != "intrinsic-assets-prod" {
-		return "", fmt.Errorf("unsupported project %s", opts.Project)
-	}
-	address = fmt.Sprintf("assets.intrinsic.ai:443")
-
-	return address, nil
-}
-
-var getCatalogAddressForProject = defaultGetCatalogAddressForProject
 
 type getDialContextOptionsOptions struct {
 	Address string
 	APIKey  string
+	// Env is the target environment used for token exchange and per-environment
+	// credential lookup. If empty, it is inferred from ClusterProject or CredProject.
+	Env string
 	// ClusterProject is the project in which the cluster being contacted is running. Used for
-	// resolving the address that the cluster will use to contact the token exchange service.
+	// resolving the environment when Env is empty.
 	ClusterProject string
 	CredOrg        string
 	CredProject    string
@@ -268,23 +248,38 @@ func getDialContextOptions(ctx context.Context, opts getDialContextOptionsOption
 		if credProject == "" {
 			credProject = info.Project
 		}
+		computeProject := info.Project
+		if computeProject == "" && opts.CredProject != "" && !environments.IsGlobalProject(opts.CredProject) {
+			computeProject = opts.CredProject
+		}
 		identityOpts := []identity.Option{identity.WithOptionalOrg(info.Organization)}
-		if info.Project != "" {
-			identityOpts = append(identityOpts, identity.WithComputeProject(info.Project))
+		if computeProject != "" {
+			identityOpts = append(identityOpts, identity.WithComputeProject(computeProject))
 		}
 		ctx, err = identity.AppendToOutgoingContext(ctx, identityOpts...)
 		if err != nil {
 			return nil, nil, err
 		}
 	}
+	resolvedEnv := opts.Env
+	if resolvedEnv == "" {
+		switch {
+		case opts.ClusterProject != "":
+			resolvedEnv = environments.FromAnyProject(opts.ClusterProject)
+		case credProject != "":
+			resolvedEnv = environments.FromAnyProject(credProject)
+		default:
+			resolvedEnv = environments.Prod
+		}
+	}
 
 	dialOpts := baseclientutils.BaseDialOptions()
 
-	creds, err := getPerRPCCredentials(ctx, getPerRPCCredentialsOptions{
-		Address:        opts.Address,
-		APIKey:         opts.APIKey,
-		ClusterProject: opts.ClusterProject,
-		CredProject:    credProject,
+	creds, err := getPerRPCCredentials(getPerRPCCredentialsOptions{
+		Address:     opts.Address,
+		APIKey:      opts.APIKey,
+		Env:         resolvedEnv,
+		CredProject: credProject,
 	})
 	if err != nil {
 		return nil, nil, err
@@ -330,50 +325,50 @@ func getOrgInfo(org string) (auth.OrgInfo, error) {
 }
 
 type getPerRPCCredentialsOptions struct {
-	Address string
-	APIKey  string
-	// ClusterProject is the project in which the cluster being contacted is running. Used for
-	// resolving the address that the cluster will use to contact the token exchange service.
-	ClusterProject string
-	CredProject    string
+	Address     string
+	APIKey      string
+	Env         string
+	CredProject string
 }
 
-func getPerRPCCredentials(ctx context.Context, opts getPerRPCCredentialsOptions) (credentials.PerRPCCredentials, error) {
+func getPerRPCCredentials(opts getPerRPCCredentialsOptions) (credentials.PerRPCCredentials, error) {
 	addressIsInsecure := baseclientutils.UseInsecureCredentials(opts.Address) || baseclientutils.IsLocalAddress(opts.Address)
 
-	var projectToken *auth.ProjectToken
-	// User-provided api-key.
-	if opts.APIKey != "" {
-		projectToken = &auth.ProjectToken{APIKey: opts.APIKey}
-	}
-	// If not user-provided, load from CredProject
-	if projectToken == nil && opts.CredProject != "" {
-		configuration, err := auth.NewStore().GetConfiguration(opts.CredProject)
-		if err != nil {
-			return nil, err
+	apiKey := opts.APIKey
+	if apiKey == "" {
+		store := auth.NewStore()
+		cfg, err := store.GetEnvConfiguration(opts.Env)
+		if errors.Is(err, fs.ErrNotExist) {
+			fallbackProject := opts.CredProject
+			if fallbackProject == "" {
+				fallbackProject = environments.AssetsProject(opts.Env)
+			}
+			if fallbackProject != "" {
+				cfg, err = store.GetProjectConfiguration(fallbackProject)
+			}
 		}
+		if err != nil {
+			if opts.CredProject == "" && errors.Is(err, fs.ErrNotExist) {
+				cfg = nil
+			} else {
+				return nil, err
+			}
+		}
+		if cfg != nil {
+			projectToken, err := cfg.GetDefaultCredentials()
+			if err != nil {
+				return nil, err
+			}
+			apiKey = projectToken.APIKey
+		}
+	}
 
-		projectToken, err = configuration.GetDefaultCredentials()
-		if err != nil {
-			return nil, err
-		}
-	}
-	// if provided or load from credentials, exchange API key for ID token
-	if projectToken != nil {
-		// Convert the API token to a Google ID token. With this conversion, the JWT is included in the
-		// credentials provided by the client (rather than requiring the auth-proxy to do it on
-		// ingress.)
-		tokenExchangeServiceAddress, err := resolveTokenExchangeAddress(ctx, opts.ClusterProject)
-		if err != nil {
-			return nil, fmt.Errorf("cannot resolve token exchange service address: %w", err)
-		}
-		opts := []auth.AsIDTokenCredentialsOption{
-			auth.WithTokenExchangeServiceAddress(tokenExchangeServiceAddress),
-		}
+	if apiKey != "" {
+		var tokenOpts []auth.APIKeyTokenSourceOption
 		if addressIsInsecure {
-			opts = append(opts, auth.WithAPIKeyTokenSourceOptions(auth.WithAllowInsecure()))
+			tokenOpts = append(tokenOpts, auth.WithAllowInsecure())
 		}
-		return projectToken.AsIDTokenCredentials(opts...)
+		return auth.NewEnvTokenCredentials(opts.Env, apiKey, tokenOpts...)
 	}
 
 	if addressIsInsecure {
