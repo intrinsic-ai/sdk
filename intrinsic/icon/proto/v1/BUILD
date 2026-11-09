@@ -43,6 +43,11 @@ js_library(
     deps = ["//intrinsic/icon/proto/v1:condition_types_proto"],
 )
 
+js_library(
+    name = "field_metadata_jspb_proto",
+    deps = ["//intrinsic/icon/proto/v1:field_metadata_proto"],
+)
+
 proto_library(
     name = "motion_event_types_proto",
     srcs = ["motion_event_types.proto"],
