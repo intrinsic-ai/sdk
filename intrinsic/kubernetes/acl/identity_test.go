@@ -365,6 +365,31 @@ func TestIsIntrinsicUserDiscriminates(t *testing.T) {
 	}
 }
 
+func TestIsExternalServiceAccount(t *testing.T) {
+	tests := []struct {
+		email string
+		want  bool
+	}{
+		{email: "sa-9m4e2mr0ui3e8a215n4g@serviceaccounts.intrinsic.equipment", want: true},
+		// Intrinsic's internal service accounts.
+		{email: "foo@serviceaccount.intrinsic.ai", want: false},
+		{email: "foo@serviceaccount.intrinsic.equipment", want: false},
+		{email: "node-123@ipc.intrinsic.ai", want: false},
+		{email: "bender@google.com", want: false},
+		{email: "foo@evilserviceaccounts.intrinsic.equipment", want: false},
+		{email: "serviceaccounts.intrinsic.equipment@hacker.com", want: false},
+		{email: "", want: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.email, func(t *testing.T) {
+			if got := IsExternalServiceAccount(tc.email); got != tc.want {
+				t.Errorf("IsExternalServiceAccount(%q) = %v, want %v", tc.email, got, tc.want)
+			}
+		})
+	}
+}
+
 type FakeVerifier struct {
 	ReturnErr error
 	WantToken string
