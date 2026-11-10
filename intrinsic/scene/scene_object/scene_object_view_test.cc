@@ -29,6 +29,7 @@
 #include "absl/status/status_matchers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
+#include "absl/strings/substitute.h"
 #include "absl/types/span.h"
 #include "internal/testing.h"
 #include "intrinsic/eigenmath/types.h"
@@ -43,24 +44,32 @@ namespace intrinsic {
 namespace scene_object {
 namespace {
 
+using ::absl_testing::IsOkAndHolds;
 using ::absl_testing::StatusIs;
 using ::intrinsic::ParseTextProtoOrDie;
 using ::intrinsic_proto::scene_object::v1::Entity;
 using ::intrinsic_proto::scene_object::v1::SceneObject;
 using ::intrinsic_proto::world::KinematicsComponent;
 using ::protobuf_matchers::EqualsProto;
+using ::testing::AllOf;
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
+using ::testing::HasSubstr;
 using ::testing::IsEmpty;
 using ::testing::IsNull;
+using ::testing::Pair;
 using ::testing::Pointee;
 using ::testing::Property;
 using ::testing::SizeIs;
+using ::testing::UnorderedElementsAre;
 
 // Matches a `const Entity*` that points to an entity named `name`.
 auto EntityNamed(const std::string& name) {
   return Pointee(Property(&Entity::name, name));
 }
+
+// Matches a `Pose3d` that is approximately equal to `expected`.
+MATCHER_P(IsApprox, expected, "") { return arg.isApprox(expected); }
 
 // Returns the names of `entities`.
 std::vector<std::string> Names(absl::Span<const Entity* const> entities) {
@@ -385,7 +394,7 @@ TEST(SceneObjectViewTest, ReturnsRootPoses) {
   ASSERT_OK_AND_ASSIGN(const SceneObjectView view,
                        SceneObjectView::Create(scene_object));
 
-  const auto root_poses = view.GetRootPoses();
+  ASSERT_OK_AND_ASSIGN(const auto root_poses, view.GetRootPoses());
   ASSERT_EQ(root_poses.size(), 4);
   const eigenmath::Quaterniond rotate_z_90(0.7071067811865476, 0, 0,
                                            0.7071067811865476);
@@ -395,6 +404,115 @@ TEST(SceneObjectViewTest, ReturnsRootPoses) {
       Pose3d(rotate_z_90, eigenmath::Vector3d(1, 0, 0))));
   EXPECT_TRUE(root_poses.at("link_a").isApprox(
       Pose3d(rotate_z_90, eigenmath::Vector3d(1, 1, 0))));
+}
+
+// A revolute or prismatic joint that has `raw_value` set and no
+// `parent_t_this` is posed by parent_t_inboard * motion(raw_value) *
+// outboard_t_child. The child link has no `parent_t_this`, so it has the same
+// root pose as the joint.
+struct JointPoseCase {
+  std::string name;
+  std::string kinematics_component;
+  Pose3d expected_root_t_joint;
+};
+
+class SceneObjectViewJointPoseTest
+    : public ::testing::TestWithParam<JointPoseCase> {};
+
+TEST_P(SceneObjectViewJointPoseTest,
+       ReturnsRootPosesFromRawValueWhenParentTThisIsUnset) {
+  const JointPoseCase& test_case = GetParam();
+  const SceneObject scene_object = ParseTextProtoOrDie(absl::Substitute(
+      R"pb(
+        name: "single_joint"
+        entities {
+          name: "base"
+          link {}
+        }
+        entities {
+          name: "joint"
+          parent_name: "base"
+          joint { kinematics_component { $0 } }
+        }
+        entities {
+          name: "link"
+          parent_name: "joint"
+          link {}
+        }
+      )pb",
+      test_case.kinematics_component));
+  ASSERT_OK_AND_ASSIGN(const SceneObjectView view,
+                       SceneObjectView::Create(scene_object));
+
+  EXPECT_THAT(view.GetRootPoses(),
+              IsOkAndHolds(UnorderedElementsAre(
+                  Pair("base", IsApprox(Pose3d::Identity())),
+                  Pair("joint", IsApprox(test_case.expected_root_t_joint)),
+                  Pair("link", IsApprox(test_case.expected_root_t_joint)))));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    MovableJoints, SceneObjectViewJointPoseTest,
+    ::testing::Values(
+        // Rotating outboard_t_child by 90 degrees about z moves its offset
+        // along x to an offset along y.
+        JointPoseCase{"RevoluteJoint", R"pb(
+                        motion_type: MOTION_TYPE_REVOLUTE
+                        axis { z: 1 }
+                        raw_value: 1.5707963267948966
+                        parent_t_inboard {
+                          position { x: 1 }
+                          orientation { w: 1 }
+                        }
+                        outboard_t_child {
+                          position { x: 1 }
+                          orientation { w: 1 }
+                        }
+                      )pb",
+                      Pose3d(eigenmath::Quaterniond(0.7071067811865476, 0, 0,
+                                                    0.7071067811865476),
+                             eigenmath::Vector3d(1, 1, 0))},
+        JointPoseCase{"PrismaticJoint", R"pb(
+                        motion_type: MOTION_TYPE_PRISMATIC
+                        axis { y: 1 }
+                        raw_value: 0.5
+                        parent_t_inboard {
+                          position { x: 1 }
+                          orientation { w: 1 }
+                        }
+                      )pb",
+                      Pose3d(eigenmath::Vector3d(1, 0.5, 0))}),
+    [](const ::testing::TestParamInfo<JointPoseCase>& info) {
+      return info.param.name;
+    });
+
+TEST(SceneObjectViewTest, GetRootPosesFailsWhenJointPoseCannotBeResolved) {
+  // `Create()` accepts a zero axis when the joint has no `parent_t_this`, but
+  // the joint pose cannot be computed from it.
+  const SceneObject scene_object = ParseTextProtoOrDie(R"pb(
+    name: "zero_axis"
+    entities {
+      name: "base"
+      link {}
+    }
+    entities {
+      name: "joint"
+      parent_name: "base"
+      joint {
+        kinematics_component {
+          motion_type: MOTION_TYPE_REVOLUTE
+          axis {}
+          raw_value: 0.5
+        }
+      }
+    }
+  )pb");
+  ASSERT_OK_AND_ASSIGN(const SceneObjectView view,
+                       SceneObjectView::Create(scene_object));
+
+  EXPECT_THAT(view.GetRootPoses(),
+              StatusIs(absl::StatusCode::kInvalidArgument,
+                       AllOf(HasSubstr("'joint'"), HasSubstr("axis"))));
 }
 
 TEST(SceneObjectViewTest, SupportsWideTrees) {

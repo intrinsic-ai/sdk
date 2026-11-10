@@ -25,10 +25,12 @@ cc_library(
     deps = [
         "//intrinsic/math:pose3",
         "//intrinsic/math:proto_conversion",
+        "//intrinsic/scene/conversion:scene_object_model_utils",
         "//intrinsic/scene/proto/v1:entity_cc_proto",
         "//intrinsic/scene/proto/v1:scene_object_cc_proto",
         "//intrinsic/scene/validate:scene_object_validation",
         "//intrinsic/util/status:status_macros",
+        "//intrinsic/world/proto:kinematics_component_cc_proto",
         "@abseil-cpp//absl/container:flat_hash_map",
         "@abseil-cpp//absl/log:absl_check",
         "@abseil-cpp//absl/status:statusor",
