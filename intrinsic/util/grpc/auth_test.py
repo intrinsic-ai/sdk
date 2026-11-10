@@ -125,6 +125,49 @@ class AuthTest(absltest.TestCase):
     result = auth.get_configuration("test-project")
     self.assertEqual(gold, result)
 
+  @mock.patch.object(userconfig, "get_user_config_dir", autospec=True)
+  def test_get_env_configuration_returns_valid_configuration_if_exists(
+      self, mock_user_config_dir
+  ):
+    testdir = self.create_tempdir()
+    testfile = pathlib.Path(
+        testdir.full_path,
+        auth.ENV_STORE_DIRECTORY,
+        f"staging{auth.AUTH_CONFIG_EXTENSION}",
+    )
+    testfile.parent.mkdir(exist_ok=True, parents=True)
+    testfile.write_text("""{
+  "name": "staging",
+  "tokens": {
+    "default": {
+      "apiKey": "ink_staging_0000"
+    }
+  }
+}""")
+    mock_user_config_dir.return_value = testdir.full_path
+
+    result = auth.get_env_configuration("staging")
+
+    self.assertEqual(result.name, "staging")
+    self.assertEqual(
+        result.get_default_credentials().api_key, "ink_staging_0000"
+    )
+
+  @mock.patch.object(auth, "get_configuration", autospec=True)
+  def test_get_id_token_credentials_uses_project_env_portal_domain(
+      self, mock_get_configuration
+  ):
+    mock_get_configuration.return_value = auth.ProjectConfiguration(
+        name="staging",
+        tokens={"default": auth.ProjectToken("ink_staging_0000", None)},
+    )
+
+    token_source = auth.get_id_token_credentials("intrinsic-assets-staging")
+
+    mock_get_configuration.assert_called_once_with("intrinsic-assets-staging")
+    self.assertEqual(token_source._api_key, "ink_staging_0000")
+    self.assertEqual(token_source._portal_domain, "flowstate-qa.intrinsic.ai")
+
   @mock.patch.object(auth, "get_configuration")
   def test_get_api_key_calls_get_configuration(self, mock_get_configuration):
     mock_config = mock.Mock()

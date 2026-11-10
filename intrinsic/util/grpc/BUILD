@@ -73,7 +73,6 @@ py_library(
     srcs = ["dialerutil.py"],
     deps = [
         ":auth_py",
-        "//intrinsic/config:environments_py",
         "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_py_pb2",
         "//intrinsic/frontend/cloud/api/v1:solutiondiscovery_api_py_pb2_grpc",
         "//intrinsic/kubernetes/acl/py:identity",
