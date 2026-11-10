@@ -58,3 +58,35 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "root_entity",
+    srcs = ["root_entity.cc"],
+    hdrs = ["root_entity.h"],
+    visibility = [
+        "//intrinsic:intrinsic_internal",
+    ],
+    deps = [
+        "//intrinsic/scene/proto/v1:entity_cc_proto",
+        "//intrinsic/scene/proto/v1:scene_object_cc_proto",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "root_entity_test",
+    srcs = ["root_entity_test.cc"],
+    deps = [
+        ":root_entity",
+        "//intrinsic/scene/proto/v1:entity_cc_proto",
+        "//intrinsic/scene/proto/v1:scene_object_cc_proto",
+        "//intrinsic/util/proto:parse_text_proto",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
+        "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

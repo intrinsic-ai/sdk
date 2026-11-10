@@ -196,6 +196,7 @@ cc_library(
         "//intrinsic/scene/proto/v1:scene_object_cc_proto",
         "//intrinsic/scene/proto/v1:scene_object_updates_cc_proto",
         "//intrinsic/scene/proto/v1:simulation_spec_cc_proto",
+        "//intrinsic/scene/scene_object:root_entity",
         "//intrinsic/scene/util:scene_object_updates",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/world/conversion/sdf:joint_conversion",
