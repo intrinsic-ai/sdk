@@ -97,6 +97,7 @@ def _intrinsic_http_image_impl(
         deps = list(services.keys()) + [
             Label("//intrinsic/httpjson/openapi:handlers"),
             Label("//intrinsic/httpjson/any"),
+            Label("//intrinsic/httpjson/cachecontrol"),
             Label("//intrinsic/httpjson/serialization"),
             Label("//intrinsic/resources/proto:runtime_context_go_proto"),
             Label("@org_golang_google_grpc//credentials/insecure"),

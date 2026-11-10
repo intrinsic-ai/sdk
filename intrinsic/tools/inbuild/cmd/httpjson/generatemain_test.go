@@ -53,9 +53,15 @@ func TestGenerateDeprecated(t *testing.T) {
 	if err != nil {
 		t.Fatalf("os.ReadFile(%q) failed: %v", outputPath, err)
 	}
-	wantMainLine := `	pb0 "foo/bar/service_go_proto"`
-	if !strings.Contains(string(content), wantMainLine) {
-		t.Errorf("main.go missing expected line: %s. Have content: \n%s", wantMainLine, string(content))
+	wantMainLines := []string{
+		`	pb0 "foo/bar/service_go_proto"`,
+		`	"intrinsic/httpjson/cachecontrol"`,
+		`	server := cachecontrol.NoCacheHeaders(http.NewCrossOriginProtection().Handler(mux))`,
+	}
+	for _, wantMainLine := range wantMainLines {
+		if !strings.Contains(string(content), wantMainLine) {
+			t.Errorf("main.go missing expected line: %s. Have content: \n%s", wantMainLine, string(content))
+		}
 	}
 }
 
