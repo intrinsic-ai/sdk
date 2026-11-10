@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//bazel:go_macros.bzl", "go_library")
+load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 go_library(
     name = "status",
@@ -29,5 +29,22 @@ go_library(
         "//intrinsic/tools/inctl/util:printer",
         "@com_github_spf13_cobra//:go_default_library",
         "@org_golang_google_protobuf//encoding/protojson:go_default_library",
+    ],
+)
+
+go_test(
+    name = "status_test",
+    srcs = ["status_test.go"],
+    embed = [":status"],
+    importpath = "intrinsic/tools/inctl/cmd/solution/status/status_test",
+    deps = [
+        "//intrinsic/frontend/solution_service/proto:solution_service_go_proto",
+        "//intrinsic/frontend/solution_service/proto:status_go_proto",
+        "//intrinsic/testing:grpctest",
+        "//intrinsic/tools/inctl/util:printer",
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_protobuf//encoding/protojson:go_default_library",
+        "@org_golang_google_protobuf//testing/protocmp:go_default_library",
     ],
 )
