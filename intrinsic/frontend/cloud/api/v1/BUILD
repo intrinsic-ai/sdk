@@ -36,7 +36,10 @@ js_library(
 
 proto_library(
     name = "clustermanager_api_proto",
-    srcs = ["clustermanager_api.proto"],
+    srcs = [
+        "clustermanager_api.proto",
+        "clustermanager_migration_msg.proto",
+    ],
     deps = [
         "//intrinsic/config/proto:operation_mode_proto",
         "//intrinsic/kubernetes/intrinsic_os/protos/v1:cluster_proto",
