@@ -16,11 +16,10 @@
 Module extension for non-module dependencies
 """
 
-# Module extension function signatures include a ctx variable, which should not be removed.
-def _non_module_deps_impl(
-        ctx):  # @unused
-    # The pass below ensures that if copybara strips everything out of this function
-    # it still produces a valid function (functions without content are invalid).
-    pass
+def _non_module_deps_impl(ctx):
+    # The set of generated repos is deterministic and does not depend on the environment, so
+    # there is no need to store this extension in the lockfile. This statement also ensures
+    # that the function stays valid if copybara strips everything else out of it.
+    return ctx.extension_metadata(reproducible = True)
 
 non_module_deps_ext = module_extension(implementation = _non_module_deps_impl)

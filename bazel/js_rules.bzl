@@ -47,4 +47,7 @@ def _js_rules_impl(ctx):
             is_root = True
     _js_rules_repo(name = "intrinsic_js_rules", is_root = is_root)
 
+    # The generated repo only depends on whether this is the root module.
+    return ctx.extension_metadata(reproducible = True)
+
 js_rules = module_extension(implementation = _js_rules_impl)
