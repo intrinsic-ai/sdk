@@ -216,6 +216,7 @@ TEST(SceneObjectViewTest, SingleEntity) {
   EXPECT_EQ(view.GetNumEntities(), 1);
   EXPECT_THAT(view.GetParent("link"), IsNull());
   EXPECT_THAT(view.GetChildren("link"), IsEmpty());
+  EXPECT_TRUE(view.IsLeaf("link"));
   EXPECT_THAT(view.GetEntitiesInTreeOrder(), ElementsAre(EntityNamed("link")));
   EXPECT_THAT(view.GetSubtreeInTreeOrder("link"),
               ElementsAre(EntityNamed("link")));
@@ -269,6 +270,22 @@ TEST(SceneObjectViewTest, ReturnsChildrenOrderedByName) {
   EXPECT_THAT(view.GetChildren("joint_b"), ElementsAre(EntityNamed("link_b")));
   EXPECT_THAT(view.GetChildren("base_frame"), IsEmpty());
   EXPECT_THAT(view.GetChildren("unknown"), IsEmpty());
+}
+
+TEST(SceneObjectViewTest, ChecksLeafEntities) {
+  const SceneObject scene_object = MakeTreeSceneObject();
+  ASSERT_OK_AND_ASSIGN(const SceneObjectView view,
+                       SceneObjectView::Create(scene_object));
+
+  EXPECT_FALSE(view.IsLeaf("base"));
+  EXPECT_FALSE(view.IsLeaf("joint_a"));
+  EXPECT_FALSE(view.IsLeaf("link_a"));
+  EXPECT_FALSE(view.IsLeaf("joint_b"));
+  EXPECT_FALSE(view.IsLeaf("link_b"));
+  EXPECT_TRUE(view.IsLeaf("base_frame"));
+  EXPECT_TRUE(view.IsLeaf("sensor"));
+  EXPECT_TRUE(view.IsLeaf("tool_frame"));
+  EXPECT_FALSE(view.IsLeaf("unknown"));
 }
 
 TEST(SceneObjectViewTest, ReturnsEntitiesInTreeOrder) {
@@ -486,9 +503,9 @@ INSTANTIATE_TEST_SUITE_P(
       return info.param.name;
     });
 
-TEST(SceneObjectViewTest, GetRootPosesFailsWhenJointPoseCannotBeResolved) {
-  // `Create()` accepts a zero axis when the joint has no `parent_t_this`, but
-  // the joint pose cannot be computed from it.
+TEST(SceneObjectViewTest, CreateFailsWhenJointPoseCannotBeResolved) {
+  // `Create()` validates movable joint kinematics even when `parent_t_this` is
+  // unset, rejecting joints whose pose cannot be computed.
   const SceneObject scene_object = ParseTextProtoOrDie(R"pb(
     name: "zero_axis"
     entities {
@@ -507,12 +524,10 @@ TEST(SceneObjectViewTest, GetRootPosesFailsWhenJointPoseCannotBeResolved) {
       }
     }
   )pb");
-  ASSERT_OK_AND_ASSIGN(const SceneObjectView view,
-                       SceneObjectView::Create(scene_object));
 
-  EXPECT_THAT(view.GetRootPoses(),
+  EXPECT_THAT(SceneObjectView::Create(scene_object),
               StatusIs(absl::StatusCode::kInvalidArgument,
-                       AllOf(HasSubstr("'joint'"), HasSubstr("axis"))));
+                       AllOf(HasSubstr("joint"), HasSubstr("axis"))));
 }
 
 TEST(SceneObjectViewTest, SupportsWideTrees) {
