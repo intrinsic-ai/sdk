@@ -155,3 +155,19 @@ go_library(
         "@org_golang_google_grpc//credentials/oauth:go_default_library",
     ],
 )
+
+go_library(
+    name = "introspection",
+    srcs = ["introspection.go"],
+    importpath = "intrinsic/tools/inctl/util/introspection",
+)
+
+go_test(
+    name = "introspection_test",
+    srcs = ["introspection_test.go"],
+    embed = [":introspection"],
+    importpath = "intrinsic/tools/inctl/util/introspection_test",
+    deps = [
+        "@com_github_google_go_cmp//cmp:go_default_library",
+    ],
+)
