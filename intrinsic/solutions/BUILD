@@ -631,6 +631,7 @@ py_library(
         ":scene_object_import",
         ":simulation",
         ":worlds",
+        "//intrinsic/solution_versions/solution_migration/motion_planner/tools/solution_diff:solution_diff_lib",
         # Useful for building Python script nodes
         "//intrinsic/skills/python:basic_compute_context",
     ],

@@ -16,7 +16,10 @@ syntax = "proto3";
 
 package intrinsic_proto.solution_versions.v1;
 
+import "google/protobuf/descriptor.proto";
 import "google/protobuf/field_mask.proto";
+import "google/rpc/status.proto";
+
 import "intrinsic/assets/proto/v1/solution.proto";
 import "intrinsic/solution_versions/proto/v1/solution_diff.proto";
 
@@ -138,6 +141,11 @@ service SolutionVersionService {
   // Performs a directional, two-way comparison (diff) between two solution
   // versions.
   rpc Diff(DiffRequest) returns (SolutionDiff) {}
+
+  // Resolves and returns FileDescriptorSets for a requested list of asset
+  // version IDs.
+  rpc BatchGetAssetFileDescriptorSets(BatchGetAssetFileDescriptorSetsRequest)
+      returns (BatchGetAssetFileDescriptorSetsResponse) {}
 
   // Performs a directional, three-way comparison to generate a pre-merge
   // analysis (preview) of merging a source snapshot into a destination branch.
@@ -426,6 +434,32 @@ message DiffRequest {
   // The state that is compared against the reference. Applying the returned
   // patch to the reference yields the target.
   SnapshotSource target = 2;
+}
+
+message BatchGetAssetFileDescriptorSetsRequest {
+  // The asset ID versions to resolve, formatted as
+  // "<package>.<name>.<version>".
+  repeated string asset_id_versions = 1;
+}
+
+message BatchGetAssetFileDescriptorSetsResponse {
+  message FileDescriptorSetResult {
+    // The resolved asset ID version, formatted as
+    // "<package>.<name>.<version>".
+    string asset_id_version = 1;
+
+    oneof result {
+      // The resolved FileDescriptorSet, populated if the resolution was
+      // successful.
+      google.protobuf.FileDescriptorSet file_descriptor_set = 2;
+
+      // The error status, populated if the resolution failed.
+      google.rpc.Status error_status = 3;
+    }
+  }
+
+  // List of the requested asset version IDs and their resolution result.
+  repeated FileDescriptorSetResult results = 1;
 }
 
 message PreviewMergeRequest {
