@@ -1,0 +1,16 @@
+{
+  "name": "@intrinsic-ai/testing",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Internal test helpers for the Intrinsic frontend SDK packages. Not published.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "rxjs": "7.8.2"
+  }
+}

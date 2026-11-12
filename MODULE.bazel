@@ -511,6 +511,7 @@ npm.npm_translate_lock(
         "//intrinsic/frontend/sdk:package.json",
         "//intrinsic/frontend/sdk:pnpm-workspace.yaml",
         "//intrinsic/frontend/sdk/core:package.json",
+        "//intrinsic/frontend/sdk/testing:package.json",
         "//intrinsic/frontend/sdk/types:package.json",
     ],
     pnpm_lock = "//intrinsic/frontend/sdk:pnpm-lock.yaml",
