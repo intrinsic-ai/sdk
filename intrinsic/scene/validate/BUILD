@@ -50,12 +50,12 @@ cc_library(
         "//intrinsic/scene/proto/v1:scene_object_cc_proto",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/world/proto:kinematics_component_cc_proto",
-        "@abseil-cpp//absl/algorithm:container",
         "@abseil-cpp//absl/container:flat_hash_map",
         "@abseil-cpp//absl/container:flat_hash_set",
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/types:span",
         "@com_google_protobuf//:protobuf",
     ],
 )
