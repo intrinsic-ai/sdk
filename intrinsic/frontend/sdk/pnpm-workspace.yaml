@@ -16,6 +16,7 @@ packages:
   - "types"
   - "core"
   - "testing"
+  - "world"
 
 # Enforce a minimum release age to prevent trivial supply chain attacks.
 minimumReleaseAge: 1440 # in minutes => 24h
