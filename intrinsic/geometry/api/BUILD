@@ -258,6 +258,22 @@ cc_library(
 )
 
 cc_library(
+    name = "oriented_bounding_box",
+    srcs = ["oriented_bounding_box.cc"],
+    hdrs = ["oriented_bounding_box.h"],
+    deps = [
+        "//intrinsic/eigenmath",
+        "//intrinsic/geometry/proto:oriented_bounding_box_cc_proto",
+        "//intrinsic/marshal:riegeli_proto_coder",
+        "//intrinsic/math:pose3",
+        "//intrinsic/math:proto_conversion",
+        "//intrinsic/util/status:ret_check",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status:statusor",
+    ],
+)
+
+cc_library(
     name = "renderable",
     srcs = ["renderable.cc"],
     hdrs = ["renderable.h"],
