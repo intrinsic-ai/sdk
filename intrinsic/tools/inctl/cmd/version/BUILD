@@ -20,7 +20,7 @@ go_library(
     importpath = "intrinsic/tools/inctl/cmd/version/version",
     visibility = [
         "//intrinsic/skills/tools:__subpackages__",
-        "//intrinsic/tools/inctl:__subpackages__",
+        "//intrinsic/tools:__subpackages__",
     ],
     x_defs = {"SDKVersion": "{STABLE_SDK_VERSION}"},
     deps = [

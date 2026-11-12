@@ -29,7 +29,7 @@ go_library(
     importpath = "intrinsic/tools/inctl/cmd/bazel/bazel",
     visibility = [
         "//intrinsic/skills/tools:__subpackages__",
-        "//intrinsic/tools/inctl:__subpackages__",
+        "//intrinsic/tools:__subpackages__",
     ],
     deps = [
         "//intrinsic/tools/inctl/cmd:root",

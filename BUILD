@@ -19,7 +19,9 @@ exports_files(
         ".bazelrc",
         ".bazelversion",
     ],
-    visibility = ["//intrinsic/tools/inctl/cmd/bazel/templates:__subpackages__"],
+    visibility = [
+        "//intrinsic/tools/inctl/cmd/bazel/templates:__subpackages__",
+    ],
 )
 
 exports_files(
