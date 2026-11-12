@@ -93,8 +93,10 @@ go_library(
     ],
     importpath = "intrinsic/tools/inctl/cmd/root",
     deps = [
+        "//intrinsic/kubernetes/acl:identity",
         "//intrinsic/production:intrinsic",
         "//intrinsic/skills/tools/skill/cmd:dialerutil",
+        "//intrinsic/tools/inctl/auth",
         "//intrinsic/tools/inctl/util:orgutil",
         "//intrinsic/tools/inctl/util:printer",
         "@com_github_golang_glog//:go_default_library",

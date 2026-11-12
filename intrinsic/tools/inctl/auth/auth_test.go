@@ -16,6 +16,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"slices"
@@ -598,5 +599,15 @@ func TestStore_UpsertProjectConfig(t *testing.T) {
 
 	if creds.APIKey != newAPIKey {
 		t.Errorf("got APIKey %q, want %q", creds.APIKey, newAPIKey)
+	}
+}
+
+func TestNewCloudConnection_MissingProjectAndOrgReturnsErrCredentialsRequired(t *testing.T) {
+	ctx := context.Background()
+	if _, err := NewCloudConnection(ctx); !errors.Is(err, ErrCredentialsRequired) {
+		t.Errorf("NewCloudConnection(ctx) error = %v, want %v", err, ErrCredentialsRequired)
+	}
+	if _, err := NewCloudClient(ctx); !errors.Is(err, ErrCredentialsRequired) {
+		t.Errorf("NewCloudClient(ctx) error = %v, want %v", err, ErrCredentialsRequired)
 	}
 }
