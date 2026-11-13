@@ -18,7 +18,9 @@ load("@rules_python//python:defs.bzl", "py_library", "py_test")
 py_library(
     name = "ipcidentity_py",
     srcs = ["ipcidentity.py"],
-    visibility = ["//intrinsic/util/grpc:__pkg__"],
+    visibility = [
+        "//intrinsic/util/grpc:__pkg__",
+    ],
     deps = [
         "//intrinsic/config:environments_py",
         "//intrinsic/kubernetes/accounts/service/api/tokens/v2:tokens_py_pb2",
