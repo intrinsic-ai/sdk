@@ -32,6 +32,7 @@ go_library(
         "//intrinsic/assets/services/proto:service_manifest_go_proto",
         "//intrinsic/logging/proto:blob_go_proto",
         "//intrinsic/logging/proto:log_dispatcher_service_go_proto",
+        "//intrinsic/logging/proto:log_item_go_proto",
         "//intrinsic/logging/proto:logger_service_go_proto",
         "//intrinsic/logging/textlogfetcher/proto/v1:textlogfetcher_go_proto",
         "//intrinsic/skills/proto:skill_manifest_go_proto",
