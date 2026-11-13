@@ -25,6 +25,7 @@ import (
 	"intrinsic/assets/bundle"
 	"intrinsic/assets/clientutils"
 	"intrinsic/assets/cmdutils"
+	"intrinsic/assets/errors/report"
 	"intrinsic/assets/idutils"
 	"intrinsic/assets/imagetransfer"
 	"intrinsic/assets/referenceddata"
@@ -80,6 +81,12 @@ func GetCommand() *cobra.Command {
       --org $my_org \
       --solution $my_solution_id
 
+  Install an Asset, failing on any Solution validation issue:
+  $ inctl asset install abc/bundle.tar \
+      --org $my_org \
+      --solution $my_solution_id \
+      --validation_policy=strict
+
   To find a running Solution's id, run:
   $ inctl solution list --org $my_org --filter "running_on_hw,running_in_sim" --output json
 
@@ -92,6 +99,10 @@ func GetCommand() *cobra.Command {
 			targets := args
 
 			policy, err := flags.GetFlagPolicy()
+			if err != nil {
+				return err
+			}
+			validationPolicy, err := flags.GetFlagValidationPolicy()
 			if err != nil {
 				return err
 			}
@@ -146,11 +157,12 @@ func GetCommand() *cobra.Command {
 
 			// Call the batch CreateInstalledAssets API once with all assets together.
 			op, err := client.CreateInstalledAssets(ctx, &iapb.CreateInstalledAssetsRequest{
-				Policy: policy,
-				Assets: assets,
+				Policy:           policy,
+				Assets:           assets,
+				ValidationPolicy: validationPolicy,
 			})
 			if err != nil {
-				return fmt.Errorf("could not install the assets: %w", err)
+				return wrapError("could not install the assets", err)
 			}
 
 			log.Printf("Awaiting completion of the installation")
@@ -165,7 +177,7 @@ func GetCommand() *cobra.Command {
 			}
 
 			if err := status.ErrorProto(op.GetError()); err != nil {
-				return fmt.Errorf("installation failed: %w", err)
+				return wrapError("installation failed", err)
 			}
 			installed := &iapb.CreateInstalledAssetsResponse{}
 			if err := op.GetResponse().UnmarshalTo(installed); err != nil {
@@ -191,6 +203,7 @@ func GetCommand() *cobra.Command {
 	flags.SetCommand(cmd)
 	flags.AddFlagsAddressClusterSolution()
 	flags.AddFlagPolicy("asset")
+	flags.AddFlagValidationPolicy()
 	flags.AddFlagsProjectOrg()
 	flags.AddFlagsRateLimit(throttle.OnPremRateLimit, throttle.OnPremBurst)
 	flags.AddFlagProcessingConcurrency(throttle.LocalProcessingConcurrency)
@@ -269,4 +282,20 @@ func assetFromTarget(ctx context.Context, target string, process processBundle) 
 	}
 
 	return nil, fmt.Errorf("%q is not a file, id_version, or Solution Asset; check that the input is formatted correctly", target)
+}
+
+// wrapError checks if err carries Solution validation errors, and wraps it with those
+// details. Otherwise it just annotates err with msg.
+func wrapError(msg string, err error) error {
+	es, ok := extstatus.FromGRPCError(err)
+	if !ok {
+		return fmt.Errorf("%s: %w", msg, err)
+	}
+	sc := es.Proto().GetStatusCode()
+	if sc.GetComponent() != report.ComponentName || sc.GetCode() != report.StatusCode {
+		return fmt.Errorf("%s: %w", msg, err)
+	}
+	return fmt.Errorf("%s: Solution validation failed:\n\n%s\n"+
+		"Fix these errors and retry, or re-run with --validation_policy=recoverable to proceed "+
+		"despite non-blocking validation issues.", msg, color.C.Red().Sprintf("%s", es.String()))
 }

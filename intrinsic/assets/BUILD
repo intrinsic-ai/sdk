@@ -89,6 +89,7 @@ go_library(
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:installed_assets_go_proto",
         "//intrinsic/assets/proto:view_go_proto",
+        "//intrinsic/assets/proto/v1:solution_validation_policy_go_proto",
         "//intrinsic/tools/inctl/util:orgutil",
         "@com_github_pkg_errors//:go_default_library",
         "@com_github_spf13_cobra//:go_default_library",
