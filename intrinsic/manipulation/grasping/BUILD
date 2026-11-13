@@ -83,6 +83,15 @@ py_library(
 )
 
 py_library(
+    name = "grasp_annotation_diagnostics",
+    srcs = ["grasp_annotation_diagnostics.py"],
+    visibility = ["//intrinsic:public_api_users"],
+    deps = [
+        "//intrinsic/manipulation/grasping:grasp_annotator_py_pb2",
+    ],
+)
+
+py_library(
     name = "multi_axis_auto_annotator_client",
     srcs = ["multi_axis_auto_annotator_client.py"],
     deps = [
