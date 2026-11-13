@@ -155,6 +155,7 @@ proto_library(
     srcs = ["asset_deployment.proto"],
     deps = [
         ":id_proto",
+        "//intrinsic/assets/proto/v1:solution_validation_policy_proto",
         "//intrinsic/math/proto:pose_proto",
         "//intrinsic/scene/proto/v1:scene_object_config_proto",
         "//intrinsic/util/status:extended_status_proto",
@@ -187,6 +188,7 @@ go_proto_library(
     protos = [":asset_deployment_proto"],
     deps = [
         ":id_go_proto",
+        "//intrinsic/assets/proto/v1:solution_validation_policy_go_proto",
         "//intrinsic/math/proto:pose_go_proto",
         "//intrinsic/scene/proto/v1:scene_object_config_go_proto",
         "//intrinsic/util/status:extended_status_go_proto",
