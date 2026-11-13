@@ -40,6 +40,8 @@ npm_package(
     srcs = [
         ":license",
         ":package",
+        "//intrinsic/frontend/sdk/world/backends/simple_world_backend:lib",
+        "//intrinsic/frontend/sdk/world/model:lib",
         "//intrinsic/frontend/sdk/world/utils:lib",
     ],
     package = "@intrinsic-ai/world",

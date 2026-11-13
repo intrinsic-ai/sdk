@@ -6,6 +6,14 @@
   "type": "module",
   "license": "Apache-2.0",
   "exports": {
+    "./backends/simple_world_backend": {
+      "types": "./backends/simple_world_backend/index.d.ts",
+      "default": "./backends/simple_world_backend/index.js"
+    },
+    "./model": {
+      "types": "./model/index.d.ts",
+      "default": "./model/index.js"
+    },
     "./utils": {
       "types": "./utils/index.d.ts",
       "default": "./utils/index.js"

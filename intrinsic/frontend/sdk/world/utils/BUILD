@@ -28,7 +28,10 @@ ts_project(
     source_map = True,
     transpiler = "tsc",
     tsconfig = "//intrinsic/frontend/sdk:tsconfig",
-    visibility = ["//intrinsic/frontend/sdk/world:__pkg__"],
+    visibility = [
+        "//intrinsic/frontend/sdk/world:__pkg__",
+        "//intrinsic/frontend/sdk/world/model:__pkg__",
+    ],
     deps = [
         "//intrinsic/frontend/sdk/world:node_modules/@intrinsic-ai/core",
         "//intrinsic/frontend/sdk/world:node_modules/@types/three",
