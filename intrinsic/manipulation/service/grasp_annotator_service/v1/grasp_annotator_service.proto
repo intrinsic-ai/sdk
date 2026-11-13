@@ -80,6 +80,15 @@ message GraspAnnotatorRequest {
   optional SamplingOptions sampling_options = 7;
   // The logging context
   optional intrinsic_proto.data_logger.Context context = 9;
+  // Maximum number of rejected candidates to return per StageCount in
+  // GraspAnnotatorResponse.diagnostics, nearest-to-threshold first. 0 (the
+  // default) returns the stage counts only. Larger values are for debugging
+  // (e.g. to wrap the poses as manual annotations for Visualize); at most the
+  // 100 nearest misses per stage are recorded, so larger values return at most
+  // 100. Negative values are rejected with INVALID_ARGUMENT.
+  int32 max_num_rejected_annotations_per_stage = 10;
+
+  reserved 8;
 }
 
 message VisualizationOptions {
@@ -92,6 +101,11 @@ message GraspAnnotatorResponse {
   GraspAnnotations annotations = 1;
   // The service-generated unique logging ID for this request.
   string logging_id = 2;
+  // Per-stage candidate rejection funnel diagnostics for this request, with up
+  // to `max_num_rejected_annotations_per_stage` rejected candidates per stage.
+  // Populated on every `Annotate` response; callers talking to older servers
+  // should check presence before reading `stage_breakdown`.
+  intrinsic_proto.grasping.GraspAnnotationDiagnostics diagnostics = 3;
 }
 
 message GraspAnnotatorVisualizeRequest {
@@ -170,12 +184,24 @@ message GraspAnnotatorGenerateRequest {
   int64 num_samples = 3;
   // Options for configurable sampling parameters.
   optional SamplingOptions sampling_options = 4;
+  // Maximum number of rejected candidates to return per StageCount in
+  // GraspAnnotatorGenerateResponse.diagnostics, nearest-to-threshold first. 0
+  // (the default) returns the stage counts only. Larger values are for
+  // debugging (e.g. to wrap the poses as manual annotations for Visualize); at
+  // most the 100 nearest misses per stage are recorded, so larger values return
+  // at most 100. Negative values are rejected with INVALID_ARGUMENT.
+  int32 max_num_rejected_annotations_per_stage = 5;
 }
 
 message GraspAnnotatorGenerateResponse {
   // Generated unprocessed grasp annotations.
   // These annotations are not filtered, scored or sorted.
   GraspAnnotations unprocessed_annotations = 1;
+  // Per-stage candidate rejection funnel diagnostics for generation, with up to
+  // `max_num_rejected_annotations_per_stage` rejected candidates per stage.
+  // Populated on every `Generate` response; callers talking to older servers
+  // should check presence before reading `stage_breakdown`.
+  intrinsic_proto.grasping.GraspAnnotationDiagnostics diagnostics = 2;
 }
 
 message GraspAnnotatorFilterRequest {
@@ -187,11 +213,23 @@ message GraspAnnotatorFilterRequest {
   GraspAnnotations unfiltered_annotations = 3;
   // Constraints to filter grasp poses.
   optional GraspAnnotationConstraint constraint = 4;
+  // Maximum number of rejected candidates to return per StageCount in
+  // GraspAnnotatorFilterResponse.diagnostics, nearest-to-threshold first. 0
+  // (the default) returns the stage counts only. Larger values are for
+  // debugging (e.g. to wrap the poses as manual annotations for Visualize); at
+  // most the 100 nearest misses per stage are recorded, so larger values return
+  // at most 100. Negative values are rejected with INVALID_ARGUMENT.
+  int32 max_num_rejected_annotations_per_stage = 5;
 }
 
 message GraspAnnotatorFilterResponse {
   // Filtered grasp annotations.
   GraspAnnotations filtered_annotations = 1;
+  // Per-stage candidate rejection funnel diagnostics for constraint filtering,
+  // with up to `max_num_rejected_annotations_per_stage` rejected candidates per
+  // stage. Populated on every `Filter` response; callers talking to older
+  // servers should check presence before reading `stage_breakdown`.
+  intrinsic_proto.grasping.GraspAnnotationDiagnostics diagnostics = 2;
 }
 
 message GraspAnnotatorScoreRequest {

@@ -222,3 +222,131 @@ message SamplingOptions {
   // Minimum distance between samples in meters, defaults to 0.005m.
   optional float min_sample_distance_in_meters = 2;
 }
+
+// A check of the grasp annotation pipeline. One `StageCount` reports the
+// outcome of one check. The checks of a request run in the order of
+// `stage_breakdown`, which is not the order of the values below, and each
+// candidate is counted in the first check it fails, even if it would also fail
+// a later one: a suction pose over a hole is counted under
+// `SUCTION_CUP_OVER_HOLE` and not under `SURFACE_ROUGHNESS_EXCEEDED`.
+enum AnnotationCheck {
+  ANNOTATION_CHECK_UNSPECIFIED = 0;
+  // Suction: surface deviation under the cups exceeds the effective
+  // `surface_roughness_threshold_in_meters`.
+  SURFACE_ROUGHNESS_EXCEEDED = 1;
+  // Suction: at least one cup sample point is over a hole / off the surface
+  // (share of cup sample points hitting the surface is below 1.0, fraction).
+  SUCTION_CUP_OVER_HOLE = 2;
+  // Pinch: the surface normals of an entry/exit point pair are not antipodal
+  // within `antipodal_threshold_in_radians`. The candidates of this stage are
+  // entry/exit point pairs: a ray with four or more hits yields several.
+  INSUFFICIENT_ANTIPODAL_NORMALS = 3;
+  // Pinch: pair width <= `min_closing_distance_in_meters`.
+  MIN_CLOSING_DISTANCE_VIOLATED = 4;
+  // Pinch: pair width >= `opening_in_meters`.
+  OPENING_EXCEEDED = 5;
+  // Pinch: no surface within `finger_length_in_meters` of the grasp line to
+  // align the fingers to.
+  NO_CONTACT_SURFACE_IN_FINGER_REACH = 6;
+  // Pinch (finger grippers): the gripper mesh collides with the object at the
+  // candidate pose. This stage evaluates poses (each surviving contact pair
+  // times its approach normals), so its `input_count` is usually larger than
+  // the previous stage's `output_count`.
+  FINGER_COLLISION_WITH_PART = 7;
+  // Centric / V-notch pinch: the radius of the cylinder fitted to the object is
+  // outside the gripper's graspable radius bounds.
+  INCOMPATIBLE_RADIAL_DIMENSION = 8;
+  // Constraint: finger contact area in m^2 below `min_finger_contact_area`
+  // times the finger area (width * length).
+  INSUFFICIENT_CONTACT_AREA = 9;
+  // Constraint: pose excluded by `bounding_box_constraint`.
+  BOUNDING_BOX_CONSTRAINT_EXCLUDED = 10;
+  // Constraint: smallest angle between the approach axis and an allowed axis in
+  // `axis_constraint` exceeds `angle_tolerance_in_radians` (rad).
+  AXIS_CONSTRAINT_MISALIGNED = 11;
+  // Suction and parallel pinch sampling: a ray cast from the bounding box did
+  // not hit the mesh, so no candidate was created for it. `input_count` is the
+  // number of rays cast: the surface samples (`num_samples`, or fewer when
+  // samples closer to each other than `min_sample_distance_in_meters` are
+  // discarded) plus the rays added by `centered_samples`. `output_count` is the
+  // number of rays that hit the mesh. The rays start on the bounding box
+  // enlarged by a small margin, so some of them miss even a solid part.
+  RAY_MISSED_SURFACE = 12;
+  // Parallel pinch sampling: the ray hit the mesh only once, so there is no
+  // opposing surface to close the fingers on. Typical for a mesh with a missing
+  // face or for a surface without thickness.
+  RAY_SINGLE_HIT = 13;
+  // Centric / V-notch pinch: the object mesh is not sufficiently cylindrical
+  // for cylinder-based grasp sampling (the convex-hull-to-bounding-cylinder
+  // volume ratio is below `threshold`, or `0.0` when the mesh has negligible
+  // convex-hull volume).
+  INCOMPATIBLE_OBJECT_SHAPE = 14;
+}
+
+// A rejected candidate of one stage. What is common to all candidates of the
+// stage (the check and the limit) lives on the enclosing StageCount.
+message RejectedAnnotation {
+  // Pose of the gripper's tool frame in the object frame, the same convention
+  // as `ManualGraspAnnotation.ref_t_annotation` in the returned annotations.
+  // Unset for `INCOMPATIBLE_OBJECT_SHAPE` and `INCOMPATIBLE_RADIAL_DIMENSION`,
+  // which reject before any pose is sampled.
+  intrinsic_proto.Pose sample_pose = 1;
+  // This candidate's value of the stage's tested quantity, in the unit of
+  // StageCount.threshold. Unset for stages without a scalar limit (collision,
+  // bounding box, ray sampling).
+  optional double measured_value_against_threshold = 2;
+  // What the scalar does not capture, e.g. the colliding gripper link.
+  optional string debug_message = 3;
+}
+
+// One stage of the annotation funnel. Stages only see the survivors of the
+// previous stage, so the first stage with `output_count == 0` explains an
+// empty result.
+message StageCount {
+  // The check this stage applied.
+  AnnotationCheck stage_name = 1;
+  // Candidates the stage evaluated. This is the `output_count` of the previous
+  // stage unless the kind of candidate changes between the two, for example
+  // from multi-hit rays to entry/exit point pairs
+  // (`INSUFFICIENT_ANTIPODAL_NORMALS`), from contact pairs to poses
+  // (`FINGER_COLLISION_WITH_PART`, one pose per pair and approach normal), from
+  // surface points to the poses of a suction gripper with several cups
+  // (`SUCTION_CUP_OVER_HOLE`, one pose per point and rotation angle), or from
+  // the fitted cylinder to the poses sampled on it (the stage after
+  // `INCOMPATIBLE_RADIAL_DIMENSION`).
+  optional int64 input_count = 2;
+  // Candidates that passed this stage and survived to the next stage.
+  optional int64 output_count = 3;
+  // Effective limit the stage applied, after defaults and clamping, in the
+  // unit of the check (rad for antipodal normals and axis constraint, hit
+  // fraction in [0, 1] for suction cup over hole, volume ratio in [0, 1] for
+  // object shape, m^2 for contact area, m otherwise). Unset for stages without
+  // a scalar limit (collision, bounding box, ray sampling). Every stage tests a
+  // single bound: the pinch width window is checked by two stages
+  // (`MIN_CLOSING_DISTANCE_VIOLATED` and `OPENING_EXCEEDED`), and for
+  // `INCOMPATIBLE_RADIAL_DIMENSION` this is the bound the radius violated (the
+  // minimum if the radius is below it, otherwise the maximum).
+  optional double threshold = 4;
+  // Rejected candidates ordered by proximity to `threshold` (nearest first, or
+  // in evaluation order for stages without a scalar limit). Usually a subset
+  // of the stage's rejections: `input_count - output_count` is the number of
+  // candidates the stage dropped.
+  repeated RejectedAnnotation rejected_annotations = 5;
+  // Wall time spent in this stage, in seconds.
+  optional double total_execution_time_sec = 6;
+}
+
+// Per-stage breakdown of the grasp annotation candidate funnel.
+message GraspAnnotationDiagnostics {
+  // Stages of the annotation funnel in pipeline order. For suction and parallel
+  // pinch grippers the first stage is `RAY_MISSED_SURFACE`, whose `input_count`
+  // is the number of rays cast. For centric and V-notch pinch grippers it is
+  // `INCOMPATIBLE_RADIAL_DIMENSION` with an `input_count` of 1: the radius
+  // check of the cylinder fitted to the object (a mesh that no cylinder fits
+  // fails the request with an error instead).
+  repeated StageCount stage_breakdown = 1;
+  // Number of annotations that passed every stage but were not returned because
+  // of `max_num_annotations` (the lowest-scored ones when scoring metrics are
+  // given). 0 if `max_num_annotations` is unset, not positive or not reached.
+  int64 num_truncated_by_max_num_annotations = 2;
+}
