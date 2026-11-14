@@ -203,10 +203,11 @@ class SkillProjectorServicer(skill_service_pb2_grpc.ProjectorServicer):
         context_id=context_id,
     )
 
+    def get_footprint() -> footprint_pb2.Footprint:
+      return skill_project_instance.get_footprint(request, footprint_context)
+
     try:
-      skill_footprint = skill_project_instance.get_footprint(
-          request, footprint_context
-      )
+      skill_footprint = get_footprint()
     except Exception as err:  # pylint: disable=broad-except
       error_status = _handle_skill_error(
           err=err,
