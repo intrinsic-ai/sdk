@@ -15,7 +15,9 @@
 #ifndef INTRINSIC_PLATFORM_PUBSUB_FAKE_KVSTORE_H_
 #define INTRINSIC_PLATFORM_PUBSUB_FAKE_KVSTORE_H_
 
+#include <optional>
 #include <string>
+#include <utility>
 
 #include "absl/base/thread_annotations.h"
 #include "absl/container/node_hash_map.h"
@@ -42,6 +44,8 @@ namespace intrinsic {
 class FakeKeyValueStore : public KeyValueStore {
  public:
   FakeKeyValueStore() : KeyValueStore(/*prefix_override=*/std::nullopt) {}
+  explicit FakeKeyValueStore(std::optional<std::string> prefix_override)
+      : KeyValueStore(std::move(prefix_override)) {}
   ~FakeKeyValueStore() override = default;
 
   using KeyValueStore::Set;

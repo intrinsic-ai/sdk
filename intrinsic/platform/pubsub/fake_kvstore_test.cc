@@ -80,5 +80,17 @@ TEST_F(FakeKeyValueStoreTest, DeleteNotFound) {
   EXPECT_THAT(status.message(), HasSubstr("Key not found: nonexistent"));
 }
 
+TEST_F(FakeKeyValueStoreTest, KeyPrefixDefaultsToKvStore) {
+  EXPECT_EQ(kv_store_.key_prefix(), "kv_store");
+}
+
+// FakeKeyValueStore forwards an explicit prefix_override to KeyValueStore so
+// callers can exercise non-default storage prefixes in unit tests.
+TEST(FakeKeyValueStorePrefixOverrideTest, KeyPrefixReturnsConfiguredOverride) {
+  const FakeKeyValueStore custom_store("in_mem_kv_store");
+
+  EXPECT_EQ(custom_store.key_prefix(), "in_mem_kv_store");
+}
+
 }  // namespace
 }  // namespace intrinsic
