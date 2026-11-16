@@ -25,6 +25,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/strip.h"
+#include "google/protobuf/any.pb.h"
 #include "google/protobuf/wrappers.pb.h"
 #include "intrinsic/geometry/api/io.h"
 #include "intrinsic/geometry/api/renderable_generation.h"
@@ -34,6 +35,7 @@
 namespace intrinsic::geo {
 namespace {
 
+using ::google::protobuf::Any;
 using ::google::protobuf::BytesValue;
 using ::intrinsic_proto::geometry::v1::GeometryStorageRefs;
 using ::intrinsic_proto::geometry::v1::MaterialProperties;
@@ -67,11 +69,42 @@ absl::StatusOr<absl::string_view> ExtractAndValidateKvStoreKey(
   return key;
 }
 
+// Validates that caller-specified custom key `key` for `field` is non-empty and
+// contains no Zenoh-forbidden characters (`/*?#[]$` or NUL).
+absl::Status ValidateCustomKvStoreKey(absl::string_view key,
+                                      absl::string_view field) {
+  if (key.empty()) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Custom ", field, " must not be empty."));
+  }
+  if (!IsValidKvStoreSegment(key)) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Custom ", field, " contains invalid character: ", key));
+  }
+  return absl::OkStatus();
+}
+
 // Returns "<key_prefix><16-hex-fingerprint>" computed from `payload`.
 std::string ContentAddressedKvStoreKey(absl::string_view key_prefix,
                                        absl::string_view payload) {
   return absl::StrCat(key_prefix,
                       absl::Hex(Fingerprint(payload), absl::kZeroPad16));
+}
+
+// Returns OK if `key` does not exist in `kv_store`, ALREADY_EXISTS if present,
+// or the error status from KeyValueStore::Get.
+absl::Status EnsureKvStoreKeyAbsent(KeyValueStore& kv_store,
+                                    absl::string_view key,
+                                    absl::Duration timeout) {
+  const absl::Status status = kv_store.Get<Any>(key, timeout).status();
+  if (status.ok()) {
+    return absl::AlreadyExistsError(
+        absl::StrCat("KeyValueStore already contains key: ", key));
+  }
+  if (absl::IsNotFound(status)) {
+    return absl::OkStatus();
+  }
+  return status;
 }
 
 // Writes `payload` as `BytesValue` to `kv_store` at `key` and returns its
@@ -165,19 +198,45 @@ class KvStoreGeometryLibrary : public GeometryLibrary,
 
   absl::StatusOr<GeometryStorageRefs> SaveGeometryV1(
       const Geometry& geometry, const SaveGeometryOptions& options) override {
-    if (options.HasCustomKeys()) {
-      return absl::UnimplementedError(
-          "Custom storage keys are not yet implemented in "
-          "KvStoreGeometryLibrary.");
+    const bool keep_renderable = geometry.KeepRenderableForSerialization();
+    if (options.exact_key.has_value()) {
+      INTR_RETURN_IF_ERROR(
+          ValidateCustomKvStoreKey(*options.exact_key, "exact_key"));
     }
+    if (options.renderable_key.has_value()) {
+      if (!keep_renderable) {
+        return absl::InvalidArgumentError(
+            "renderable_key cannot be specified when "
+            "KeepRenderableForSerialization() is false.");
+      }
+      INTR_RETURN_IF_ERROR(
+          ValidateCustomKvStoreKey(*options.renderable_key, "renderable_key"));
+      if (options.exact_key == options.renderable_key) {
+        return absl::InvalidArgumentError(
+            absl::StrCat("exact_key and renderable_key must not be identical: ",
+                         *options.exact_key));
+      }
+    }
+    if (!options.overwrite_if_exists) {
+      if (options.exact_key.has_value()) {
+        INTR_RETURN_IF_ERROR(EnsureKvStoreKeyAbsent(
+            *kv_store_, *options.exact_key, read_timeout_));
+      }
+      if (options.renderable_key.has_value()) {
+        INTR_RETURN_IF_ERROR(EnsureKvStoreKeyAbsent(
+            *kv_store_, *options.renderable_key, read_timeout_));
+      }
+    }
+
     INTR_ASSIGN_OR_RETURN(const ExactGeometryProto proto,
                           ToProto(geometry.GetExactGeometry()));
     std::string exact_bytes = proto.SerializeAsString();
     const std::string exact_key =
-        ContentAddressedKvStoreKey(kExactKeyPrefix, exact_bytes);
+        options.exact_key.has_value()
+            ? *options.exact_key
+            : ContentAddressedKvStoreKey(kExactKeyPrefix, exact_bytes);
 
     GeometryStorageRefs refs;
-    const bool keep_renderable = geometry.KeepRenderableForSerialization();
     refs.set_keep_renderable(keep_renderable);
     if (keep_renderable) {
       INTR_ASSIGN_OR_RETURN(const std::shared_ptr<const Renderable> renderable,
@@ -187,7 +246,9 @@ class KvStoreGeometryLibrary : public GeometryLibrary,
       }
       std::string glb_bytes = renderable->GetGLBString();
       const std::string renderable_key =
-          ContentAddressedKvStoreKey(kRenderableKeyPrefix, glb_bytes);
+          options.renderable_key.has_value()
+              ? *options.renderable_key
+              : ContentAddressedKvStoreKey(kRenderableKeyPrefix, glb_bytes);
       INTR_ASSIGN_OR_RETURN(
           std::string renderable_uri,
           WriteBlobAtKvStoreKey(*kv_store_, renderable_key,
