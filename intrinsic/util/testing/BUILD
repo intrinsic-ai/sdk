@@ -32,6 +32,36 @@ go_library(
 )
 
 cc_library(
+    name = "runfiles",
+    testonly = 1,
+    srcs = ["runfiles.cc"],
+    hdrs = ["runfiles.h"],
+    visibility = ["//intrinsic:intrinsic_internal"],
+    deps = [
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@rules_cc//cc/runfiles",
+    ],
+)
+
+cc_test(
+    name = "runfiles_test",
+    srcs = ["runfiles_test.cc"],
+    data = ["runfiles_test.cc"],
+    deps = [
+        ":runfiles",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
+        "@abseil-cpp//absl/status:statusor",
+        "@com_google_cel_cpp//internal:testing",
+        "@com_google_googletest//:gtest",
+        "@rules_cc//cc/runfiles",
+    ],
+)
+
+cc_library(
     name = "status_payload_matchers",
     testonly = 1,
     hdrs = ["status_payload_matchers.h"],
