@@ -132,3 +132,26 @@ cc_library(
         ":geometry_serializer",
     ],
 )
+
+cc_library(
+    name = "kvstore_storage",
+    srcs = ["kvstore_storage.cc"],
+    hdrs = ["kvstore_storage.h"],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":geometry_library",
+        "//intrinsic/geometry/api:io",
+        "//intrinsic/geometry/api:renderable_generation",
+        "//intrinsic/platform/pubsub:kvstore",
+        "//intrinsic/util:hash",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/base:nullability",
+        "@abseil-cpp//absl/log:die_if_null",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:string_view",
+        "@abseil-cpp//absl/time",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
