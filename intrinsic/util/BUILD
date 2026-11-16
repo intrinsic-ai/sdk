@@ -70,6 +70,21 @@ cc_library(
 )
 
 cc_library(
+    name = "full_precision",
+    hdrs = ["full_precision.h"],
+    deps = ["@abseil-cpp//absl/strings:str_format"],
+)
+
+cc_test(
+    name = "full_precision_test",
+    srcs = ["full_precision_test.cc"],
+    deps = [
+        ":full_precision",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "invalid_until_set",
     hdrs = ["invalid_until_set.h"],
 )

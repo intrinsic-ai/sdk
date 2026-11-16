@@ -40,7 +40,6 @@ cc_library(
     visibility = [
         "//intrinsic/geometry/api:__pkg__",
         "//intrinsic/geometry/internal/legacy/mesh:__pkg__",
-        "//intrinsic/geometry/internal/legacy/mesh/io:__pkg__",
         "//intrinsic/geometry/internal/legacy/point_cloud:__pkg__",
         "//intrinsic/geometry/internal/mesh:__pkg__",
     ],
@@ -78,7 +77,6 @@ cc_library(
     visibility = [
         "//intrinsic/geometry/api:__pkg__",
         "//intrinsic/geometry/internal/legacy/mesh:__pkg__",
-        "//intrinsic/geometry/internal/legacy/mesh/io:__pkg__",
         "//intrinsic/geometry/internal/legacy/point_cloud:__pkg__",
         "//intrinsic/geometry/internal/mesh:__pkg__",
     ],
@@ -107,7 +105,6 @@ cc_library(
         "//intrinsic/geometry/internal/distance:__pkg__",
         "//intrinsic/geometry/internal/distance_3:__pkg__",
         "//intrinsic/geometry/internal/legacy/mesh:__pkg__",
-        "//intrinsic/geometry/internal/legacy/mesh/io:__pkg__",
         "//intrinsic/geometry/internal/mesh:__pkg__",
         "//intrinsic/geometry/internal/testing:__pkg__",
         "//intrinsic/scene/sdf:__pkg__",
@@ -130,7 +127,6 @@ cc_library(
     srcs = ["mesh_to_ai_scene.cc"],
     hdrs = ["mesh_to_ai_scene.h"],
     visibility = [
-        "//intrinsic/geometry/internal/legacy/mesh/io:__pkg__",
         "//intrinsic/geometry/internal/util:__pkg__",
     ],
     deps = [
@@ -150,5 +146,44 @@ cc_test(
         ":restrict_importer",
         "@assimp",
         "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "save_mesh_to_obj_file",
+    srcs = ["save_mesh_to_obj_file.cc"],
+    hdrs = ["save_mesh_to_obj_file.h"],
+    visibility = [
+        "//intrinsic/geometry:__subpackages__",
+        "//intrinsic/geometry/internal/legacy/mesh:__pkg__",
+    ],
+    deps = [
+        "//intrinsic/geometry/internal/mesh",
+        "//intrinsic/util:full_precision",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/log:check",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@com_gitlab_libeigen_eigen//:eigen",
+        "@or_tools//ortools/base:file",
+    ],
+)
+
+cc_library(
+    name = "save_mesh_to_stl_file",
+    srcs = ["save_mesh_to_stl_file.cc"],
+    hdrs = ["save_mesh_to_stl_file.h"],
+    visibility = [
+        "//intrinsic/scene/sdf:__pkg__",
+        "//intrinsic/simulation/world:__pkg__",
+    ],
+    deps = [
+        "//intrinsic/geometry/internal/mesh",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@com_gitlab_libeigen_eigen//:eigen",
+        "@or_tools//ortools/base:file",
     ],
 )
