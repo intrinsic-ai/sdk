@@ -24,11 +24,11 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
-#include "absl/strings/strip.h"
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/wrappers.pb.h"
 #include "intrinsic/geometry/api/io.h"
 #include "intrinsic/geometry/api/renderable_generation.h"
+#include "intrinsic/geometry/storage/geometry_storage_uri.h"
 #include "intrinsic/util/hash.h"
 #include "intrinsic/util/status/status_macros.h"
 
@@ -41,7 +41,6 @@ using ::intrinsic_proto::geometry::v1::GeometryStorageRefs;
 using ::intrinsic_proto::geometry::v1::MaterialProperties;
 using ExactGeometryProto = ::intrinsic_proto::geometry::v1::ExactGeometry;
 
-constexpr absl::string_view kKvStoreGeometryUriPrefix = "intkv://";
 constexpr absl::string_view kExactKeyPrefix = "geo_v1_exact_";
 constexpr absl::string_view kRenderableKeyPrefix = "geo_glb_";
 constexpr absl::string_view kForbiddenKvStoreKeyChars{"/*?#[]$\0", 8};
@@ -57,16 +56,14 @@ constexpr bool IsValidKvStoreSegment(absl::string_view segment) {
 // `<storage_prefix>` matches `storage_prefix` and `<key>` is non-empty with no
 // Zenoh-forbidden characters (`/*?#[]$` or NUL), and returns `<key>`.
 absl::StatusOr<absl::string_view> ExtractAndValidateKvStoreKey(
-    absl::string_view uri, absl::string_view storage_prefix,
-    absl::string_view field = "ref") {
-  absl::string_view key = uri;
-  if (!absl::ConsumePrefix(&key, kKvStoreGeometryUriPrefix) ||
-      !absl::ConsumePrefix(&key, storage_prefix) ||
-      !absl::ConsumePrefix(&key, "/") || !IsValidKvStoreSegment(key)) {
+    absl::string_view uri, absl::string_view storage_prefix) {
+  const std::optional<absl::string_view> key =
+      ParseKvStoreGeometryKey(uri, storage_prefix);
+  if (!key.has_value() || !IsValidKvStoreSegment(*key)) {
     return absl::InvalidArgumentError(
-        absl::StrCat("Invalid KVStore URI in `", field, "`: ", uri));
+        absl::StrCat("Invalid KVStore URI: ", uri));
   }
-  return key;
+  return *key;
 }
 
 // Validates that caller-specified custom key `key` for `field` is non-empty and
@@ -115,8 +112,7 @@ absl::StatusOr<std::string> WriteBlobAtKvStoreKey(
   BytesValue bytes;
   bytes.set_value(std::move(payload));
   INTR_RETURN_IF_ERROR(kv_store.SetWithVerification(key, bytes, write_options));
-  return absl::StrCat(kKvStoreGeometryUriPrefix, kv_store.key_prefix(), "/",
-                      key);
+  return FormatKvStoreGeometryUri(kv_store.key_prefix(), key);
 }
 
 // Reads the `BytesValue` at `key` from `kv_store` within `timeout`.
@@ -161,14 +157,14 @@ class KvStoreGeometryLibrary : public GeometryLibrary,
     const absl::string_view storage_prefix = kv_store_->key_prefix();
     INTR_ASSIGN_OR_RETURN(
         const absl::string_view exact_key,
-        ExtractAndValidateKvStoreKey(refs.exact_geometry_ref(), storage_prefix,
-                                     "exact_geometry_ref"));
+        ExtractAndValidateKvStoreKey(refs.exact_geometry_ref(), storage_prefix),
+        _.SetPrepend() << "exact_geometry_ref: ");
     std::optional<absl::string_view> glb_key;
     if (refs.keep_renderable() && !refs.renderable_ref().empty()) {
       INTR_ASSIGN_OR_RETURN(
           const absl::string_view validated_glb_key,
-          ExtractAndValidateKvStoreKey(refs.renderable_ref(), storage_prefix,
-                                       "renderable_ref"));
+          ExtractAndValidateKvStoreKey(refs.renderable_ref(), storage_prefix),
+          _.SetPrepend() << "renderable_ref: ");
       glb_key = validated_glb_key;
     }
 

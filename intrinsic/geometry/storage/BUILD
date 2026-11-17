@@ -134,11 +134,29 @@ cc_library(
 )
 
 cc_library(
+    name = "geometry_storage_uri",
+    srcs = ["geometry_storage_uri.cc"],
+    hdrs = ["geometry_storage_uri.h"],
+    visibility = [
+        "//intrinsic/geometry/storage:__pkg__",
+    ],
+    deps = [
+        "//intrinsic/geometry/proto/v1:geometry_storage_refs_cc_proto",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:string_view",
+    ],
+)
+
+cc_library(
     name = "kvstore_storage",
     srcs = ["kvstore_storage.cc"],
     hdrs = ["kvstore_storage.h"],
     deps = [
         ":geometry_library",
+        ":geometry_storage_uri",
         "//intrinsic/geometry/api:io",
         "//intrinsic/geometry/api:renderable_generation",
         "//intrinsic/platform/pubsub:kvstore",
