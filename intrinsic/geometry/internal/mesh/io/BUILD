@@ -174,7 +174,6 @@ cc_library(
     srcs = ["save_mesh_to_stl_file.cc"],
     hdrs = ["save_mesh_to_stl_file.h"],
     visibility = [
-        "//intrinsic/scene/sdf:__pkg__",
         "//intrinsic/simulation/world:__pkg__",
     ],
     deps = [
