@@ -34,6 +34,7 @@ cc_library(
         "//intrinsic/world/proto:robot_payload_cc_proto",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
     ],
 )
 

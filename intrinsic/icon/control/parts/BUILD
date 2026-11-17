@@ -58,6 +58,7 @@ cc_library(
         "//intrinsic/eigenmath",
         "//intrinsic/icon/utils:fixed_str_cat",
         "//intrinsic/icon/utils:fixed_string",
+        "//intrinsic/icon/utils:realtime_status",
         "//intrinsic/icon/utils:realtime_status_macro",
         "//intrinsic/icon/utils:realtime_status_or",
         "//intrinsic/kinematics:validate_link_parameters",
