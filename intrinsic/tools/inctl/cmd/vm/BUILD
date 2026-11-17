@@ -25,7 +25,7 @@ go_library(
         "lease.go",
         "return.go",
         "vm.go",
-    ],
+    ] + [],
     importpath = "intrinsic/tools/inctl/cmd/vm/vm",
     visibility = [
         "//intrinsic/assets:__pkg__",

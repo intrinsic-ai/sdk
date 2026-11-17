@@ -28,7 +28,7 @@ go_library(
         "pool.go",
         "state.go",
         "wait.go",
-    ],
+    ] + [],
     importpath = "intrinsic/tools/inctl/cmd/vm/pool/pool",
     deps = [
         "//intrinsic/kubernetes/acl:identity",
@@ -40,7 +40,6 @@ go_library(
         "//intrinsic/tools/inctl/util:cobrautil",
         "//intrinsic/tools/inctl/util:orgutil",
         "//intrinsic/tools/inctl/util:printer",
-        "@com_github_golang_glog//:go_default_library",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_github_spf13_viper//:go_default_library",
         "@io_opencensus_go//trace:go_default_library",
