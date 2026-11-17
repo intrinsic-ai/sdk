@@ -85,6 +85,7 @@ cc_library(
         "//intrinsic/geometry/api:geometry_options",
         "//intrinsic/geometry/api:io",
         "//intrinsic/geometry/proto/v1:geometry_cc_proto",
+        "//intrinsic/geometry/proto/v1:geometry_storage_refs_cc_proto",
         "//intrinsic/geometry/proto/v1:transformed_geometry_cc_proto",
         "//intrinsic/geometry/storage:geometry_deserializer",
         "//intrinsic/geometry/storage:geometry_serializer",

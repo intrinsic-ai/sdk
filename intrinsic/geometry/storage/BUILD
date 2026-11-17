@@ -137,7 +137,6 @@ cc_library(
     name = "kvstore_storage",
     srcs = ["kvstore_storage.cc"],
     hdrs = ["kvstore_storage.h"],
-    visibility = ["//visibility:private"],
     deps = [
         ":geometry_library",
         "//intrinsic/geometry/api:io",
