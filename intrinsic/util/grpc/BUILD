@@ -144,20 +144,6 @@ cc_library(
     ],
 )
 
-cc_library(
-    name = "connection_cache",
-    hdrs = ["connection_cache.h"],
-    deps = [
-        ":channel",
-        ":connection_params",
-        "//intrinsic/util/status:status_macros",
-        "@abseil-cpp//absl/base:core_headers",
-        "@abseil-cpp//absl/container:flat_hash_map",
-        "@abseil-cpp//absl/status:statusor",
-        "@abseil-cpp//absl/synchronization",
-    ],
-)
-
 py_library(
     name = "connection",
     srcs = [
