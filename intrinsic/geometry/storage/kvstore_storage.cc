@@ -238,6 +238,7 @@ class KvStoreGeometryLibrary : public GeometryLibrary,
 
     GeometryStorageRefs refs;
     refs.set_keep_renderable(keep_renderable);
+    refs.set_mutability(GeometryStorageRefs::MUTABILITY_MUTABLE);
     if (keep_renderable) {
       INTR_ASSIGN_OR_RETURN(const std::shared_ptr<const Renderable> renderable,
                             GetOrGenerateRenderable(geometry));
