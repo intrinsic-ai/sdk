@@ -8,6 +8,10 @@ package(
 license(
     name = "license",
     package_name = "jazzy_tf2_msgs",
+    license_kinds = [
+        "@rules_license//licenses/spdx:BSD-3-Clause",
+    ],
+    license_text = "LICENSE",
 )
 
 licenses(["notice"])
