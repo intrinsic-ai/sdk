@@ -313,6 +313,7 @@ cc_library(
         "//intrinsic/geometry/internal/mesh/io:load_ai_scene_from_file",
         "//intrinsic/geometry/internal/point_cloud:pts_to_point_cloud",
         "//intrinsic/geometry/internal/util:export_as_gltf",
+        "//intrinsic/geometry/internal/util:gltf_helpers",
         "//intrinsic/geometry/proto/v1:material_cc_proto",
         "//intrinsic/geometry/shapes",
         "//intrinsic/geometry/shapes:geometry_shape",
@@ -326,6 +327,7 @@ cc_library(
         "@assimp",
         "@or_tools//ortools/base:file",
         "@or_tools//ortools/base:path",
+        "@tinygltf",
     ],
 )
 

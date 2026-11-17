@@ -25,8 +25,11 @@ cc_library(
         "//intrinsic/eigenmath",
         "//intrinsic/math:pose3",
         "//intrinsic/simulation/gazebo:type_conversion",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
         "@com_google_googletest//:gtest",
         "@gz-math//eigen3",
+        "@or_tools//ortools/base:file",
         "@sdformat",
     ],
 )
