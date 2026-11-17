@@ -102,7 +102,6 @@ cc_library(
     features = ["-use_header_modules"],
     deps = [
         ":pubsub",
-        "//intrinsic/middleware/zenoh:imw_zenoh",
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
