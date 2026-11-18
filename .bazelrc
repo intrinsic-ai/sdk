@@ -18,9 +18,6 @@
 # can be rewritten at build time and, for example, support custom mirrors.
 common               --downloader_config=bazel/content_mirror/permissive.cfg
 
-# Static linking to workaround OpenCV symbol lookup errors: https://github.com/bazelbuild/rules_foreign_cc/issues/1164
-common --dynamic_mode=off
-
 # Always use the pre-configured toolchain.
 common --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 common --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
