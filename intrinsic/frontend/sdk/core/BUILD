@@ -48,8 +48,11 @@ npm_package(
     srcs = [
         ":license",
         ":package",
+        "//intrinsic/frontend/sdk/core/hash:lib",
         "//intrinsic/frontend/sdk/core/math:lib",
         "//intrinsic/frontend/sdk/core/pubsub:lib",
+        "//intrinsic/frontend/sdk/core/rxjs/operators:lib",
+        "//intrinsic/frontend/sdk/core/typescript:lib",
     ],
     package = "@intrinsic-ai/core",
     publishable = True,
