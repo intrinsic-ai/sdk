@@ -33,7 +33,8 @@
 #include "intrinsic/geometry/api/geometry.h"
 #include "intrinsic/geometry/api/material_properties.h"
 #include "intrinsic/geometry/api/renderable.h"
-#include "intrinsic/geometry/internal/util/gltf_helpers.h"
+#include "intrinsic/geometry/gltf/gltf_io.h"
+#include "intrinsic/geometry/gltf/gltf_materials.h"
 #include "intrinsic/geometry/proto/v1/material.pb.h"
 #include "tiny_gltf.h"
 
