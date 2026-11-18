@@ -1,0 +1,21 @@
+{
+  "name": "@intrinsic-ai/angular",
+  "version": "0.0.1",
+  "description": "Angular utilities for the Intrinsic frontend SDK",
+  "type": "module",
+  "license": "Apache-2.0",
+  "exports": {
+    "./errors": {
+      "types": "./errors/index.d.ts",
+      "default": "./errors/index.js"
+    },
+    "./signals": {
+      "types": "./signals/index.d.ts",
+      "default": "./signals/index.js"
+    }
+  },
+  "peerDependencies": {
+    "@angular/common": "^22.2.0",
+    "@angular/core": "^22.2.0"
+  }
+}
