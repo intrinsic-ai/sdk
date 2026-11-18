@@ -22,8 +22,6 @@ load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
-"""Build definitions for content addressable storage service protos."""
-
 proto_library(
     name = "cas_service_proto",
     srcs = ["cas_service.proto"],

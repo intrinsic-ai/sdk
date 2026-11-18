@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Services for the manipulation package.
-
 load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_grpc_library")
 load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
@@ -21,12 +19,7 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
-package(
-    default_visibility = [
-        "//intrinsic/logging:__subpackages__",
-        "//intrinsic/manipulation:__subpackages__",
-    ],
-)
+package(default_visibility = ["//visibility:public"])
 
 proto_library(
     name = "multi_axis_auto_annotator_service_proto",

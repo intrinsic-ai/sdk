@@ -16,9 +16,7 @@ load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
-package(default_visibility = [
-    "//visibility:public",
-])
+package(default_visibility = ["//visibility:public"])
 
 proto_library(
     name = "hal_linear_gripper_part_config_proto",
