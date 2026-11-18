@@ -109,7 +109,7 @@ def _fit_polynomial_regressor(
         degree=degree,
     )
     f_pred = design @ theta
-    return int(np.round(f_pred[0]))
+    return int(np.round(f_pred.item()))
 
   return _estimate
 
