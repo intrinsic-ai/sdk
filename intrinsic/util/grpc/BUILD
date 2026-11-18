@@ -256,6 +256,36 @@ go_test(
     ],
 )
 
+go_library(
+    name = "lroutil",
+    srcs = ["lro_util.go"],
+    importpath = "intrinsic/util/grpc/lroutil",
+    deps = [
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_google_protobuf//types/known/durationpb",
+    ],
+)
+
+go_test(
+    name = "lroutil_test",
+    srcs = ["lro_util_test.go"],
+    embed = [":lroutil"],
+    importpath = "intrinsic/util/grpc/lroutil_test",
+    deps = [
+        "//intrinsic/testing:grpctest",
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//credentials/local:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_google_protobuf//testing/protocmp:go_default_library",
+        "@org_golang_google_protobuf//types/known/durationpb",
+    ],
+)
+
 py_library(
     name = "grpc_utils",
     srcs = ["grpc_utils.py"],

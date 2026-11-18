@@ -34,10 +34,10 @@ import (
 	"intrinsic/assets/throttle"
 	"intrinsic/skills/tools/skill/cmd/directupload/directupload"
 	"intrinsic/tools/inctl/util/color"
+	"intrinsic/util/grpc/lroutil"
 	"intrinsic/util/status/extstatus"
 
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc/status"
 
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_proto"
@@ -166,17 +166,8 @@ func GetCommand() *cobra.Command {
 			}
 
 			log.Printf("Awaiting completion of the installation")
-			lroClient := lrogrpcpb.NewOperationsClient(conn)
-			for !op.GetDone() {
-				op, err = lroClient.WaitOperation(ctx, &lropb.WaitOperationRequest{
-					Name: op.GetName(),
-				})
-				if err != nil {
-					return fmt.Errorf("unable to check status of installation: %v", err)
-				}
-			}
-
-			if err := status.ErrorProto(op.GetError()); err != nil {
+			op, err = lroutil.WaitOperation(ctx, lrogrpcpb.NewOperationsClient(conn), op)
+			if err != nil {
 				return wrapError("installation failed", err)
 			}
 			installed := &iapb.CreateInstalledAssetsResponse{}

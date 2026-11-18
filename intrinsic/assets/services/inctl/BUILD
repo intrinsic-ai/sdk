@@ -41,6 +41,7 @@ go_library(
         "//intrinsic/assets:version",
         "//intrinsic/assets/proto:asset_deployment_go_proto",
         "//intrinsic/assets/proto:installed_assets_go_proto",
+        "//intrinsic/util/grpc:lroutil",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
         "@org_golang_google_protobuf//proto",
@@ -59,9 +60,9 @@ go_library(
         "//intrinsic/assets/proto:asset_deployment_go_proto",
         "//intrinsic/tools/inctl/util:agents",
         "//intrinsic/tools/inctl/util:color",
+        "//intrinsic/util/grpc:lroutil",
         "//intrinsic/util/status:extstatus",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "@org_golang_google_grpc//status:go_default_library",
     ],
 )

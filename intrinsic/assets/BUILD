@@ -421,6 +421,7 @@ go_library(
         "//intrinsic/assets/data/proto/v1:referenced_data_go_proto",
         "//intrinsic/assets/proto/v1:asset_artifacts_go_proto",
         "//intrinsic/util/go:seekable",
+        "//intrinsic/util/grpc:lroutil",
         "//intrinsic/util/proto:walkmessages",
         "@com_github_golang_glog//:go_default_library",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",

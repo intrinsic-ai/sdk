@@ -25,13 +25,17 @@ import (
 
 	"intrinsic/assets/cmdutils"
 	"intrinsic/testing/grpctest"
+	"intrinsic/util/grpc/lroutil"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	iagrpcpb "intrinsic/assets/proto/installed_assets_go_proto"
 	iapb "intrinsic/assets/proto/installed_assets_go_proto"
@@ -49,6 +53,9 @@ type mockInstalledAssetsServer struct {
 	returnCreateErr bool
 	returnWaitErr   bool
 	installedIDs    map[string]bool
+	// waitResponses are returned by consecutive WaitOperation calls, if set.
+	waitResponses        []*lropb.Operation
+	receivedWaitRequests []*lropb.WaitOperationRequest
 }
 
 // CreateInstalledAsset is a mock implementation of the CreateInstalledAsset RPC.
@@ -71,7 +78,67 @@ func (s *mockInstalledAssetsServer) WaitOperation(ctx context.Context, req *lrop
 	if s.returnWaitErr {
 		return nil, fmt.Errorf("mock wait error")
 	}
+	s.receivedWaitRequests = append(s.receivedWaitRequests, req)
+	if len(s.waitResponses) > 0 {
+		op := s.waitResponses[0]
+		s.waitResponses = s.waitResponses[1:]
+		return op, nil
+	}
 	return &lropb.Operation{Name: "testOp", Done: true}, nil
+}
+
+func TestWaitForOperation(t *testing.T) {
+	opErr := status.New(codes.Internal, "mock operation error").Proto()
+	wantReq := &lropb.WaitOperationRequest{
+		Name:    "testOp",
+		Timeout: durationpb.New(lroutil.RelaySafeWaitTimeout),
+	}
+	wantReqs := []*lropb.WaitOperationRequest{wantReq, wantReq}
+
+	tests := []struct {
+		desc          string
+		waitResponses []*lropb.Operation
+		wantErr       error
+	}{
+		{
+			desc: "waits_until_done",
+			waitResponses: []*lropb.Operation{
+				{Name: "testOp"},
+				{Name: "testOp", Done: true},
+			},
+		},
+		{
+			desc: "operation_error",
+			waitResponses: []*lropb.Operation{
+				{Name: "testOp"},
+				{Name: "testOp", Done: true, Result: &lropb.Operation_Error{Error: opErr}},
+			},
+			wantErr: errInstallationOpFailed,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			mockServer := &mockInstalledAssetsServer{waitResponses: tc.waitResponses}
+			srv := grpc.NewServer()
+			lrogrpcpb.RegisterOperationsServer(srv, mockServer)
+			addr := grpctest.StartServerT(t, srv)
+			conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			if err != nil {
+				t.Fatalf("Failed to dial mock server: %v", err)
+			}
+			defer conn.Close()
+
+			err = waitForOperation(t.Context(), conn, &lropb.Operation{Name: "testOp"})
+
+			if !errors.Is(err, tc.wantErr) {
+				t.Errorf("waitForOperation() returned error %v, want %v", err, tc.wantErr)
+			}
+			if diff := cmp.Diff(wantReqs, mockServer.receivedWaitRequests, protocmp.Transform()); diff != "" {
+				t.Errorf("waitForOperation() requests mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
 }
 
 func createTestFiles(t *testing.T, dir string, files map[string]string) {

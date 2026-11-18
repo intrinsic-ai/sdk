@@ -30,8 +30,8 @@ go_library(
         "//intrinsic/skills:skillbundle",
         "//intrinsic/skills/tools/skill/cmd:waitforskill",
         "//intrinsic/skills/tools/skill/cmd/directupload",
+        "//intrinsic/util/grpc:lroutil",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "@org_golang_google_grpc//status:go_default_library",
     ],
 )
