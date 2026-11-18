@@ -36,6 +36,7 @@ cc_library(
     deps = [
         ":liveliness_get_context",
         ":zenoh_helpers",
+        "//intrinsic/middleware:imw_interface",
         "//intrinsic/middleware/zenoh:imw_zenoh",
         "@abseil-cpp//absl/log",
         "@abseil-cpp//absl/status",
@@ -50,6 +51,7 @@ cc_test(
     srcs = ["zenoh_handle_test.cc"],
     deps = [
         ":zenoh_handle",
+        "//intrinsic/middleware:imw_interface",
         "@com_google_googletest//:gtest_main",
     ],
 )
