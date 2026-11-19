@@ -90,3 +90,142 @@ cc_library(
         "@tinygltf",
     ],
 )
+
+cc_library(
+    name = "gltf_accessor",
+    srcs = ["gltf_accessor.cc"],
+    hdrs = ["gltf_accessor.h"],
+    deps = [
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@tinygltf",
+    ],
+)
+
+cc_test(
+    name = "gltf_accessor_test",
+    srcs = ["gltf_accessor_test.cc"],
+    deps = [
+        ":gltf_accessor",
+        ":gltf_buffer_test_util",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
+        "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
+        "@tinygltf",
+    ],
+)
+
+cc_library(
+    name = "gltf_validation",
+    srcs = ["gltf_validation.cc"],
+    hdrs = ["gltf_validation.h"],
+    visibility = [
+        "//intrinsic/geometry:__subpackages__",
+    ],
+    deps = [
+        ":gltf_accessor",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:string_view",
+        "@tinygltf",
+    ],
+)
+
+cc_test(
+    name = "gltf_validation_test",
+    srcs = ["gltf_validation_test.cc"],
+    deps = [
+        ":gltf_accessor",
+        ":gltf_buffer_test_util",
+        ":gltf_buffer_writer",
+        ":gltf_validation",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
+        "@abseil-cpp//absl/status:statusor",
+        "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
+        "@tinygltf",
+    ],
+)
+
+cc_library(
+    name = "gltf_buffer_reader",
+    srcs = ["gltf_buffer_reader.cc"],
+    hdrs = ["gltf_buffer_reader.h"],
+    visibility = [
+        "//intrinsic/geometry:__subpackages__",
+    ],
+    deps = [
+        ":gltf_accessor",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings:string_view",
+        "@tinygltf",
+    ],
+)
+
+cc_test(
+    name = "gltf_buffer_reader_test",
+    srcs = ["gltf_buffer_reader_test.cc"],
+    deps = [
+        ":gltf_buffer_reader",
+        ":gltf_buffer_test_util",
+        ":gltf_buffer_writer",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
+        "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
+        "@tinygltf",
+    ],
+)
+
+cc_library(
+    name = "gltf_buffer_writer",
+    srcs = ["gltf_buffer_writer.cc"],
+    hdrs = ["gltf_buffer_writer.h"],
+    visibility = [
+        "//intrinsic/geometry:__subpackages__",
+    ],
+    deps = [
+        ":gltf_accessor",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings:string_view",
+        "@abseil-cpp//absl/types:span",
+        "@tinygltf",
+    ],
+)
+
+cc_test(
+    name = "gltf_buffer_writer_test",
+    srcs = ["gltf_buffer_writer_test.cc"],
+    deps = [
+        ":gltf_accessor",
+        ":gltf_buffer_reader",
+        ":gltf_buffer_test_util",
+        ":gltf_buffer_writer",
+        ":gltf_io",
+        ":gltf_validation",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
+        "@com_google_cel_cpp//internal:testing_no_main",
+        "@com_google_googletest//:gtest_main",
+        "@tinygltf",
+    ],
+)
+
+cc_library(
+    name = "gltf_buffer_test_util",
+    testonly = True,
+    hdrs = ["gltf_buffer_test_util.h"],
+    deps = [
+        ":gltf_buffer_writer",
+        "@abseil-cpp//absl/types:span",
+        "@tinygltf",
+    ],
+)
