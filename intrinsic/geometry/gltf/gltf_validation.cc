@@ -31,8 +31,8 @@
 namespace intrinsic::geo {
 namespace {
 
-absl::Status Invalid(absl::string_view what) {
-  return absl::InvalidArgumentError(absl::StrCat("Invalid glTF: ", what));
+absl::Status InvalidGltfError(absl::string_view message) {
+  return absl::InvalidArgumentError(absl::StrCat("Invalid glTF: ", message));
 }
 
 // Whether `index` is a valid index into a list of `size` elements.
@@ -89,21 +89,21 @@ uint32_t PrimitiveRestartIndex(int component_type) {
 absl::Status CheckBuffersAndViews(const tinygltf::Model& model) {
   for (const tinygltf::Buffer& buffer : model.buffers) {
     if (buffer.data.empty()) {
-      return Invalid("empty buffer");
+      return InvalidGltfError("empty buffer");
     }
   }
   for (const tinygltf::BufferView& view : model.bufferViews) {
     if (view.byteLength == 0 || !IsInRange(view.buffer, model.buffers.size())) {
-      return Invalid("empty bufferView or missing buffer");
+      return InvalidGltfError("empty bufferView or missing buffer");
     }
     const size_t size = model.buffers[view.buffer].data.size();
     if (view.byteOffset > size || view.byteLength > size - view.byteOffset) {
-      return Invalid("bufferView out of bounds");
+      return InvalidGltfError("bufferView out of bounds");
     }
   }
   for (const tinygltf::Image& image : model.images) {
     if (image.bufferView >= 0 && !IsBufferView(model, image.bufferView)) {
-      return Invalid("missing image bufferView");
+      return InvalidGltfError("missing image bufferView");
     }
   }
   return absl::OkStatus();
@@ -116,20 +116,20 @@ absl::Status CheckSparseAccessor(const tinygltf::Model& model,
                                  const tinygltf::Accessor& acc) {
   if (acc.sparse.count <= 0 ||
       static_cast<size_t>(acc.sparse.count) > acc.count) {
-    return Invalid("sparse accessor count");
+    return InvalidGltfError("sparse accessor count");
   }
   if (acc.bufferView >= 0) {
     INTR_RETURN_IF_ERROR(GetGltfAccessorSlice(model, acc).status());
   }
   const tinygltf::Accessor indices = SparseIndices(acc);
   if (!IsGltfIndexAccessor(indices)) {
-    return Invalid("unsupported sparse index type");
+    return InvalidGltfError("unsupported sparse index type");
   }
   INTR_ASSIGN_OR_RETURN(const GltfAccessorSlice index_slice,
                         GetGltfAccessorSlice(model, indices));
   for (size_t i = 0; i < index_slice.count; ++i) {
     if (ReadGltfIndex(index_slice, indices.componentType, i) >= acc.count) {
-      return Invalid("sparse index out of range");
+      return InvalidGltfError("sparse index out of range");
     }
   }
   return GetGltfAccessorSlice(model, SparseValues(acc)).status();
@@ -140,7 +140,7 @@ absl::Status CheckAccessors(const tinygltf::Model& model) {
   for (size_t a = 0; a < model.accessors.size(); ++a) {
     const tinygltf::Accessor& acc = model.accessors[a];
     if (acc.count == 0) {
-      return Invalid("empty accessor");
+      return InvalidGltfError("empty accessor");
     }
     if (acc.sparse.isSparse) {
       INTR_RETURN_IF_ERROR(CheckSparseAccessor(model, acc));
@@ -158,7 +158,7 @@ absl::Status CheckFinitePositions(const GltfAccessorSlice& s) {
     for (int k = 0; k < kGltfPositionComponents; ++k) {
       if (!std::isfinite(ReadGltfRawComponent(
               s.data + v * s.stride, TINYGLTF_COMPONENT_TYPE_FLOAT, k))) {
-        return Invalid("non-finite POSITION value");
+        return InvalidGltfError("non-finite POSITION value");
       }
     }
   }
@@ -169,17 +169,18 @@ absl::Status CheckFinitePositions(const GltfAccessorSlice& s) {
 absl::Status CheckPositions(const tinygltf::Model& model, int accessor) {
   const tinygltf::Accessor& pos = model.accessors[accessor];
   if (pos.type != TINYGLTF_TYPE_VEC3) {
-    return Invalid("POSITION is not a VEC3");
+    return InvalidGltfError("POSITION is not a VEC3");
   }
   // Bounds may be missing (exporters often omit them and the writer
   // recomputes them), but if present they must have one value per component.
   for (const std::vector<double>* bounds : {&pos.minValues, &pos.maxValues}) {
     if (!bounds->empty() && bounds->size() != kGltfPositionComponents) {
-      return Invalid("POSITION bounds must have one value per component");
+      return InvalidGltfError(
+          "POSITION bounds must have one value per component");
     }
     if (!std::ranges::all_of(*bounds,
                              [](double v) { return std::isfinite(v); })) {
-      return Invalid("non-finite POSITION bounds");
+      return InvalidGltfError("non-finite POSITION bounds");
     }
   }
   // glTF allows 8/16-bit integer positions with KHR_mesh_quantization; they
@@ -193,7 +194,7 @@ absl::Status CheckPositions(const tinygltf::Model& model, int accessor) {
     case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
       return absl::OkStatus();
     default:
-      return Invalid("unsupported POSITION component type");
+      return InvalidGltfError("unsupported POSITION component type");
   }
   // Checks the base data and, for a sparse accessor, the replaced values.
   if (!pos.sparse.isSparse || pos.bufferView >= 0) {
@@ -217,27 +218,27 @@ absl::Status CheckPrimitive(const tinygltf::Model& model,
   size_t vertex_count = 0;
   for (const auto& [name, accessor] : prim.attributes) {
     if (!IsAccessor(model, accessor)) {
-      return Invalid(absl::StrCat("missing ", name, " accessor"));
+      return InvalidGltfError(absl::StrCat("missing ", name, " accessor"));
     }
     const size_t count = model.accessors[accessor].count;
     if (vertex_count != 0 && count != vertex_count) {
-      return Invalid("attributes have different vertex counts");
+      return InvalidGltfError("attributes have different vertex counts");
     }
     vertex_count = count;
   }
   const auto position = prim.attributes.find("POSITION");
   if (position == prim.attributes.end()) {
-    return Invalid("primitive has no POSITION");
+    return InvalidGltfError("primitive has no POSITION");
   }
   INTR_RETURN_IF_ERROR(CheckPositions(model, position->second));
   for (const auto& target : prim.targets) {
     for (const auto& [name, accessor] : target) {
       if (!IsAccessor(model, accessor)) {
-        return Invalid(
+        return InvalidGltfError(
             absl::StrCat("missing morph target ", name, " accessor"));
       }
       if (model.accessors[accessor].count != vertex_count) {
-        return Invalid("morph target has a different vertex count");
+        return InvalidGltfError("morph target has a different vertex count");
       }
     }
   }
@@ -245,11 +246,11 @@ absl::Status CheckPrimitive(const tinygltf::Model& model,
     return absl::OkStatus();
   }
   if (!IsAccessor(model, prim.indices)) {
-    return Invalid("missing indices accessor");
+    return InvalidGltfError("missing indices accessor");
   }
   const tinygltf::Accessor& indices = model.accessors[prim.indices];
   if (!IsGltfIndexAccessor(indices) || indices.sparse.isSparse) {
-    return Invalid("unsupported index type");
+    return InvalidGltfError("unsupported index type");
   }
   INTR_ASSIGN_OR_RETURN(const GltfAccessorSlice s,
                         GetGltfAccessorSlice(model, prim.indices));
@@ -257,10 +258,10 @@ absl::Status CheckPrimitive(const tinygltf::Model& model,
   for (size_t i = 0; i < s.count; ++i) {
     const uint32_t index = ReadGltfIndex(s, indices.componentType, i);
     if (index >= vertex_count) {
-      return Invalid("index out of range");
+      return InvalidGltfError("index out of range");
     }
     if (index == restart) {
-      return Invalid("index is the largest value of its type");
+      return InvalidGltfError("index is the largest value of its type");
     }
   }
   return absl::OkStatus();
@@ -272,14 +273,14 @@ absl::Status CheckNodes(const tinygltf::Model& model) {
   for (const tinygltf::Node& node : model.nodes) {
     if (node.mesh != kGltfNoIndex &&
         !IsInRange(node.mesh, model.meshes.size())) {
-      return Invalid("missing node mesh");
+      return InvalidGltfError("missing node mesh");
     }
     if (node.skin != kGltfNoIndex &&
         !IsInRange(node.skin, model.skins.size())) {
-      return Invalid("missing node skin");
+      return InvalidGltfError("missing node skin");
     }
     if ((node.skin >= 0 || !node.weights.empty()) && node.mesh < 0) {
-      return Invalid("skin or weights on a node without a mesh");
+      return InvalidGltfError("skin or weights on a node without a mesh");
     }
   }
   return absl::OkStatus();
@@ -291,14 +292,14 @@ absl::Status CheckOtherAccessorReferences(const tinygltf::Model& model) {
   for (const tinygltf::Skin& skin : model.skins) {
     if (skin.inverseBindMatrices != kGltfNoIndex &&
         !IsAccessor(model, skin.inverseBindMatrices)) {
-      return Invalid("missing skin inverseBindMatrices accessor");
+      return InvalidGltfError("missing skin inverseBindMatrices accessor");
     }
   }
   for (const tinygltf::Animation& animation : model.animations) {
     for (const tinygltf::AnimationSampler& sampler : animation.samplers) {
       if (!IsAccessor(model, sampler.input) ||
           !IsAccessor(model, sampler.output)) {
-        return Invalid("missing animation sampler accessor");
+        return InvalidGltfError("missing animation sampler accessor");
       }
     }
   }
@@ -308,13 +309,13 @@ absl::Status CheckOtherAccessorReferences(const tinygltf::Model& model) {
       continue;
     }
     if (!ext->second.IsObject() || !ext->second.Get("attributes").IsObject()) {
-      return Invalid("EXT_mesh_gpu_instancing without attributes");
+      return InvalidGltfError("EXT_mesh_gpu_instancing without attributes");
     }
     for (const auto& [name, value] :
          ext->second.Get("attributes").Get<tinygltf::Value::Object>()) {
       if (!value.IsInt() || !IsAccessor(model, value.GetNumberAsInt())) {
-        return Invalid(absl::StrCat("missing EXT_mesh_gpu_instancing ", name,
-                                    " accessor"));
+        return InvalidGltfError(absl::StrCat("missing EXT_mesh_gpu_instancing ",
+                                             name, " accessor"));
       }
     }
   }
