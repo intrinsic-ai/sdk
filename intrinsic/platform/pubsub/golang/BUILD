@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("//bazel:go_macros.bzl", "go_library", "go_test")
 
 package(default_visibility = ["//visibility:public"])
@@ -21,20 +22,26 @@ cc_library(
     name = "pubsub_c",
     srcs = ["pubsub_c.cc"],
     hdrs = ["pubsub_c.h"],
-    visibility = ["//visibility:private"],
+    visibility = ["//intrinsic/platform/pubsub/golang:__pkg__"],
     deps = [
-        "//intrinsic/platform/pubsub/adapters:pubsub_cc_proto",
+        "//intrinsic/middleware:imw_interface",
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_config",
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
         "@abseil-cpp//absl/base:core_headers",
-        "@abseil-cpp//absl/log:check",
-        "@abseil-cpp//absl/memory",
-        "@abseil-cpp//absl/status",
-        "@abseil-cpp//absl/status:statusor",
-        "@abseil-cpp//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "pubsub_c_test",
+    size = "small",
+    srcs = ["pubsub_c_test.cc"],
+    deps = [
+        ":pubsub_c",
+        "//intrinsic/middleware:imw_interface",
+        "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
+        "@abseil-cpp//absl/base:core_headers",
         "@abseil-cpp//absl/synchronization",
-        "@abseil-cpp//absl/time",
-        "@com_google_protobuf//:protobuf",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
