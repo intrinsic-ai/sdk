@@ -37,6 +37,7 @@ cc_test(
         ":hashing",
         "//intrinsic/world:entity_id",
         "//intrinsic/world:labels",
+        "@abseil-cpp//absl/hash:hash_testing",
         "@com_google_googletest//:gtest_main",
     ],
 )
