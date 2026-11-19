@@ -165,8 +165,83 @@ message PlanGraspsRequest {
 }
 
 // Response of GraspPlannerService.PlanGrasps. An empty `grasps` list is a
-// valid (non-error) result; `failure_summary`/`failure_details` explain why.
+// valid (non-error) result; `failure_summary`, `failure_details`, and
+// `failed_stage` explain why.
 message PlanGraspsResponse {
+  // Stage of the grasp planning funnel at which candidate grasps were rejected
+  // when `PlanGrasps` returns no grasps. Values 1 to 16 are listed in funnel
+  // order: scoring heuristics (which run in the order in which the request
+  // lists them), pregrasp IK, grasp IK, straight-line approach, full
+  // trajectory, postgrasp IK, placement IK.
+  enum FailedStage {
+    // Unspecified failure stage, or grasp planning succeeded (`grasps` is
+    // non-empty). Clients should treat this value on an empty `grasps`
+    // response as an unknown failure stage.
+    FAILED_STAGE_UNSPECIFIED = 0;
+    // Candidate grasp z-height in the world root frame was at or below
+    // `HeightRankerParams.min_grasp_height` (heights above `max_grasp_height`
+    // clip to score 1.0 and are not rejected).
+    GRASP_HEIGHT = 1;
+    // Candidate grasp approach direction was rejected by the top-down
+    // heuristic (`TopDownGraspRankerParams.top_down_score_threshold`).
+    TOP_DOWN_HEURISTIC = 2;
+    // Candidate grasp had zero detection visibility when
+    // `VisibilityRankerParams` was enabled
+    // (`VisibilityRankerParams.visibility_threshold` deprioritizes positive
+    // sub-threshold visibility by scaling its score by 0.01 rather than
+    // rejecting it; only zero visibility scores 0.0 and is rejected).
+    VISIBILITY_HEURISTIC = 3;
+    // Pregrasp pose had no reachable IK solution within joint limits.
+    PREGRASP_IK_UNREACHABLE = 4;
+    // Pregrasp pose IK failed due to collision.
+    PREGRASP_IK_COLLISION = 5;
+    // Pregrasp pose IK failed without a more specific reachability or
+    // collision classification.
+    PREGRASP_IK_UNKNOWN = 6;
+    // Grasp pose had no reachable IK solution within joint limits (seeded from
+    // the pregrasp IK solution).
+    GRASP_IK_UNREACHABLE = 7;
+    // Grasp pose IK or pinch-gripper open/close finger collision check
+    // (`reachability_params.pinch_gripper_params`) failed due to collision
+    // (arm grasp-pose collision checking is disabled by default unless
+    // `reachability_params.grasp_pose_collision_settings` enables it).
+    GRASP_IK_COLLISION = 8;
+    // Grasp pose IK or pinch-gripper open/close finger collision check
+    // (`reachability_params.pinch_gripper_params`) failed without a more
+    // specific reachability or collision classification.
+    GRASP_IK_UNKNOWN = 9;
+    // Linear Cartesian approach trajectory from pregrasp to grasp pose failed
+    // (`reachability_params.check_straight_line_approach`).
+    STRAIGHT_LINE_TRAJECTORY = 10;
+    // Full trajectory from the robot's start configuration through pregrasp to
+    // grasp pose failed (`reachability_params.check_full_trajectory`).
+    FULL_TRAJECTORY = 11;
+    // Postgrasp (retract) pose IK check had no reachable solution within joint
+    // limits during placement constraint checking. This check is the first
+    // step of placement constraint checking: it runs before the grasped object
+    // is attached to the gripper and without collision checking.
+    POSTGRASP_IK_UNREACHABLE = 12;
+    // Postgrasp (retract) pose IK check failed during placement constraint
+    // checking without a more specific classification.
+    POSTGRASP_IK_UNKNOWN = 13;
+    // Target placement pose (exact or within margins) or insertion waypoint IK
+    // check had no reachable solution within joint limits. These checks run
+    // after the postgrasp IK check, with the grasped object attached to the
+    // gripper and with collision checking.
+    PLACEMENT_IK_UNREACHABLE = 14;
+    // Target placement pose or insertion waypoint IK check after attaching the
+    // grasped object to the gripper failed due to collision.
+    PLACEMENT_IK_COLLISION = 15;
+    // Target placement pose or insertion waypoint IK check after attaching the
+    // grasped object to the gripper failed without a more specific
+    // reachability or collision classification.
+    PLACEMENT_IK_UNKNOWN = 16;
+    // Zero candidate grasps were proposed (for example no target objects in
+    // `grasp_zone`, empty `pose_estimates.estimates`, or empty grasp
+    // annotations).
+    NO_CANDIDATES = 17;
+  }
+
   // Planned grasps expressed as world frame references, best grasp first.
   // `grasps[i]` corresponds to `grasp_plan.grasps[i]`. The referenced
   // grasp/pregrasp frames (and, for `pose_estimates`, the target objects) only
@@ -202,17 +277,28 @@ message PlanGraspsResponse {
   // `PlanGraspsRequest.disable_logging`) or the service doesn't log (e.g. its
   // logging context isn't resolved yet).
   string logging_id = 6;
+
+  // The stage that explains an empty `grasps` list, or
+  // `FAILED_STAGE_UNSPECIFIED` when `grasps` is non-empty. When candidates
+  // were rejected at several stages, this is the latest stage of the planning
+  // funnel that rejected a candidate (see `FailedStage` for the order of the
+  // stages). Among the outcomes of the same IK check (unreachable, collision,
+  // unknown), it is the one that rejected the most candidates. Clients should
+  // treat `FAILED_STAGE_UNSPECIFIED` on an empty `grasps` response as an
+  // unknown failure stage.
+  FailedStage failed_stage = 7;
 }
 
 // Debug data the service logs for each PlanGrasps request (unless logging is
 // disabled, see `PlanGraspsRequest.disable_logging`), as payload
 // `grasp_planner_debug_data` of a LogItem. The request is logged together
-// with the world snapshot before planning starts, so it is available even if
-// the service crashes while planning. If the request fails before the snapshot
-// is taken, it is logged without world right before the error. The response or
-// the error is logged when the request completes. All log items of one request
-// have the same `logging_id`, and exactly one of `request`, `response` and
-// `error` is set in each of them.
+// with the world snapshot (and `resolved_annotations` when `stored_annotations`
+// were fetched) before planning starts, so it is available even if the service
+// crashes while planning. If the request fails before the snapshot is taken,
+// it is logged without world right before the error. The response or the error
+// is logged when the request completes. All log items of one request have the
+// same `logging_id`, and exactly one of `request`, `response` and `error` is
+// set in each of them.
 message GraspPlannerDebugData {
   // Unique id of the request, equal to `PlanGraspsResponse.logging_id`.
   string logging_id = 1;
@@ -235,6 +321,13 @@ message GraspPlannerDebugData {
   // is exactly what the grasp rankers send as
   // `BatchCheckRequest.world_snapshot`.
   intrinsic_proto.world.World world = 5;
+
+  // Grasp annotations the service resolved from `GraspAnnotator` when
+  // `request.grasp_annotations` uses `stored_annotations`, so the request can
+  // be replayed offline without a live GraspAnnotator. Unset for other
+  // annotation types and when the request failed before the annotations were
+  // fetched.
+  optional intrinsic_proto.grasping.GraspAnnotations resolved_annotations = 6;
 }
 
 // General-purpose grasp planning service. It only reads the world and never

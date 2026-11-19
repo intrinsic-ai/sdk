@@ -23,6 +23,7 @@ import "intrinsic/hardware/gripper/gripper.proto";
 import "intrinsic/icon/proto/joint_space.proto";
 import "intrinsic/math/proto/pose.proto";
 import "intrinsic/motion_planning/proto/v1/geometric_constraints.proto";
+import "intrinsic/motion_planning/proto/v1/motion_planning_error.proto";
 import "intrinsic/perception/proto/v1/pose_estimate_in_root.proto";
 import "intrinsic/world/proto/object_world_refs.proto";
 
@@ -42,6 +43,18 @@ message HeuristicResult {
   optional intrinsic_proto.icon.JointVec pregrasp_ik_solution = 3;
   // An IK solution for the grasp pose.
   optional intrinsic_proto.icon.JointVec grasp_ik_solution = 4;
+  // Structured motion planning error when an IK, collision, or trajectory check
+  // failed in the motion planner. Unset when the heuristic passed or does not
+  // invoke motion planning.
+  optional intrinsic_proto.motion_planning.v1.MotionPlanningError
+      motion_planning_error = 5;
+  // Raw metric value computed by continuous heuristic rankers: grasp z-height
+  // in the world root frame in meters (`height_grasp_ranker`), angle between
+  // the grasp approach axis and gravity in degrees in [0, 180]
+  // (`top_down_grasp_ranker`), or detection visibility ratio in [0.0, 1.0]
+  // (`visibility_grasp_ranker`). Unset for pass/fail checks that do not compute
+  // a scalar metric (such as IK, collision, trajectory, and placement checks).
+  optional double measured_value = 6;
 }
 
 message ObjectPose {
