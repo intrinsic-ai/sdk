@@ -42,7 +42,7 @@ absl::StatusOr<std::string> SdfPathResolver(const std::string& uri) {
     std::string path(uri_view);
     // sun and ground_plane are special built in models for gazebo.
     if (path == "sun" || path == "ground_plane") {
-      path = file::JoinPath("intrinsic/models/gazebo", path);
+      path = file::JoinPath("incode/intrinsic_simulation/models/gazebo", path);
     }
 
     for (absl::string_view additional_asset :
