@@ -28,6 +28,7 @@ cc_library(
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_config",
         "//intrinsic/platform/pubsub/zenoh_util:zenoh_handle",
         "@abseil-cpp//absl/base:core_headers",
+        "@abseil-cpp//absl/synchronization",
     ],
 )
 
