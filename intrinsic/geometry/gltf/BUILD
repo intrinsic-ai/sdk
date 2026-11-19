@@ -92,6 +92,12 @@ cc_library(
 )
 
 cc_library(
+    name = "gltf_constants",
+    hdrs = ["gltf_constants.h"],
+    deps = ["@abseil-cpp//absl/strings:string_view"],
+)
+
+cc_library(
     name = "gltf_accessor",
     srcs = ["gltf_accessor.cc"],
     hdrs = ["gltf_accessor.h"],
