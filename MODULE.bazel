@@ -339,7 +339,7 @@ bazel_dep(name = "googletest", version = "1.17.0.bcr.2", repo_name = "com_google
 bazel_dep(name = "grpc_ecosystem_grpc_gateway", version = "2.29.0.bcr.3", repo_name = "com_github_grpc_ecosystem_grpc_gateway_v2")
 bazel_dep(name = "grpc", version = "1.81.1", repo_name = "com_github_grpc_grpc")
 bazel_dep(name = "gz-math", version = "9.3.0")
-bazel_dep(name = "gz-msgs", version = "12.0.2")
+bazel_dep(name = "gz-msgs", version = "12.1.0")
 bazel_dep(name = "gz-transport", version = "15.1.0")
 bazel_dep(name = "highwayhash", version = "0.0.0-20240305-5ad3bf8.bcr.1") # Remove when reigeli updates to a version that supports ARM64
 bazel_dep(name = "libxml2-go", version = "0.0.0-20250331-c934e3f.bcr.2")
