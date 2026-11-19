@@ -26,28 +26,50 @@ from intrinsic.util.grpc import grpc_utils
 
 class GrpcUtilsTest(absltest.TestCase):
 
-  @mock.patch.object(grpc_utils, '_get_environment', autospec=True)
   @mock.patch.object(grpc_utils, '_create_channel', autospec=True)
   @mock.patch.object(grpc_utils, '_add_auth_header', autospec=True)
   def test_create_assets_channel(
       self,
       mock_add_auth_header,
       mock_create_channel,
-      mock_get_environment,
   ):
     """Tests that create_assets_channel creates a channel with an IPC identity."""
-    mock_get_environment.return_value = 'prod'
     mock_create_channel.return_value = mock.MagicMock()
     mock_add_auth_header.return_value = mock.MagicMock()
 
     channel = grpc_utils.create_assets_channel()
 
-    mock_get_environment.assert_called_once()
     mock_create_channel.assert_called_once_with('assets.intrinsic.ai:443')
     mock_add_auth_header.assert_called_once_with(
         mock_create_channel.return_value, mock.ANY
     )
     self.assertEqual(channel, mock_add_auth_header.return_value)
+
+  @mock.patch.object(grpc_utils, '_create_channel', autospec=True)
+  @mock.patch.object(grpc_utils, '_add_auth_header', autospec=True)
+  def test_create_assets_channel_custom_domain(
+      self,
+      mock_add_auth_header,
+      mock_create_channel,
+  ):
+    """Tests that create_assets_channel respects an explicit assets_domain."""
+    mock_create_channel.return_value = mock.MagicMock()
+    mock_add_auth_header.return_value = mock.MagicMock()
+
+    channel = grpc_utils.create_assets_channel(
+        assets_domain='assets-dev.intrinsic.ai'
+    )
+
+    mock_create_channel.assert_called_once_with('assets-dev.intrinsic.ai:443')
+    mock_add_auth_header.assert_called_once_with(
+        mock_create_channel.return_value, mock.ANY
+    )
+    self.assertEqual(channel, mock_add_auth_header.return_value)
+
+  def test_create_assets_channel_empty_domain_raises(self):
+    """Tests that create_assets_channel rejects an empty assets_domain."""
+    with self.assertRaises(ValueError):
+      grpc_utils.create_assets_channel(assets_domain='')
 
   @mock.patch.object(grpc_utils, '_get_compute_project', autospec=True)
   @mock.patch.object(grpc_utils, '_create_channel', autospec=True)
@@ -92,17 +114,14 @@ class GrpcUtilsTest(absltest.TestCase):
     )
     self.assertEqual(channel, mock_secure_channel.return_value)
 
-  @mock.patch.object(grpc_utils, '_get_environment', autospec=True)
   @mock.patch.object(grpc_utils, '_create_channel', autospec=True)
   @mock.patch.object(grpc_utils, '_add_auth_header', autospec=True)
   def test_create_assets_channel_calls_add_auth_header(
       self,
       mock_add_auth_header,
       mock_create_channel,
-      mock_get_environment,
   ):
     """Tests that create_assets_channel calls _add_auth_header."""
-    mock_get_environment.return_value = 'prod'
     mock_create_channel.return_value = mock.MagicMock()
     mock_add_auth_header.return_value = mock.MagicMock()
 

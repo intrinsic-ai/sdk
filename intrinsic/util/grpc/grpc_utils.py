@@ -18,7 +18,6 @@ from typing import Optional
 
 import grpc
 
-from intrinsic.config import environments  # For service discovery
 from intrinsic.kubernetes.acl.ipcidentity import ipcidentity
 from intrinsic.kubernetes.acl.ipcidentity.internal import metadata
 from intrinsic.kubernetes.acl.py import identity
@@ -38,25 +37,6 @@ def _get_compute_project() -> str:
     The compute project.
   """
   return metadata.MetadataClient().compute_project()
-
-
-def _get_environment() -> str:
-  """Gets the environment based on the compute project.
-
-  The environment is either prod, dev or staging. It is important to
-  consistently use the correct environment because each environment has
-  associated its dedicated account, assets, compute projects and virtual
-  machines.
-
-  This function is supposed to be used within a cluster and first determines the
-  compute project from the metadata server. Then it uses the compute project to
-  determine the environment.
-
-  Returns:
-    The environment based on the compute project.
-  """
-  compute_project = _get_compute_project()
-  return environments.from_compute_project(compute_project)
 
 
 def _create_auth_interceptor(
@@ -87,14 +67,20 @@ def _create_channel(address: str) -> grpc.Channel:
   )
 
 
-def create_assets_channel() -> grpc.Channel:
+def create_assets_channel(
+    assets_domain: str = "assets.intrinsic.ai",
+) -> grpc.Channel:
   """Creates a gRPC channel for the assets service with an IPC ID auth header.
+
+  Args:
+    assets_domain: Hostname of the assets service (e.g. "assets.intrinsic.ai",
+      "assets-qa.intrinsic.ai", or "assets-dev.intrinsic.ai").
 
   Returns:
     The gRPC channel for the assets service.
   """
-  env = _get_environment()
-  assets_domain = environments.assets_domain(env)
+  if not assets_domain:
+    raise ValueError("assets_domain must not be empty.")
   assets_channel = _create_channel(f"{assets_domain}:443")
   return _add_auth_header(assets_channel, _shared_ipc_identity)
 

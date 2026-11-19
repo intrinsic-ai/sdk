@@ -291,7 +291,6 @@ py_library(
     srcs = ["grpc_utils.py"],
     deps = [
         ":interceptor",
-        "//intrinsic/config:environments_py",
         "//intrinsic/kubernetes/acl/ipcidentity:ipcidentity_py",
         "//intrinsic/kubernetes/acl/ipcidentity/internal:metadata",
         "//intrinsic/kubernetes/acl/py:identity",
