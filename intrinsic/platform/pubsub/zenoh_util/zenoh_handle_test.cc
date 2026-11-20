@@ -128,27 +128,18 @@ TEST(ZenohHandleTest, ZenohQueryMessageStaticCallbackDispatchesAllFields) {
   zenoh_query_message_static_callback("in/null", nullptr, 0, nullptr, nullptr);
 }
 
-TEST(ZenohHandleTest, ZenohQueryStaticOnDoneRunsOnDoneThenOnDestroySelfDelete) {
-  std::vector<std::string> execution_order;
-
+TEST(ZenohHandleTest, ZenohQueryStaticOnDoneDispatchesKeyexprAndSkipsNull) {
+  std::vector<std::string> done_keys;
   imw_on_done_functor_t on_done = [&](const char* keyexpr) {
-    execution_order.push_back(std::string("on_done:") + keyexpr);
+    done_keys.emplace_back(keyexpr != nullptr ? keyexpr : "");
   };
 
-  auto owned = std::make_unique<QueryContext>();
-  QueryContext* context = owned.get();
-  context->on_done = &on_done;
-  context->on_destroy = [&owned, &execution_order]() {
-    execution_order.push_back("on_destroy");
-    owned.reset();
-  };
+  QueryContext context;
+  context.on_done = &on_done;
+  zenoh_query_static_on_done("in/query_done", &context);
 
-  zenoh_query_static_on_done("in/query_done", context);
-  EXPECT_EQ(owned, nullptr);
-
-  ASSERT_EQ(execution_order.size(), 2);
-  EXPECT_EQ(execution_order[0], "on_done:in/query_done");
-  EXPECT_EQ(execution_order[1], "on_destroy");
+  ASSERT_EQ(done_keys.size(), 1);
+  EXPECT_EQ(done_keys[0], "in/query_done");
 
   // Null context is safe.
   zenoh_query_static_on_done("in/query_done", nullptr);
@@ -174,8 +165,8 @@ TEST(ZenohHandleTest, ZenohQueryCallbacksDispatchAndSkipNullFunctors) {
   EXPECT_EQ(received_key, "in/legacy_query");
   EXPECT_EQ(received_payload, "legacy_query_reply");
 
-  // Empty QueryContext (null callback / message_callback / on_done) and
-  // nullptr.
+  // Empty QueryContext (null callback / message_callback / on_done),
+  // targetless imw_on_done_functor_t, and nullptr are all safe no-ops.
   QueryContext empty_ctx;
   zenoh_query_static_callback("in/empty", payload, sizeof(payload) - 1,
                               &empty_ctx);
@@ -184,14 +175,10 @@ TEST(ZenohHandleTest, ZenohQueryCallbacksDispatchAndSkipNullFunctors) {
                                       &empty_ctx);
   zenoh_query_static_on_done("in/empty", &empty_ctx);
 
-  // Targetless imw_on_done_functor_t skips invocation while running on_destroy.
   imw_on_done_functor_t empty_on_done;
-  int destroy_count = 0;
-  QueryContext destroy_only_ctx;
-  destroy_only_ctx.on_done = &empty_on_done;
-  destroy_only_ctx.on_destroy = [&destroy_count]() { ++destroy_count; };
-  zenoh_query_static_on_done("in/destroy_only", &destroy_only_ctx);
-  EXPECT_EQ(destroy_count, 1);
+  QueryContext targetless_ctx;
+  targetless_ctx.on_done = &empty_on_done;
+  zenoh_query_static_on_done("in/targetless", &targetless_ctx);
 }
 
 }  // namespace intrinsic
