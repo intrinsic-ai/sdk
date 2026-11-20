@@ -18,13 +18,16 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cmath>
 #include <iterator>
+#include <limits>
 #include <random>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/status_matchers.h"
 #include "absl/strings/str_cat.h"
@@ -52,6 +55,7 @@ using ::intrinsic_proto::scene_object::v1::SceneObject;
 using ::intrinsic_proto::world::KinematicsComponent;
 using ::protobuf_matchers::EqualsProto;
 using ::testing::AllOf;
+using ::testing::Contains;
 using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::HasSubstr;
@@ -68,8 +72,11 @@ auto EntityNamed(const std::string& name) {
   return Pointee(Property(&Entity::name, name));
 }
 
-// Matches a `Pose3d` that is approximately equal to `expected`.
+// Matches a `Pose3d` or Eigen vector that is approximately equal to `expected`.
 MATCHER_P(IsApprox, expected, "") { return arg.isApprox(expected); }
+MATCHER_P2(IsApproxWithin, expected, tolerance, "") {
+  return arg.isApprox(expected, tolerance);
+}
 
 // Returns the names of `entities`.
 std::vector<std::string> Names(absl::Span<const Entity* const> entities) {
@@ -529,6 +536,227 @@ TEST(SceneObjectViewTest, CreateFailsWhenJointPoseCannotBeResolved) {
               StatusIs(absl::StatusCode::kInvalidArgument,
                        AllOf(HasSubstr("joint"), HasSubstr("axis"))));
 }
+
+// Returns a two-DOF arm with a fixed weld joint, a revolute shoulder joint, and
+// a prismatic extension joint for joint-override forward kinematics tests.
+SceneObject MakeTwoJointArmSceneObject() {
+  return ParseTextProtoOrDie(R"pb(
+    name: "two_joint_arm"
+    entities {
+      name: "base_link"
+      link {}
+    }
+    entities {
+      name: "weld"
+      parent_name: "base_link"
+      joint { kinematics_component { motion_type: MOTION_TYPE_FIXED } }
+    }
+    entities {
+      name: "shoulder_mount"
+      parent_name: "weld"
+      link {}
+    }
+    entities {
+      name: "shoulder"
+      parent_name: "shoulder_mount"
+      joint {
+        kinematics_component {
+          motion_type: MOTION_TYPE_REVOLUTE
+          axis { x: 1.0 y: 0.0 z: 0.0 }
+          raw_value: 0.5
+          parent_t_inboard {
+            position { x: 0.0 y: 0.0 z: 0.1 }
+            orientation { z: 0.7071067811865475 w: 0.7071067811865476 }
+          }
+        }
+      }
+    }
+    entities {
+      name: "upper_arm"
+      parent_name: "shoulder"
+      parent_t_this {
+        position { x: 0.0 y: 0.0 z: 0.2 }
+        orientation { w: 1.0 }
+      }
+      link {}
+    }
+    entities {
+      name: "extension"
+      parent_name: "upper_arm"
+      joint {
+        kinematics_component {
+          motion_type: MOTION_TYPE_PRISMATIC
+          axis { x: 0.0 y: 0.0 z: 1.0 }
+          raw_value: 0.0
+        }
+      }
+    }
+    entities {
+      name: "slider"
+      parent_name: "extension"
+      link {}
+    }
+    entities {
+      name: "tcp_frame"
+      parent_name: "slider"
+      parent_t_this {
+        position { x: 0.0 y: 0.0 z: 0.05 }
+        orientation { w: 1.0 }
+      }
+      frame { is_attachment_frame: true }
+    }
+  )pb");
+}
+
+// GetRootPosesWithJointValues and GetRootPoses evaluate forward kinematics from
+// explicit movable-joint values, limits-based defaults, and fixed-joint
+// inboard/outboard frames.
+TEST(SceneObjectViewParameterizedPosesTest,
+     EvaluatesPosesWhenJointValuesAreProvided) {
+  ASSERT_OK_AND_ASSIGN(const SceneObjectView view,
+                       SceneObjectView::Create(MakeTwoJointArmSceneObject()));
+
+  EXPECT_THAT(view.GetRootPosesWithJointValues(
+                  {{"shoulder", M_PI_2}, {"extension", 0.1}}),
+              IsOkAndHolds(Contains(Pair(
+                  "tcp_frame",
+                  Property(&Pose3d::translation,
+                           IsApproxWithin(eigenmath::Vector3d(0.35, 0.0, 0.1),
+                                          1e-6))))));
+}
+
+TEST(SceneObjectViewParameterizedPosesTest,
+     ResolvesMovableJointFromLimitsWhenPosesAreUnset) {
+  const SceneObject scene_object = ParseTextProtoOrDie(R"pb(
+    name: "default_from_limits"
+    entities {
+      name: "base"
+      link {}
+    }
+    entities {
+      name: "slider_joint"
+      parent_name: "base"
+      joint {
+        kinematics_component {
+          motion_type: MOTION_TYPE_PRISMATIC
+          axis { z: 1.0 }
+          parent_t_inboard {
+            position { x: 1.0 }
+            orientation { w: 1.0 }
+          }
+          application_limits { fixed_limits { lower: 0.2 upper: 0.6 } }
+        }
+      }
+    }
+    entities {
+      name: "carriage"
+      parent_name: "slider_joint"
+      link {}
+    }
+  )pb");
+  ASSERT_OK_AND_ASSIGN(const SceneObjectView view,
+                       SceneObjectView::Create(scene_object));
+
+  EXPECT_THAT(view.GetRootPoses(),
+              IsOkAndHolds(UnorderedElementsAre(
+                  Pair("base", IsApprox(Pose3d::Identity())),
+                  Pair("slider_joint",
+                       IsApprox(Pose3d(eigenmath::Vector3d(1.0, 0.0, 0.4)))),
+                  Pair("carriage",
+                       IsApprox(Pose3d(eigenmath::Vector3d(1.0, 0.0, 0.4)))))));
+}
+
+TEST(SceneObjectViewParameterizedPosesTest,
+     ResolvesFixedJointFromInboardOutboardWhenParentTThisIsUnset) {
+  const SceneObject scene_object = ParseTextProtoOrDie(R"pb(
+    name: "fixed_inboard_outboard"
+    entities {
+      name: "base"
+      link {}
+    }
+    entities {
+      name: "weld"
+      parent_name: "base"
+      joint {
+        kinematics_component {
+          motion_type: MOTION_TYPE_FIXED
+          parent_t_inboard {
+            position { x: 0.2 }
+            orientation { w: 1.0 }
+          }
+          outboard_t_child {
+            position { y: 0.3 }
+            orientation { w: 1.0 }
+          }
+        }
+      }
+    }
+    entities {
+      name: "plate"
+      parent_name: "weld"
+      parent_t_this {
+        position { z: 0.4 }
+        orientation { w: 1.0 }
+      }
+      link {}
+    }
+  )pb");
+  ASSERT_OK_AND_ASSIGN(const SceneObjectView view,
+                       SceneObjectView::Create(scene_object));
+
+  EXPECT_THAT(
+      view.GetRootPoses(),
+      IsOkAndHolds(UnorderedElementsAre(
+          Pair("base", IsApprox(Pose3d::Identity())),
+          Pair("weld", IsApprox(Pose3d(eigenmath::Vector3d(0.2, 0.3, 0.0)))),
+          Pair("plate",
+               IsApprox(Pose3d(eigenmath::Vector3d(0.2, 0.3, 0.4)))))));
+}
+
+// GetRootPosesWithJointValues rejects keys that do not identify an existing
+// non-fixed joint entity and rejects non-finite override values.
+struct InvalidJointOverrideCase {
+  std::string name;
+  std::string joint_name;
+  double value;
+  std::string expected_message_substring;
+};
+
+class SceneObjectViewInvalidJointOverridesTest
+    : public ::testing::TestWithParam<InvalidJointOverrideCase> {};
+
+TEST_P(SceneObjectViewInvalidJointOverridesTest,
+       ReturnsInvalidArgumentWhenOverrideIsInvalid) {
+  const InvalidJointOverrideCase& test_case = GetParam();
+  ASSERT_OK_AND_ASSIGN(const SceneObjectView view,
+                       SceneObjectView::Create(MakeTwoJointArmSceneObject()));
+
+  EXPECT_THAT(view.GetRootPosesWithJointValues(
+                  {{test_case.joint_name, test_case.value}}),
+              StatusIs(absl::StatusCode::kInvalidArgument,
+                       HasSubstr(test_case.expected_message_substring)));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    InvalidJointValueOverrides, SceneObjectViewInvalidJointOverridesTest,
+    ::testing::Values(
+        InvalidJointOverrideCase{"UnknownEntity", "unknown", 0.1,
+                                 "override for 'unknown'"},
+        InvalidJointOverrideCase{"LinkEntity", "base_link", 0.1,
+                                 "override for 'base_link'"},
+        InvalidJointOverrideCase{"FrameEntity", "tcp_frame", 0.1,
+                                 "override for 'tcp_frame'"},
+        InvalidJointOverrideCase{"FixedJoint", "weld", 0.0,
+                                 "override for 'weld'"},
+        InvalidJointOverrideCase{"NaNValue", "shoulder",
+                                 std::numeric_limits<double>::quiet_NaN(),
+                                 "override for 'shoulder'"},
+        InvalidJointOverrideCase{"InfiniteValue", "shoulder",
+                                 std::numeric_limits<double>::infinity(),
+                                 "override for 'shoulder'"}),
+    [](const ::testing::TestParamInfo<InvalidJointOverrideCase>& info) {
+      return info.param.name;
+    });
 
 TEST(SceneObjectViewTest, SupportsWideTrees) {
   constexpr int kNumChildren = 1000;
