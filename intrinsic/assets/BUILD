@@ -85,7 +85,6 @@ go_library(
     deps = [
         ":typeutils",
         ":viewutils",
-        "//intrinsic/assets/platformlevelswitch",
         "//intrinsic/assets/proto:asset_type_go_proto",
         "//intrinsic/assets/proto:installed_assets_go_proto",
         "//intrinsic/assets/proto:view_go_proto",
