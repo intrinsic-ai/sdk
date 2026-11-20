@@ -47,6 +47,7 @@ cc_library(
         "//intrinsic/geometry/api:geometry_options",
         "//intrinsic/geometry/proto:geometry_storage_refs_cc_proto",
         "//intrinsic/geometry/proto/v1:geometry_storage_refs_cc_proto",
+        "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
     ],
 )

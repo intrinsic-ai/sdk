@@ -228,8 +228,6 @@ cc_binary(
         "//intrinsic/geometry/api:axis_aligned_bounding_box_3d",
         "//intrinsic/geometry/api:compute_axis_aligned_bounding_box_3d",
         "//intrinsic/geometry/api:geometry",
-        "//intrinsic/geometry/api:geometry_options",
-        "//intrinsic/geometry/proto:geometry_storage_refs_cc_proto",
         "//intrinsic/geometry/storage:geometry_deserializer",
         "//intrinsic/geometry/storage:geometry_library",
         "//intrinsic/geometry/storage:geometry_serializer",

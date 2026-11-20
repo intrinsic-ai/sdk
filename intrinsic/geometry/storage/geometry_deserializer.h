@@ -40,6 +40,7 @@ class GeometryDeserializer {
           geo_storage_refs,
       std::optional<intrinsic_proto::geometry::v1::MaterialProperties>
           material_properties) const = 0;
+
 };
 
 }  // namespace intrinsic::geo
