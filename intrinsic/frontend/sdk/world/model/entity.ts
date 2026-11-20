@@ -23,7 +23,7 @@ import {
 import {MaterialProperties} from './material_properties';
 import * as worldIdUtils from './world_ids';
 import {EntityId, ObjectId} from './world_ids';
-import {PprSource, WorldObject} from './world_object';
+import {WorldObject} from './world_object';
 
 /**
  * EntityData is the data needed to instantiate an entity in the world
@@ -36,7 +36,8 @@ export declare interface EntityData {
   parentObjectId: ObjectId;
   parentTThis: three.Matrix4;
   parentId: EntityId;
-  ppr?: PprSource;
+  /** The name of the resource instance this entity was created from, if any. */
+  resourceName?: string;
 }
 
 /**
@@ -125,14 +126,14 @@ export abstract class Entity {
   }
 
   /** Stores the resource name that defined this object. */
-  private readonly ppr?: PprSource;
+  private readonly resourceName?: string;
 
   /**
    * Returns truthy if this object originated from a resource instance and
    * narrows type to provide resource name.
    */
   isResource(): this is {getResourceName: () => string} & this {
-    return this.ppr?.source === 'resource';
+    return this.resourceName !== undefined;
   }
 
   /**
@@ -140,7 +141,7 @@ export abstract class Entity {
    * resource instance.
    */
   getResourceName(): string | undefined {
-    return this.isResource() ? this.ppr?.name : undefined;
+    return this.resourceName;
   }
 
   /**
@@ -163,7 +164,7 @@ export abstract class Entity {
     this.parentTThis = params.parentTThis;
     this.parentId = params.parentId;
     this.parentObjectId = params.parentObjectId;
-    this.ppr = params.ppr;
+    this.resourceName = params.resourceName;
 
     // Connect this entity to its children.
     for (const child of children) {

@@ -18,16 +18,6 @@ import {Entity, FrameEntity, JointEntity, LinkEntity} from './entity';
 import * as worldIdUtils from './world_ids';
 import {EntityId, FrameId, ObjectId} from './world_ids';
 
-interface PprResourceName {
-  source: 'resource';
-  name: string;
-}
-
-/**
- * A way to tag the asset source of a world object.
- */
-export type PprSource = PprResourceName;
-
 /**
  * WorldObjectData is the data needed to instantiate an object in the world
  * model. It usually is sourced by translating a backend source such as the
@@ -43,7 +33,8 @@ export declare interface WorldObjectData {
   isStatic: boolean;
   isDisabled: boolean;
   children: string[];
-  ppr?: PprSource;
+  /** The name of the resource instance this object was created from, if any. */
+  resourceName?: string;
   /**
    * User data associated with the object. Values are backend-specific (e.g.
    * `google.protobuf.Any` protos), so consumers must narrow them before use.
@@ -269,7 +260,7 @@ export class WorldObject {
   }
 
   /** Stores the resource name that defined this object. */
-  private readonly ppr?: PprSource;
+  private readonly resourceName?: string;
 
   /** All user data associated with this object. */
   private readonly userDataMap?: Map<string, unknown>;
@@ -287,7 +278,7 @@ export class WorldObject {
    * narrows type to provide resource name.
    */
   isResource(): this is {getResourceName: () => string} & this {
-    return this.ppr?.source === 'resource';
+    return this.resourceName !== undefined;
   }
 
   /**
@@ -295,7 +286,7 @@ export class WorldObject {
    * resource instance.
    */
   getResourceName(): string | undefined {
-    return this.isResource() ? this.ppr?.name : undefined;
+    return this.resourceName;
   }
 
   /** Returns truthy if type is kinematic object and narrows type. */
@@ -336,7 +327,7 @@ export class WorldObject {
     this.parentEntityId = params.parentEntityId;
     this.parentObjectId = params.parentObjectId;
     this.parentTThis = params.parentTThis;
-    this.ppr = params.ppr;
+    this.resourceName = params.resourceName;
     this.isStatic = params.isStatic;
     this.isDisabled = params.isDisabled;
     this.userDataMap = params.userDataMap;
