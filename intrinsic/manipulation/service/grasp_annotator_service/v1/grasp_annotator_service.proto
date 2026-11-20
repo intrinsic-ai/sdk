@@ -70,9 +70,10 @@ message GraspAnnotatorRequest {
   // annotation are not scored and the default score will be set to 1.0.
   optional MetricWeights annotation_metrics_weights = 4;
   // Truncate the number of annotations to return to this number.
-  // If `grasp_annotator_metrics` is set, the top N annotations sorted by score
-  // will be returned in descending order (unordered in the absence of metrics).
-  // If not set, all feasible annotations will be returned.
+  // If `annotation_metrics_weights` is set, the top N annotations sorted by
+  // score will be returned in descending order (unordered in the absence of
+  // metrics). If unset or 0, all feasible annotations will be returned.
+  // Negative values are rejected with INVALID_ARGUMENT.
   optional int32 max_num_annotations = 5;
   // Constraints to filter grasp poses.
   optional GraspAnnotationConstraint constraint = 6;
@@ -245,7 +246,8 @@ message GraspAnnotatorScoreRequest {
   // Truncate the number of annotations to return to this number.
   // If `annotation_metrics_weights` is set, the top N annotations sorted by
   // score will be returned in descending order (unordered in the absence of
-  // metrics). If not set, all feasible annotations will be returned.
+  // metrics). If unset or 0, all feasible annotations will be returned.
+  // Negative values are rejected with INVALID_ARGUMENT.
   optional int32 max_num_annotations = 5;
 }
 
@@ -265,6 +267,9 @@ message GraspAnnotatorDebugData {
   GraspAnnotatorRequest request = 2;
   // The final result returned by the service
   GraspAnnotatorResponse response = 3;
+  // The error status of a failed `Annotate` request. The log item of a failure
+  // carries `request` and `error`; `response` is unset.
+  google.rpc.Status error = 4;
 }
 
 service GraspAnnotator {

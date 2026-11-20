@@ -192,8 +192,9 @@ message GraspAnnotationConstraint {
   // a percentage of the finger area (width x length). Annotations with the
   // contact area below this will be filtered out.
   // Defaults to 0.0. Must be within [0.0, 1.0].
-  // This will be satisfied for each finger and will be ignored
-  // if not using a ParameterizedPinchGripper.
+  // This will be satisfied for each finger. Only supported with a
+  // ParameterizedPinchGripper: a request that sets this field with another
+  // gripper type is rejected.
   optional float min_finger_contact_area = 3;
 
   message BoundingBoxConstraint {
