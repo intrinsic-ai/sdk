@@ -21,6 +21,7 @@ from google.rpc import code_pb2
 import grpc
 
 from intrinsic.geometry.proto.v1 import triangle_mesh_pb2
+from intrinsic.logging.proto import context_pb2
 from intrinsic.manipulation.grasping import grasp_annotations_pb2
 from intrinsic.manipulation.grasping import grasp_annotator_pb2
 from intrinsic.manipulation.service.grasp_annotator_service.v1 import grasp_annotator_service_pb2
@@ -94,6 +95,8 @@ class GraspAnnotatorClient:
       max_num_annotations: int | None = None,
       constraint: grasp_annotator_pb2.GraspAnnotationConstraint | None = None,
       sampling_options: grasp_annotator_pb2.SamplingOptions | None = None,
+      context: context_pb2.Context | None = None,
+      max_num_rejected_annotations_per_stage: int = 0,
   ) -> grasp_annotator_service_pb2.GraspAnnotatorResponse:
     """Annotates grasps.
 
@@ -108,10 +111,16 @@ class GraspAnnotatorClient:
       max_num_annotations: The maximum number of annotations to return.
       constraint: Constraints to filter grasp poses.
       sampling_options: Sampling parameters for generating annotations.
+      context: Optional data logger context to link the annotator's log items
+        with the caller's execution context.
+      max_num_rejected_annotations_per_stage: Maximum number of rejected
+        candidates returned per stage in `response.diagnostics`, nearest to the
+        stage's threshold first. 0 (the default) returns the stage counts
+        only.
 
     Returns:
       The response as a `GraspAnnotatorResponse` proto, which includes
-      the annotated grasps and the logging ID.
+      the annotated grasps, the logging ID, and rejection diagnostics.
     """
     request = grasp_annotator_service_pb2.GraspAnnotatorRequest(
         mesh_data=grasp_annotator_pb2.MeshData(triangle_mesh_v1=triangle_mesh),
@@ -126,6 +135,11 @@ class GraspAnnotatorClient:
       request.constraint.CopyFrom(constraint)
     if sampling_options:
       request.sampling_options.CopyFrom(sampling_options)
+    if context is not None:
+      request.context.CopyFrom(context)
+    request.max_num_rejected_annotations_per_stage = (
+        max_num_rejected_annotations_per_stage
+    )
     response: grasp_annotator_service_pb2.GraspAnnotatorResponse = (
         self._stub.Annotate(request, **self._connection_params)
     )

@@ -71,6 +71,7 @@ py_library(
     visibility = ["//intrinsic:public_api_users"],
     deps = [
         "//intrinsic/geometry/proto:triangle_mesh_py_pb2",
+        "//intrinsic/logging/proto:context_py_pb2",
         "//intrinsic/manipulation/grasping:grasp_annotations_py_pb2",
         "//intrinsic/manipulation/grasping:grasp_annotator_py_pb2",
         "//intrinsic/manipulation/service/grasp_annotator_service/v1:grasp_annotator_service_py_pb2",
