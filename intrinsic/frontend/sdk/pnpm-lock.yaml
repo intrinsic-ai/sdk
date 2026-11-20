@@ -80,6 +80,9 @@ importers:
       '@intrinsic-ai/core':
         specifier: workspace:*
         version: link:../core
+      '@intrinsic-ai/types':
+        specifier: workspace:*
+        version: link:../types
       '@types/three':
         specifier: ~0.186.0
         version: 0.186.0

@@ -15,6 +15,7 @@
 /**
  * @file Public API of `@intrinsic-ai/world/utils`.
  */
+export * from './async_cache';
 export * from './bounding_primitives';
 export * from './math';
 export * from './three_typechecks';

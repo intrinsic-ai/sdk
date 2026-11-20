@@ -40,6 +40,10 @@ ts_project(
     visibility = [
         "//intrinsic/frontend/sdk/world:__pkg__",
         "//intrinsic/frontend/sdk/world/backends/simple_world_backend:__pkg__",
+        "//intrinsic/frontend/sdk/world/editor:__pkg__",
+        "//intrinsic/frontend/sdk/world/loaders:__pkg__",
+        "//intrinsic/frontend/sdk/world/loaders/basic_asset_depot:__pkg__",
+        "//intrinsic/frontend/sdk/world/service_interfaces:__pkg__",
     ],
     deps = [
         "//intrinsic/frontend/sdk/world:node_modules/@angular/core",

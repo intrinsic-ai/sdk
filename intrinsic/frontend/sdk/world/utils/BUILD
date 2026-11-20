@@ -17,6 +17,7 @@ load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 ts_project(
     name = "lib",
     srcs = [
+        "async_cache.ts",
         "bounding_primitives.ts",
         "index.ts",
         "math.ts",
@@ -30,6 +31,7 @@ ts_project(
     tsconfig = "//intrinsic/frontend/sdk:tsconfig",
     visibility = [
         "//intrinsic/frontend/sdk/world:__pkg__",
+        "//intrinsic/frontend/sdk/world/loaders/basic_asset_depot:__pkg__",
         "//intrinsic/frontend/sdk/world/model:__pkg__",
     ],
     deps = [

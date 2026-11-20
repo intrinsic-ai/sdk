@@ -10,9 +10,25 @@
       "types": "./backends/simple_world_backend/index.d.ts",
       "default": "./backends/simple_world_backend/index.js"
     },
+    "./editor": {
+      "types": "./editor/index.d.ts",
+      "default": "./editor/index.js"
+    },
+    "./loaders": {
+      "types": "./loaders/index.d.ts",
+      "default": "./loaders/index.js"
+    },
+    "./loaders/basic_asset_depot": {
+      "types": "./loaders/basic_asset_depot/index.d.ts",
+      "default": "./loaders/basic_asset_depot/index.js"
+    },
     "./model": {
       "types": "./model/index.d.ts",
       "default": "./model/index.js"
+    },
+    "./service_interfaces": {
+      "types": "./service_interfaces/index.d.ts",
+      "default": "./service_interfaces/index.js"
     },
     "./utils": {
       "types": "./utils/index.d.ts",
@@ -20,7 +36,8 @@
     }
   },
   "dependencies": {
-    "@intrinsic-ai/core": "workspace:*"
+    "@intrinsic-ai/core": "workspace:*",
+    "@intrinsic-ai/types": "workspace:*"
   },
   "peerDependencies": {
     "@angular/core": "^22.2.0",

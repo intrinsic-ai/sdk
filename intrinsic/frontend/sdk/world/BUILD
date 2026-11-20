@@ -28,6 +28,7 @@ stamped_package_json(
     name = "package",
     stamp_dependencies = [
         "@intrinsic-ai/core",
+        "@intrinsic-ai/types",
     ],
     stamp_var = "STABLE_SEMVER",
 )
@@ -41,7 +42,11 @@ npm_package(
         ":license",
         ":package",
         "//intrinsic/frontend/sdk/world/backends/simple_world_backend:lib",
+        "//intrinsic/frontend/sdk/world/editor:lib",
+        "//intrinsic/frontend/sdk/world/loaders:lib",
+        "//intrinsic/frontend/sdk/world/loaders/basic_asset_depot:lib",
         "//intrinsic/frontend/sdk/world/model:lib",
+        "//intrinsic/frontend/sdk/world/service_interfaces:lib",
         "//intrinsic/frontend/sdk/world/utils:lib",
     ],
     package = "@intrinsic-ai/world",
