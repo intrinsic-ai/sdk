@@ -416,7 +416,6 @@ export class WorldObject {
  * world service into this interface and via a `WorldObjectBuilder`.
  */
 export declare interface KinematicWorldObjectData extends WorldObjectData {
-  controlFrequency: number;
   jointOrdering: string[];
   isoFlangeFrames: string[];
   namedConfigurations: Map<string, number[]>;
@@ -428,9 +427,6 @@ export declare interface KinematicWorldObjectData extends WorldObjectData {
  * have one or more joints and a defined kinematics configuration.
  */
 export class KinematicWorldObject extends WorldObject {
-  /** Control frequency used for this kinematic object. */
-  readonly controlFrequency: number;
-
   /** Named joint configurations used for this kinematic object. */
   readonly namedConfigurations: Map<string, number[]>;
 
@@ -506,7 +502,6 @@ export class KinematicWorldObject extends WorldObject {
     protected override readonly childObjects: WorldObject[],
   ) {
     super(data, childObjects);
-    this.controlFrequency = data.controlFrequency;
 
     // Deep copy the payload.
     if (data.payload) {
