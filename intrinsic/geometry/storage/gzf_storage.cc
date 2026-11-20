@@ -33,8 +33,8 @@
 #include "intrinsic/geometry/api/io.h"
 #include "intrinsic/geometry/api/renderable.h"
 #include "intrinsic/geometry/api/renderable_generation.h"
-#include "intrinsic/geometry/proto/geometry.pb.h"
 #include "intrinsic/geometry/proto/geometry_storage_refs.pb.h"
+#include "intrinsic/geometry/proto/lazy_exact_geometry.pb.h"
 #include "intrinsic/geometry/proto/v1/geometry_storage_refs.pb.h"
 #include "intrinsic/geometry/proto/v1/material.pb.h"
 #include "intrinsic/geometry/storage/geometry_deserializer.h"
@@ -49,17 +49,14 @@ namespace {
 
 const ChunkId::ValueType kGeometryChunkId = 'GEOM';
 const ChunkId::ValueType kGLBChunkId = 'GLTF';
-// This chunk will carry all the geometry files (both visual and collision) in
-// the right format for exporting to the GCS/CAS.
-//
-// Since this is just meant for export, these files are not read back in.
+
+// Version 0 == binary glb string for Renderable..
 const uint32_t kRenderableVersionNumber = 0;
 
 // Version 0 == The geometry saved as binary AnyShape proto
 // Version 1 == The geometry saved as binary v1::ExactGeometry proto
 const uint32_t kGeometryVersionNumberV1 = 1;
-// Version 0 == The geometry saved as a intrinsic_proto::geometry::Geometry for
-// collision geometry, or a raw string for the gltf renderable.
+
 absl::StatusOr<ChunkKey> ObjectIdToKeyOld(absl::string_view id) {
   uint64_t chunk_key;
   CHECK(absl::SimpleHexAtoi(id, &chunk_key));

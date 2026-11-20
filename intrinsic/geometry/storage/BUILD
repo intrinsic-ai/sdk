@@ -56,7 +56,6 @@ cc_library(
     hdrs = ["geometry_serializer.h"],
     deps = [
         "//intrinsic/geometry/api:geometry",
-        "//intrinsic/geometry/proto:geometry_storage_refs_cc_proto",
         "//intrinsic/geometry/proto/v1:geometry_storage_refs_cc_proto",
         "@abseil-cpp//absl/status:statusor",
     ],
@@ -81,8 +80,8 @@ cc_library(
         "//intrinsic/geometry/api:io",
         "//intrinsic/geometry/api:renderable",
         "//intrinsic/geometry/api:renderable_generation",
-        "//intrinsic/geometry/proto:geometry_cc_proto",
         "//intrinsic/geometry/proto:geometry_storage_refs_cc_proto",
+        "//intrinsic/geometry/proto:lazy_exact_geometry_cc_proto",
         "//intrinsic/geometry/proto/v1:geometry_storage_refs_cc_proto",
         "//intrinsic/geometry/proto/v1:material_cc_proto",
         "//intrinsic/util/status:status_macros",
