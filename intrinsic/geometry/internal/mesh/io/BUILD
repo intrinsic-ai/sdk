@@ -40,8 +40,8 @@ cc_library(
     visibility = [
         "//intrinsic/geometry/api:__pkg__",
         "//intrinsic/geometry/internal/legacy/mesh:__pkg__",
-        "//intrinsic/geometry/internal/legacy/point_cloud:__pkg__",
         "//intrinsic/geometry/internal/mesh:__pkg__",
+        "//intrinsic/intrinsic_runtime/intrinsic/geometry/internal/legacy/point_cloud:__pkg__",
     ],
     deps = [
         ":restrict_importer",
@@ -77,7 +77,6 @@ cc_library(
     visibility = [
         "//intrinsic/geometry/api:__pkg__",
         "//intrinsic/geometry/internal/legacy/mesh:__pkg__",
-        "//intrinsic/geometry/internal/legacy/point_cloud:__pkg__",
         "//intrinsic/geometry/internal/mesh:__pkg__",
     ],
     deps = [
