@@ -21,6 +21,7 @@ import weakref
 
 from absl.testing import absltest
 from google.protobuf import any_pb2
+from google.protobuf import wrappers_pb2
 
 from intrinsic.platform.pubsub.python import pubsub
 
@@ -164,6 +165,62 @@ class KVStoreTest(absltest.TestCase):
         worker.join(timeout=5)
       self.assertTrue(progressed_during_write.is_set())
     finally:
+      del store
+      del ps
+      pubsub.PubSub.destroy_session_when_unused()
+
+  def test_set_and_set_with_verification_do_not_double_pack_any(self):
+    ps = pubsub.PubSub()
+    store = ps.key_value_store()
+    received: list[tuple[str, any_pb2.Any]] = []
+    got_all = threading.Event()
+
+    def on_kv(key: str, value: any_pb2.Any) -> None:
+      received.append((key, value))
+      if len(received) >= 4:
+        got_all.set()
+
+    sub = None
+    try:
+      sub = store.create_subscription(
+          "py_any_test/*", pubsub.TopicConfig(), on_kv, None
+      )
+      payload = wrappers_pb2.StringValue(value="already_packed")
+      packed = any_pb2.Any()
+      packed.Pack(payload)
+
+      store.set("py_any_test/direct", packed)
+      store.set("py_any_test/direct_hc", packed, high_consistency=False)
+      store.set("py_any_test/unpacked", payload)
+
+      # No KV storage queryable runs in this unit test, so read-back
+      # verification times out after publishing the Any payload to subscribers.
+      opts = pubsub.SetWithVerificationOptions()
+      opts.timeout = 0.05
+      with self.assertRaisesRegex(
+          Exception, "Timeout waiting for verification"
+      ):
+        store.set_with_verification("py_any_test/verified", packed, opts)
+
+      self.assertTrue(got_all.wait(5))
+      self.assertCountEqual(
+          [key for key, _ in received],
+          [
+              "kv_store/py_any_test/direct",
+              "kv_store/py_any_test/direct_hc",
+              "kv_store/py_any_test/unpacked",
+              "kv_store/py_any_test/verified",
+          ],
+      )
+      for _, wire_any in received:
+        self.assertTrue(wire_any.Is(wrappers_pb2.StringValue.DESCRIPTOR))
+        unpacked = wrappers_pb2.StringValue()
+        self.assertTrue(wire_any.Unpack(unpacked))
+        self.assertEqual(unpacked.value, "already_packed")
+    finally:
+      if sub is not None:
+        sub.unsubscribe()
+        del sub
       del store
       del ps
       pubsub.PubSub.destroy_session_when_unused()

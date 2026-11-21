@@ -16,9 +16,30 @@
 
 load("@pybind11_bazel//:build_defs.bzl", "PYBIND_DEPS", "pybind_extension")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_python//python:defs.bzl", "py_test")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
 
 package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "fake_pubsub",
+    srcs = ["fake_pubsub.py"],
+    deps = [
+        "@com_google_protobuf//:protobuf_python",
+        "@pybind11_abseil//pybind11_abseil:import_status_module",
+    ],
+)
+
+py_test(
+    name = "fake_pubsub_test",
+    srcs = ["fake_pubsub_test.py"],
+    deps = [
+        ":fake_pubsub",
+        "//intrinsic/platform/common/proto:test_py_pb2",
+        "@com_google_absl_py//absl/testing:absltest",
+        "@com_google_protobuf//:protobuf_python",
+        "@pybind11_abseil//pybind11_abseil:import_status_module",
+    ],
+)
 
 pybind_extension(
     name = "pubsub",
