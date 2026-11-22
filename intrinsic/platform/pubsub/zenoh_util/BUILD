@@ -32,6 +32,7 @@ cc_library(
     hdrs = ["zenoh_handle.h"],
     visibility = [
         "//intrinsic/platform/pubsub:__subpackages__",
+        "//intrinsic/tools/introspect:__subpackages__",
     ],
     deps = [
         ":liveliness_get_context",
