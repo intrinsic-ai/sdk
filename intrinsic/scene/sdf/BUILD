@@ -154,7 +154,6 @@ cc_library(
         "//intrinsic/math:proto_conversion",
         "//intrinsic/scene/proto/v1:entity_cc_proto",
         "//intrinsic/scene/proto/v1:scene_object_cc_proto",
-        "//intrinsic/simulation/gazebo:type_conversion",
         "//intrinsic/util/status:ret_check",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/world/component:physics_component",
@@ -165,7 +164,6 @@ cc_library(
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
-        "@gz-math",
         "@sdformat",
     ],
 )

@@ -69,6 +69,7 @@ cc_library(
         ":sensor_conversion",
         "//intrinsic/math:pose3",
         "//intrinsic/scene/sdf:sdf_util",
+        "//intrinsic/simulation/gazebo:type_conversion",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/world/component:kinematics_component",
         "//intrinsic/world/proto:kinematics_component_cc_proto",
