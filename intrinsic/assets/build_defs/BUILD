@@ -26,6 +26,15 @@ bzl_library(
     srcs = ["asset.bzl"],
 )
 
+bzl_library(
+    name = "solution_bzl",
+    srcs = ["solution.bzl"],
+    deps = [
+        ":asset_bzl",
+        "//intrinsic/util/path_resolver:paths_bzl",
+    ],
+)
+
 proto_library(
     name = "asset_proto",
     srcs = ["asset.proto"],

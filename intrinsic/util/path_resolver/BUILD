@@ -12,10 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
+
+bzl_library(
+    name = "paths_bzl",
+    srcs = ["paths.bzl"],
+    deps = [
+        "@bazel_lib//lib:paths.bzl",
+    ],
+)
 
 cc_library(
     name = "path_resolver",

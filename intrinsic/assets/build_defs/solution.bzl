@@ -1,0 +1,226 @@
+# Copyright 2026 Intrinsic Innovation LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Bazel rules for solutions."""
+
+load("//intrinsic/assets/build_defs:asset.bzl", "AssetCatalogRefInfo", "AssetInfo", "AssetInstanceInfo", "AssetLocalInfo")
+load("//intrinsic/util/path_resolver:paths.bzl", "WRAPPER_HEADER", "to_rlocation_path")
+
+SolutionInfo = provider(
+    "provided by the intrinsic_solution() rule",
+    fields = {
+        "asset_bundles": "asset bundle files used in the solution",
+        "instance_configs": "instance config files used in the solution",
+        "solution": "textproto file containing a LocalSolution message",
+    },
+)
+
+def _intrinsic_solution_impl(ctx):
+    out = ctx.actions.declare_file(ctx.label.name + ".dir/solution_manifest.txtpb")
+    assets = [
+        a[AssetInfo].asset_info
+        for a in ctx.attr.assets
+        if AssetInfo in a
+    ]
+    catalog_assets = [
+        a[AssetCatalogRefInfo].catalog_info
+        for a in ctx.attr.assets
+        if AssetCatalogRefInfo in a
+    ]
+
+    args = ctx.actions.args().add(
+        "--output",
+        out,
+    ).add_all(
+        assets,
+        format_each = "--assets=%s",
+    ).add_all(
+        catalog_assets,
+        format_each = "--catalog_assets=%s",
+    ).add_all(
+        ctx.files.object_world_updates,
+        format_each = "--object_world_updates=%s",
+    ).add(
+        "--default_operation_mode",
+        ctx.attr.default_operation_mode,
+    ).add(
+        "--display_name",
+        ctx.attr.display_name or ctx.label.name,
+    ).add(
+        "--solution_id",
+        ctx.attr.solution_id,
+    )
+    asset_bundles = []
+    for a in ctx.attr.assets:
+        if AssetLocalInfo in a:
+            bundle_file = ctx.actions.declare_file(
+                "%s.dir/assets/%s/%s/bundle.tar" % (ctx.label.name, a.label.package, a.label.name),
+            )
+            ctx.actions.symlink(
+                output = bundle_file,
+                target_file = a[AssetLocalInfo].bundle_path,
+            )
+            asset_bundles.append(bundle_file)
+            args.add(
+                "--local_assets",
+                "%s=assets/%s/%s/bundle.tar" % (a[AssetInfo].asset_info.path, a.label.package, a.label.name),
+            )
+    instance_configs = []
+    for i in ctx.attr.instances:
+        if AssetInstanceInfo in i:
+            inst = i[AssetInstanceInfo]
+            if inst.config:
+                config_file = ctx.actions.declare_file(
+                    "%s.dir/instances/%s/config.txtpb" % (ctx.label.name, inst.name),
+                )
+                ctx.actions.symlink(
+                    output = config_file,
+                    target_file = inst.config,
+                )
+                instance_configs.append(config_file)
+                args.add(
+                    "--instances",
+                    "%s=%s=%s=instances/%s/config.txtpb" % (inst.name, inst.asset, config_file.path, inst.name),
+                )
+            else:
+                args.add(
+                    "--instances",
+                    "%s=%s" % (inst.name, inst.asset),
+                )
+
+    inputs = assets + catalog_assets + instance_configs + ctx.files.object_world_updates
+    ctx.actions.run(
+        arguments = [args],
+        executable = ctx.executable._localsolutiongen,
+        inputs = inputs,
+        mnemonic = "LocalSolution",
+        outputs = [out],
+        progress_message = "Writing solution proto %{output} for %{label}",
+    )
+
+    transitive_default_infos = [
+        # file references from resource/asset instances need this, as well as
+        # geometries from resource instances.
+        i[DefaultInfo]
+        for i in ctx.attr.instances
+    ]
+
+    solution_files = [out] + asset_bundles + instance_configs
+
+    # We want the runfiles tree of the resources output to contain the
+    # transitive runfiles of the upstream helm_chart and file_reference rules.
+    transitive_runfiles = depset(
+        solution_files,
+        transitive = [
+            p.default_runfiles.files
+            for p in transitive_default_infos
+        ] + [
+            p.files
+            for p in transitive_default_infos
+        ],
+    )
+    runfiles = ctx.runfiles(
+        transitive_files = transitive_runfiles,
+    ).merge_all([
+        ctx.attr._runfiles_dep[DefaultInfo].default_runfiles,
+        ctx.attr._solution_update[DefaultInfo].default_runfiles,
+    ])
+
+    out_executable = ctx.actions.declare_file(ctx.label.name)
+    ctx.actions.write(
+        out_executable,
+        content = """{header}
+exec "$(rlocation "{target}")" "$(rlocation "{app}")" "$@"
+""".format(
+            app = to_rlocation_path(ctx, out),
+            header = WRAPPER_HEADER,
+            target = to_rlocation_path(ctx, ctx.executable._solution_update),
+        ),
+        is_executable = True,
+    )
+
+    return [
+        DefaultInfo(
+            executable = out_executable,
+            files = depset(solution_files),
+            runfiles = runfiles,
+        ),
+        SolutionInfo(
+            asset_bundles = asset_bundles,
+            instance_configs = instance_configs,
+            solution = out,
+        ),
+    ]
+
+intrinsic_solution = rule(
+    attrs = {
+        "assets": attr.label_list(
+            doc = "The assets of the solution.",
+            providers = [
+                [
+                    AssetInfo,
+                    AssetLocalInfo,
+                ],
+                [
+                    AssetInfo,
+                    AssetCatalogRefInfo,
+                ],
+            ],
+        ),
+        "default_operation_mode": attr.string(
+            default = "sim",
+            doc = "Can be 'sim' or 'real'.",
+        ),
+        "display_name": attr.string(
+            doc = "The display name of the solution. If not set, the name of the build target will be used.",
+        ),
+        "instances": attr.label_list(
+            doc = "The asset instances of the solution.",
+            providers = [
+                [AssetInstanceInfo],
+            ],
+        ),
+        "object_world_updates": attr.label_list(
+            allow_files = [
+                ".txtpb",
+                ".pbtxt",
+                ".textproto",
+            ],
+            doc = "Updates on the used world.",
+        ),
+        "solution_id": attr.string(
+            doc = """The id to which the solution should be attached at startup.
+            This **will overwrite the solution**. If not set, the solution will
+            run detached, and thus will not be able to be saved to the
+            portal.""",
+        ),
+        "_localsolutiongen": attr.label(
+            cfg = "exec",
+            default = Label("//intrinsic/assets/build_defs:localsolutiongen"),
+            executable = True,
+        ),
+        "_runfiles_dep": attr.label(
+            default = Label("@rules_shell//shell/runfiles"),
+        ),
+        "_solution_update": attr.label(
+            cfg = "target",
+            default = Label("//intrinsic/assets/build_defs:solution_update"),
+            executable = True,
+        ),
+    },
+    doc = "solution",
+    executable = True,
+    provides = [SolutionInfo],
+    implementation = _intrinsic_solution_impl,
+)
