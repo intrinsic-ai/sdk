@@ -38,3 +38,17 @@ ignoreWorkspaceRootCheck: true
 
 # Packages that are allowed to run their build scripts.
 allowBuilds: {}
+
+# three-mesh-bvh's type definitions add members (e.g. `boundsTree`) to three's
+# types, so they need to import `three` and therefore need @types/three.
+# However, three-mesh-bvh doesn't list @types/three as a dependency. pnpm only
+# lets a package see its declared dependencies, so these additions silently
+# don't apply. Declaring @types/three as an optional peer dependency here lets
+# three-mesh-bvh use the copy that's installed for the workspace.
+packageExtensions:
+  three-mesh-bvh:
+    peerDependencies:
+      "@types/three": "*"
+    peerDependenciesMeta:
+      "@types/three":
+        optional: true

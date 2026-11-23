@@ -33,6 +33,7 @@ ts_project(
         "//intrinsic/frontend/sdk/world:__pkg__",
         "//intrinsic/frontend/sdk/world/loaders/basic_asset_depot:__pkg__",
         "//intrinsic/frontend/sdk/world/model:__pkg__",
+        "//intrinsic/frontend/sdk/world/view:__pkg__",
     ],
     deps = [
         "//intrinsic/frontend/sdk/world:node_modules/@intrinsic-ai/core",

@@ -27,6 +27,7 @@ copy_file(
 stamped_package_json(
     name = "package",
     stamp_dependencies = [
+        "@intrinsic-ai/angular",
         "@intrinsic-ai/core",
         "@intrinsic-ai/types",
     ],
@@ -48,6 +49,7 @@ npm_package(
         "//intrinsic/frontend/sdk/world/model:lib",
         "//intrinsic/frontend/sdk/world/service_interfaces:lib",
         "//intrinsic/frontend/sdk/world/utils:lib",
+        "//intrinsic/frontend/sdk/world/view:lib",
     ],
     package = "@intrinsic-ai/world",
     publishable = False,

@@ -1,7 +1,7 @@
 {
   "name": "@intrinsic-ai/world",
   "version": "0.0.1",
-  "description": "Intrinsic world: world model and related utilities",
+  "description": "Intrinsic world: world model, view and related utilities",
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
@@ -33,9 +33,14 @@
     "./utils": {
       "types": "./utils/index.d.ts",
       "default": "./utils/index.js"
+    },
+    "./view": {
+      "types": "./view/index.d.ts",
+      "default": "./view/index.js"
     }
   },
   "dependencies": {
+    "@intrinsic-ai/angular": "workspace:*",
     "@intrinsic-ai/core": "workspace:*",
     "@intrinsic-ai/types": "workspace:*"
   },
@@ -43,7 +48,8 @@
     "@angular/core": "^22.2.0",
     "@types/three": "~0.186.0",
     "rxjs": "^7.8.0",
-    "three": "~0.186.0"
+    "three": "~0.186.0",
+    "three-mesh-bvh": "~0.9.18"
   },
   "peerDependenciesMeta": {
     "@types/three": {

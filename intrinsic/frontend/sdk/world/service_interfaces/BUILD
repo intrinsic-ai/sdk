@@ -28,6 +28,7 @@ ts_project(
     tsconfig = "//intrinsic/frontend/sdk:tsconfig",
     visibility = [
         "//intrinsic/frontend/sdk/world:__pkg__",
+        "//intrinsic/frontend/sdk/world/view:__pkg__",
     ],
     deps = [
         "//intrinsic/frontend/sdk/world:node_modules/@intrinsic-ai/types",

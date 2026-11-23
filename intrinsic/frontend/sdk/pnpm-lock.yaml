@@ -18,6 +18,8 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+packageExtensionsChecksum: sha256-fMFI2ykrWB7JnG4oMpfKQ6tk7tP/N9YB+rh3fF8QOgI=
+
 importers:
 
   .:
@@ -77,6 +79,9 @@ importers:
       '@angular/core':
         specifier: ^22.2.0
         version: 22.2.6(rxjs@7.8.2)
+      '@intrinsic-ai/angular':
+        specifier: workspace:*
+        version: link:../angular
       '@intrinsic-ai/core':
         specifier: workspace:*
         version: link:../core
@@ -92,6 +97,9 @@ importers:
       three:
         specifier: ~0.186.0
         version: 0.186.1
+      three-mesh-bvh:
+        specifier: ~0.9.18
+        version: 0.9.18(@types/three@0.186.0)(three@0.186.1)
 
 packages:
 
@@ -171,6 +179,15 @@ packages:
 
   rxjs@7.8.2:
     resolution: {integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==}
+
+  three-mesh-bvh@0.9.18:
+    resolution: {integrity: sha512-S76hOBnsSG4jsuEyCu98K63klONG4NwJANabPY1LUD5l7oUgu2xtKC0IwnX/XyPzo4YZ1D7ZU+gHVA479UdQmA==}
+    peerDependencies:
+      '@types/three': '*'
+      three: '>= 0.159.0'
+    peerDependenciesMeta:
+      '@types/three':
+        optional: true
 
   three@0.186.1:
     resolution: {integrity: sha512-blFeqb49wRCSGUGj7gtpfnSGHy2lwDk94RhUmS1c/hTby70kvChbWpkJ4Pm1390LqzzvTmzgXKHPEafJwCb8jA==}
@@ -256,6 +273,12 @@ snapshots:
   rxjs@7.8.2:
     dependencies:
       tslib: 2.9.1
+
+  three-mesh-bvh@0.9.18(@types/three@0.186.0)(three@0.186.1):
+    dependencies:
+      three: 0.186.1
+    optionalDependencies:
+      '@types/three': 0.186.0
 
   three@0.186.1: {}
 
