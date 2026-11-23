@@ -17,6 +17,7 @@
 #include "absl/base/nullability.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "grpcpp/client_context.h"
 #include "intrinsic/assets/data/proto/v1/data_asset.pb.h"
@@ -28,6 +29,12 @@
 namespace intrinsic::perception {
 namespace {
 constexpr char kDefaultAssetPackage[] = "ai.intrinsic";
+
+// Type URL suffix of a data asset that is packaged as an ML model asset. This
+// is matched by name so that this library does not depend on the inference
+// service protos.
+constexpr char kMlModelAssetTypeUrlSuffix[] =
+    "/intrinsic_proto.ml.inference_service.v1.MlModelAsset";
 
 }  // namespace
 
@@ -50,6 +57,16 @@ GetPerceptionModelFromDataAsset(
   if (!status.ok()) {
     return absl::InternalError(absl::StrFormat(
         "Failed to get data asset. Error: %s", status.message()));
+  }
+
+  if (absl::EndsWith(data_asset.data().type_url(),
+                     kMlModelAssetTypeUrlSuffix)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Data asset '%s' contains an ML model asset, but a perception model "
+        "was expected. This software version cannot read it. Upgrade the "
+        "platform and the ai.intrinsic.perception_service asset to a version "
+        "that supports %s.%s packaged as an ML model asset.",
+        id.name(), id.package(), id.name()));
   }
 
   intrinsic_proto::perception::v1::PerceptionModel perception_model;
