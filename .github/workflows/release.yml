@@ -259,6 +259,7 @@ jobs:
             //intrinsic/tools/inbuild:inbuild \
             //intrinsic/solutions:solutions_wheel \
             //intrinsic/executive/code:code_execution_wheel \
+            //intrinsic/frontend/sdk/core:pack \
             //intrinsic/frontend/sdk/types:pack
 
           mkdir release
@@ -266,6 +267,7 @@ jobs:
           cp "$(bazel cquery --output=files //intrinsic/tools/inbuild:inbuild)" release/inbuild-linux-amd64
           cp "$(bazel cquery --output=files //intrinsic/solutions:solutions_wheel)" release/solutions-0.0.1-py3-none-any.whl
           cp "$(bazel cquery --output=files //intrinsic/executive/code:code_execution_wheel)" release/code_execution-0.0.1-py3-none-any.whl
+          cp "$(bazel cquery --output=files //intrinsic/frontend/sdk/core:pack)" release/intrinsic-ai-core-${{ needs.determine-checkout-ref.outputs.semver }}.tgz
           cp "$(bazel cquery --output=files //intrinsic/frontend/sdk/types:pack)" release/intrinsic-ai-types-${{ needs.determine-checkout-ref.outputs.semver }}.tgz
           ls -la release
 
