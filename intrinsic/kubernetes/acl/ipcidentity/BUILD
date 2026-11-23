@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@ai_intrinsic_sdks_pip_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 
 py_library(
@@ -22,13 +21,8 @@ py_library(
         "//intrinsic/util/grpc:__pkg__",
     ],
     deps = [
-        "//intrinsic/config:environments_py",
-        "//intrinsic/kubernetes/accounts/service/api/tokens/v2:tokens_py_pb2",
-        "//intrinsic/kubernetes/accounts/service/api/tokens/v2:tokens_py_pb2_grpc",
-        "//intrinsic/kubernetes/acl/ipcidentity/internal:metadata",
         "//intrinsic/kubernetes/acl/py:identity",
         "//intrinsic/kubernetes/acl/py:jwt",
-        requirement("grpcio"),
     ],
 )
 
@@ -37,10 +31,6 @@ py_test(
     srcs = ["ipcidentity_py_test.py"],
     deps = [
         ":ipcidentity_py",
-        "//intrinsic/kubernetes/accounts/service/api/tokens/v2:tokens_py_pb2",
-        "//intrinsic/kubernetes/acl/ipcidentity/internal:metadata",
-        "//intrinsic/kubernetes/acl/py:identity",
-        requirement("grpcio"),
         "@com_google_absl_py//absl/testing:absltest",
     ],
 )

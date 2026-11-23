@@ -12,122 +12,137 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Provides an IPC identity token by exchanging a robot JWT via AccountsTokensService."""
+"""Provides an IPC identity token via xfa-config-service."""
 
+from collections.abc import Callable
 import datetime
+import http
+import http.client
+import json
 import logging
+import pathlib
+import ssl
+import threading
 from typing import Optional
 
-import grpc  # For gRPC communication
-
-from intrinsic.config import environments  # For service discovery
-from intrinsic.kubernetes.accounts.service.api.tokens.v2 import tokens_pb2
-from intrinsic.kubernetes.accounts.service.api.tokens.v2 import tokens_pb2_grpc
-from intrinsic.kubernetes.acl.ipcidentity.internal import metadata
 from intrinsic.kubernetes.acl.py import identity
 from intrinsic.kubernetes.acl.py import jwt
 
+XFA_CONFIG_HOST = "xfa-config-control-plane.default.svc.cluster.local"
+XFA_CONFIG_PORT = 443
+XFA_CONFIG_PATH = "/v1alpha1/ipcidentity"
+K8S_SA_TOKEN_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+
 TOKEN_EXPIRY_MARGIN = datetime.timedelta(seconds=30)
-GRPC_TIMEOUT_SECONDS = 10
-GRPC_USER_AGENT = "ipcidentity/1.0 (py, grpc)"
+HTTP_TIMEOUT_SECONDS = 10
+
+
+def _read_k8s_sa_token(token_path: str) -> str:
+  """Reads the Kubernetes ServiceAccount bearer token from disk."""
+  try:
+    token = pathlib.Path(token_path).read_text(encoding="utf-8").strip()
+  except OSError as e:
+    raise RuntimeError(
+        f"Failed to read bearer token from {token_path}: {e}"
+    ) from e
+  if not token:
+    raise RuntimeError(f"Bearer token file {token_path} is empty.")
+  return token
+
+
+def _default_http_connection() -> http.client.HTTPSConnection:
+  """Creates an HTTPS connection to xfa-config-service."""
+  # xfa-config-control-plane uses a self-signed certificate; match the C++ and
+  # Go ipcidentity clients by skipping server certificate verification.
+  return http.client.HTTPSConnection(
+      XFA_CONFIG_HOST,
+      XFA_CONFIG_PORT,
+      timeout=HTTP_TIMEOUT_SECONDS,
+      context=ssl._create_unverified_context(),  # pylint: disable=protected-access
+  )
 
 
 class IpcIdentity:
-  """Provides an IPC identity token.
+  """Provides an IPC identity token from xfa-config-service.
 
-  Retrieves a robot JWT from the MetaDataClient and then calls the
-  AccountsTokensService via gRPC to exchange it for an IPC identity token.
-  The class maintains that token and its expiry data internally.
+  Retrieves the pod's Kubernetes ServiceAccount bearer token and requests an
+  IPC identity token from the cluster-local xfa-config-service endpoint.
+  The token and its expiry are cached in-process and refreshed automatically.
   """
 
   def __init__(
       self,
-      metadata_client: Optional[metadata.MetadataClient] = None,
+      http_connection_factory: Optional[
+          Callable[[], http.client.HTTPConnection]
+      ] = None,
+      bearer_token_source: Optional[Callable[[], str]] = None,
+      token_path: str = K8S_SA_TOKEN_PATH,
   ):
-    self._metadata_client = metadata_client or metadata.MetadataClient()
-    self._token = None
-    self._expires = None
-    self._grpc_channel: Optional[grpc.Channel] = None
-    self._tokens_stub: Optional[tokens_pb2_grpc.AccountsTokensServiceStub] = (
-        None
+    self._http_connection_factory = (
+        http_connection_factory or _default_http_connection
     )
-
-  def _ensure_grpc_setup(self) -> None:
-    """Ensures gRPC channel and stub are initialized."""
-    if self._tokens_stub and self._grpc_channel:
-      return
-
-    logging.info("gRPC channel and stub not initialized, setting up.")
-
-    compute_project = self._metadata_client.compute_project()
-    env = environments.from_compute_project(compute_project)
-    accounts_service_domain = environments.accounts_domain(env)
-
-    if not accounts_service_domain:
-      raise RuntimeError(
-          f"Could not determine accounts domain for env '{env}' from project"
-          f" '{compute_project}'"
-      )
-
-    target_address = f"{accounts_service_domain}:443"  # Standard gRPC TLS port
-    logging.info("Connecting to AccountsTokensService at: %s", target_address)
-
-    self._grpc_channel = grpc.secure_channel(
-        target_address,
-        grpc.ssl_channel_credentials(),
-        # https://github.com/grpc/grpc/issues/23644#issuecomment-669344588
-        options=[("grpc.primary_user_agent", GRPC_USER_AGENT)],
+    self._bearer_token_source = bearer_token_source or (
+        lambda: _read_k8s_sa_token(token_path)
     )
-    self._tokens_stub = tokens_pb2_grpc.AccountsTokensServiceStub(
-        self._grpc_channel
-    )
+    self._lock = threading.Lock()
+    self._token: Optional[str] = None
+    self._expires: Optional[datetime.datetime] = None
 
   def _fetch_ipc_identity_token(self) -> None:
-    """Fetches the IPC identity token via AccountsTokensService."""
-    self._ensure_grpc_setup()
+    """Fetches the IPC identity token from xfa-config-service."""
+    bearer_token = self._bearer_token_source()
+    if not bearer_token:
+      raise RuntimeError("Failed to get Kubernetes ServiceAccount token.")
 
-    if not self._tokens_stub:  # Should be set by _ensure_grpc_setup
-      raise RuntimeError("gRPC stub not initialized.")
+    conn = self._http_connection_factory()
+    try:
+      conn.request(
+          "POST",
+          XFA_CONFIG_PATH,
+          body="{}",
+          headers={
+              "Authorization": f"Bearer {bearer_token}",
+              "Content-Type": "application/json",
+          },
+      )
+      response = conn.getresponse()
+      body = response.read().decode("utf-8", errors="replace")
+    finally:
+      conn.close()
 
-    robot_jwt_str = self._metadata_client.token()
-    if not robot_jwt_str:
-      raise RuntimeError("Failed to get robot JWT from metadata client.")
-
-    logging.debug("Obtained robot JWT, preparing GetIPCTokenRequest.")
-
-    request = tokens_pb2.GetIPCTokenRequest(
-        credential=tokens_pb2.IPCCredential(
-            robot_jwt=tokens_pb2.RobotJWT(jwt=robot_jwt_str)
-        )
-    )
+    if response.status != http.HTTPStatus.OK:
+      raise RuntimeError(
+          f"xfa-config-service returned status code {response.status}:"
+          f" {body[:100]}"
+      )
 
     try:
-      logging.debug("Sending GetIPCTokenRequest to AccountsTokensService.")
-      response = self._tokens_stub.GetIPCToken(
-          request, timeout=GRPC_TIMEOUT_SECONDS
-      )
-    except grpc.RpcError as e:
+      payload = json.loads(body)
+    except json.JSONDecodeError as e:
       raise RuntimeError(
-          f"Failed to get IPC token from AccountsTokensService: {e}"
+          f"xfa-config-service returned invalid JSON: {e}"
       ) from e
 
-    ipc_token_str = response.ipc_token
-    if not ipc_token_str:
-      raise RuntimeError("AccountsTokensService returned an empty IPC token.")
+    if not isinstance(payload, dict):
+      raise RuntimeError("xfa-config-service response must be a JSON object.")
+
+    ipc_token_str = payload.get("token")
+    if not isinstance(ipc_token_str, str) or not ipc_token_str:
+      raise RuntimeError(
+          "xfa-config-service response did not contain a valid 'token' field."
+      )
+
+    expires = payload.get("expires")
+    if isinstance(expires, bool) or not isinstance(expires, (int, float)):
+      raise RuntimeError(
+          "xfa-config-service response did not contain a valid 'expires' field."
+      )
 
     self._token = ipc_token_str
-    logging.info("Obtained IPC token: %s", self._token)
-    jwt_values = jwt.PayloadUnsafe(self._token)
-    if "exp" not in jwt_values:
-      raise RuntimeError("IPC token does not contain an expiration time.")
     self._expires = datetime.datetime.fromtimestamp(
-        float(jwt_values["exp"]), tz=datetime.timezone.utc
+        float(expires), tz=datetime.timezone.utc
     )
-    logging.info(
-        "IPC token received for '%s', expires at: %s",
-        jwt_values["user_id"],
-        self._expires,
-    )
+    logging.info("IPC token received, expires at: %s", self._expires)
 
   def token(self) -> str:
     """Returns the IPC identity token.
@@ -138,31 +153,29 @@ class IpcIdentity:
     Raises:
       RuntimeError: If the token could not be fetched or is invalid.
     """
-    # Ensure datetime.now() is timezone-aware if self._expires is.
-    # datetime.datetime.fromtimestamp(ts, tz=datetime.timezone.utc) makes it
-    # offset-aware.
-    now_utc = datetime.datetime.now(datetime.timezone.utc)
-    if (
-        self._token is not None
-        and self._expires is not None
-        and self._expires > now_utc + TOKEN_EXPIRY_MARGIN
-    ):
-      logging.debug("Returning cached IPC token.")
-      return self._token
+    with self._lock:
+      now_utc = datetime.datetime.now(datetime.timezone.utc)
+      if (
+          self._token is not None
+          and self._expires is not None
+          and self._expires > now_utc + TOKEN_EXPIRY_MARGIN
+      ):
+        logging.debug("Returning cached IPC token.")
+        return self._token
 
-    logging.info("Cached IPC token is invalid or expired, fetching a new one.")
-    try:
-      self._fetch_ipc_identity_token()
-    except Exception as e:
-      raise RuntimeError(f"Failed to fetch IPC identity token: {e}") from e
-
-    if (
-        not self._token
-    ):  # Should be set by _fetch_ipc_identity_token if successful
-      raise RuntimeError(
-          "Failed to obtain a valid IPC token after refresh attempt."
+      logging.info(
+          "Cached IPC token is invalid or expired, fetching a new one."
       )
-    return self._token
+      try:
+        self._fetch_ipc_identity_token()
+      except Exception as e:
+        raise RuntimeError(f"Failed to fetch IPC identity token: {e}") from e
+
+      if not self._token:
+        raise RuntimeError(
+            "Failed to obtain a valid IPC token after refresh attempt."
+        )
+      return self._token
 
   def metadata(self) -> list[tuple[str, str]]:
     """Returns the IPC identity token and organization ID as gRPC metadata.
@@ -183,24 +196,14 @@ class IpcIdentity:
     if not org_id:
       raise RuntimeError("IPC token does not contain an 'orgid' claim.")
 
-    # We use identity.OrgIDToGRPCMetadata which provides both the cookie and
-    # the header for the organization ID.
     res = identity.OrgIDToGRPCMetadata(org_id)
-
-    # Now we need to add the auth-proxy cookie.
     res.append(
         (identity.COOKIE_KEY, f"{identity.AUTH_PROXY_COOKIE_NAME}={token}")
     )
-
     return res
 
   def close(self) -> None:
-    """Closes any open resources, like the gRPC channel."""
-    if self._grpc_channel:
-      logging.info("Closing gRPC channel.")
-      self._grpc_channel.close()
-      self._grpc_channel = None
-      self._tokens_stub = None
+    """Closes any open resources (no-op; HTTP connections close per fetch)."""
 
   def __enter__(self):
     return self
