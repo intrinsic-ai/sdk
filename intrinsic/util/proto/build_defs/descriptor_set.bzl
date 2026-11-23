@@ -150,10 +150,16 @@ def _proto_source_code_info_transitive_descriptor_set(ctx):
         outputs = [output_file],
         progress_message = "Joining descriptors.",
     )
-    return DefaultInfo(
-        files = depset([output_file]),
-        runfiles = ctx.runfiles(files = [output_file]),
-    )
+    return [
+        DefaultInfo(
+            files = depset([output_file]),
+            runfiles = ctx.runfiles(files = [output_file]),
+        ),
+        ProtoSourceCodeInfo(
+            direct_descriptor_set = output_file,
+            transitive_descriptor_sets = depset([output_file]),
+        ),
+    ]
 
 # proto_source_code_info_transitive_descriptor_set outputs a single file
 # containing a binary FileDescriptorSet with transitive dependencies of the
@@ -174,5 +180,6 @@ proto_source_code_info_transitive_descriptor_set = rule(
             aspects = [gen_source_code_info_descriptor_set],
         ),
     },
+    provides = [ProtoSourceCodeInfo],
     implementation = _proto_source_code_info_transitive_descriptor_set,
 )
