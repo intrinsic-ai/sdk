@@ -274,6 +274,11 @@ func TestRegisterControlPlaneErrors(t *testing.T) {
 			wantErrText: `cluster "my-cluster" already exists`,
 		},
 		{
+			name:        "failed-precondition",
+			grpcErr:     status.Error(codes.FailedPrecondition, "cluster is still registered to another organization or project"),
+			wantErrText: `cluster "my-cluster" is still registered to another organization or project`,
+		},
+		{
 			name:        "not-found",
 			grpcErr:     status.Error(codes.NotFound, "device not found"),
 			wantErrText: `device "node-1234" does not exist`,
