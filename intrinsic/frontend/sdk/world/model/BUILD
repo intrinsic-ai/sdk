@@ -44,6 +44,7 @@ ts_project(
         "//intrinsic/frontend/sdk/world/loaders:__pkg__",
         "//intrinsic/frontend/sdk/world/loaders/basic_asset_depot:__pkg__",
         "//intrinsic/frontend/sdk/world/service_interfaces:__pkg__",
+        "//intrinsic/frontend/sdk/world/services:__pkg__",
         "//intrinsic/frontend/sdk/world/view:__pkg__",
     ],
     deps = [

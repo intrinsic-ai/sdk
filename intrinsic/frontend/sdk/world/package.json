@@ -30,6 +30,10 @@
       "types": "./service_interfaces/index.d.ts",
       "default": "./service_interfaces/index.js"
     },
+    "./services": {
+      "types": "./services/index.d.ts",
+      "default": "./services/index.js"
+    },
     "./utils": {
       "types": "./utils/index.d.ts",
       "default": "./utils/index.js"
@@ -40,6 +44,7 @@
     }
   },
   "dependencies": {
+    "@bufbuild/protobuf": "2.17.0",
     "@intrinsic-ai/angular": "workspace:*",
     "@intrinsic-ai/core": "workspace:*",
     "@intrinsic-ai/types": "workspace:*"

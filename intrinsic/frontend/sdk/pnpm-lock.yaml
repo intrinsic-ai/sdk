@@ -79,6 +79,9 @@ importers:
       '@angular/core':
         specifier: ^22.2.0
         version: 22.2.6(rxjs@7.8.2)
+      '@bufbuild/protobuf':
+        specifier: 2.17.0
+        version: 2.17.0
       '@intrinsic-ai/angular':
         specifier: workspace:*
         version: link:../angular

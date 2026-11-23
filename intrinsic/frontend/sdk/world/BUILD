@@ -48,6 +48,7 @@ npm_package(
         "//intrinsic/frontend/sdk/world/loaders/basic_asset_depot:lib",
         "//intrinsic/frontend/sdk/world/model:lib",
         "//intrinsic/frontend/sdk/world/service_interfaces:lib",
+        "//intrinsic/frontend/sdk/world/services:lib",
         "//intrinsic/frontend/sdk/world/utils:lib",
         "//intrinsic/frontend/sdk/world/view:lib",
     ],
