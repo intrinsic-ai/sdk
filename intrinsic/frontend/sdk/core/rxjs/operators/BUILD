@@ -29,6 +29,7 @@ ts_project(
     tsconfig = "//intrinsic/frontend/sdk/core:tsconfig",
     visibility = [
         "//intrinsic/frontend/sdk/core:__pkg__",
+        "//intrinsic/frontend/sdk/core/rxjs/polling:__pkg__",
     ],
     deps = ["//intrinsic/frontend/sdk/core:node_modules/rxjs"],
 )

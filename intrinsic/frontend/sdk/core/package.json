@@ -23,6 +23,10 @@
     "./rxjs/operators": {
       "types": "./rxjs/operators/index.d.ts",
       "default": "./rxjs/operators/index.js"
+    },
+    "./rxjs/polling": {
+      "types": "./rxjs/polling/index.d.ts",
+      "default": "./rxjs/polling/index.js"
     }
   },
   "dependencies": {
