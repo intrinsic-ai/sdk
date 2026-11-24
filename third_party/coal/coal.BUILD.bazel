@@ -1,0 +1,86 @@
+# Copyright 2026 Intrinsic Innovation LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+BUILD rules for Coal, a collision-checking library.
+"""
+
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_license//rules:license.bzl", "license")
+
+package(
+    default_applicable_licenses = [":license"],
+    default_visibility = ["//visibility:public"],
+)
+
+license(
+    name = "license",
+    package_name = "coal",
+    license_kinds = [
+        "@rules_license//licenses/spdx:BSD-3-Clause",
+    ],
+    license_text = "LICENSE",
+)
+
+coal_srcs = glob(
+    [
+        "src/**/*.cpp",
+        "src/**/*.h",
+    ],
+    exclude = [
+        "src/serialization/*",
+    ],
+)
+
+coal_hdrs = glob(
+    [
+        "include/coal/**/*.h",
+        "include/coal/**/*.hh",
+        "include/coal/**/*.hxx",
+    ],
+    exclude = [
+        "include/coal/serialization/**/*",
+        "include/coal/math/vec_3f.h",
+        "include/coal/math/matrix_3f.h",
+        "include/coal/math/types.h",
+        "include/coal/broadphase/broadphase_continuous_collision_manager.h",
+        "include/coal/broadphase/broadphase_continuous_collision_manager-inl.h",
+        "include/coal/internal/traversal_node_bvh_hfield.h",
+    ],
+)
+
+cc_library(
+    name = "coal",
+    srcs = coal_srcs,
+    hdrs = coal_hdrs,
+    copts = [
+        "-fexceptions",
+    ],
+    defines = [
+        "COAL_HAS_OCTOMAP",
+        "COAL_HAVE_OCTOMAP",
+    ],
+    includes = [
+        "./include",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@abseil-cpp//absl/log:check",
+        "@assimp",
+        "@boost.filesystem",
+        "@boost.math",
+        "@com_gitlab_libeigen_eigen//:eigen",
+        "@octomap",
+    ],
+)
