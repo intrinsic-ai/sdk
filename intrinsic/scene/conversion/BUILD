@@ -51,7 +51,6 @@ cc_library(
         "//intrinsic/scene/proto/v1:entity_cc_proto",
         "//intrinsic/util/status:status_macros",
         "//intrinsic/world/proto:kinematics_component_cc_proto",
-        "@abseil-cpp//absl/container:flat_hash_set",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
