@@ -14,6 +14,7 @@
 
 """Tests for the KeyValueStore Python bindings."""
 
+from collections.abc import Callable
 import gc
 import threading
 import time
@@ -30,7 +31,38 @@ class _Sentinel:
   """Weak-referenceable object captured by Python query callbacks."""
 
 
+class _BytesSubclass(bytes):
+  """Bytes subclass used to exercise the non-exact Py_buffer write path."""
+
+
 class KVStoreTest(absltest.TestCase):
+
+  def _assert_releases_gil(self, blocking_call: Callable[[], None]) -> None:
+    """Asserts that `blocking_call` releases the Python GIL while executing."""
+    call_started = threading.Event()
+    call_done = threading.Event()
+    progressed_during_call = threading.Event()
+
+    def check_gil_released() -> None:
+      call_started.wait(5)
+      ticks = 0
+      while not call_done.is_set():
+        time.sleep(0.01)
+        if not call_done.is_set():
+          ticks += 1
+          if ticks >= 5:
+            progressed_during_call.set()
+            return
+
+    worker = threading.Thread(target=check_gil_released, daemon=True)
+    worker.start()
+    try:
+      call_started.set()
+      blocking_call()
+    finally:
+      call_done.set()
+      worker.join(timeout=5)
+    self.assertTrue(progressed_during_call.is_set())
 
   def test_make_key(self):
     self.assertEqual(
@@ -135,35 +167,18 @@ class KVStoreTest(absltest.TestCase):
 
       # A blocking set_with_verification must release the GIL so another Python
       # thread (or Zenoh callback teardown) can make progress during the poll.
-      write_started = threading.Event()
-      write_done = threading.Event()
-      progressed_during_write = threading.Event()
-
-      def check_gil_released():
-        write_started.wait(5)
-        start = time.monotonic()
-        while not write_done.is_set():
-          if time.monotonic() - start >= 0.05:
-            progressed_during_write.set()
-            return
-          time.sleep(0.01)
-
-      worker = threading.Thread(target=check_gil_released)
-      worker.start()
       opts = pubsub.SetWithVerificationOptions()
       opts.timeout = 0.5
-      try:
-        write_started.set()
+
+      def blocking_write() -> None:
         with self.assertRaisesRegex(
             Exception, "Timeout waiting for verification"
         ):
           store.set_with_verification(
               "py_gil_test/blocking", any_pb2.Any(), opts
           )
-      finally:
-        write_done.set()
-        worker.join(timeout=5)
-      self.assertTrue(progressed_during_write.is_set())
+
+      self._assert_releases_gil(blocking_write)
     finally:
       del store
       del ps
@@ -222,6 +237,96 @@ class KVStoreTest(absltest.TestCase):
         sub.unsubscribe()
         del sub
       del store
+      del ps
+      pubsub.PubSub.destroy_session_when_unused()
+
+  def test_raw_methods_validate_inputs_and_missing_key(self):
+    ps = pubsub.PubSub()
+    kvstore = ps.key_value_store("kvstore_get_raw_test")
+    try:
+      for bad_value in ("text", 123, any_pb2.Any(), None):
+        with self.subTest(bad_value=bad_value):
+          with self.assertRaises(TypeError):
+            kvstore.set_raw("valid/key", bad_value)
+          with self.assertRaises(TypeError):
+            kvstore.set_raw_with_verification("valid/key", bad_value)
+
+      for bad_key, expected in (
+          ("", "Keyexpr must not be empty"),
+          ("/leading_slash", "Keyexpr must not start with /"),
+      ):
+        with self.subTest(bad_key=bad_key):
+          with self.assertRaisesRegex(
+              RuntimeError, f"INVALID_ARGUMENT:.*{expected}"
+          ):
+            kvstore.set_raw(bad_key, b"raw")
+          with self.assertRaisesRegex(
+              RuntimeError, f"INVALID_ARGUMENT:.*{expected}"
+          ):
+            kvstore.set_raw_with_verification(bad_key, b"raw")
+          with self.assertRaisesRegex(
+              RuntimeError, f"INVALID_ARGUMENT:.*{expected}"
+          ):
+            kvstore.get_raw(bad_key, timeout=0.05)
+
+      for bad_verify_timeout in (
+          0.0,
+          -1.0,
+          float("nan"),
+          float("inf"),
+          float("-inf"),
+      ):
+        with self.subTest(bad_verify_timeout=bad_verify_timeout):
+          bad_opts = pubsub.SetWithVerificationOptions()
+          bad_opts.timeout = bad_verify_timeout
+          with self.assertRaisesRegex(
+              RuntimeError,
+              "INVALID_ARGUMENT:.*SetWithVerificationOptions::timeout must be"
+              " positive",
+          ):
+            kvstore.set_raw_with_verification("valid/key", b"raw", bad_opts)
+
+      for bad_timeout in (-1.0, float("nan"), float("inf"), float("-inf")):
+        with self.subTest(bad_timeout=bad_timeout):
+          with self.assertRaisesRegex(
+              RuntimeError,
+              "INVALID_ARGUMENT:.*Timeout must be zero or positive",
+          ):
+            kvstore.get_raw("valid/key", timeout=bad_timeout)
+
+      # Fire-and-forget set_raw accepts bytes (including empty and subclasses),
+      # bytearray, and strided memoryview.
+      kvstore.set_raw("valid/empty", b"")
+      kvstore.set_raw("valid/bytes", b"\x00\x01\xff")
+      kvstore.set_raw("valid/bytes_subclass", _BytesSubclass(b"sub"))
+      kvstore.set_raw("valid/bytearray", bytearray(b"abc"))
+      kvstore.set_raw("valid/strided", memoryview(b"a0b1c2")[::2])
+
+      for missing_timeout in (0.0, 0.05):
+        with self.subTest(missing_timeout=missing_timeout):
+          with self.assertRaisesRegex(RuntimeError, "NOT_FOUND:"):
+            kvstore.get_raw("missing/key", timeout=missing_timeout)
+    finally:
+      del kvstore
+      del ps
+      pubsub.PubSub.destroy_session_when_unused()
+
+  def test_set_raw_with_verification_releases_gil(self):
+    ps = pubsub.PubSub()
+    kvstore = ps.key_value_store("kvstore_get_raw_test")
+    try:
+      opts = pubsub.SetWithVerificationOptions()
+      opts.timeout = 0.5
+
+      def blocking_raw_write() -> None:
+        with self.assertRaisesRegex(
+            RuntimeError, "Timeout waiting for verification"
+        ):
+          kvstore.set_raw_with_verification("valid/blocking", b"raw", opts)
+
+      self._assert_releases_gil(blocking_raw_write)
+    finally:
+      del kvstore
       del ps
       pubsub.PubSub.destroy_session_when_unused()
 

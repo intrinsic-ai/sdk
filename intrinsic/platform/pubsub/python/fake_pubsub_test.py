@@ -26,11 +26,22 @@ from intrinsic.platform.common.proto import test_pb2
 from intrinsic.platform.pubsub.python import fake_pubsub
 
 
+class _BytesSubclass(bytes):
+  """Bytes subclass used to verify exact-`bytes` normalization."""
+
+
 @contextlib.contextmanager
 def _assert_raises_status(
-    test_case: absltest.TestCase, expected_code: status.StatusCode
+    test_case: absltest.TestCase,
+    expected_code: status.StatusCode,
+    expected_regex: str | None = None,
 ):
-  with test_case.assertRaises(status.StatusNotOk) as ctx:
+  cm = (
+      test_case.assertRaisesRegex(status.StatusNotOk, expected_regex)
+      if expected_regex is not None
+      else test_case.assertRaises(status.StatusNotOk)
+  )
+  with cm as ctx:
     yield ctx
   test_case.assertEqual(ctx.exception.status.code(), expected_code)
 
@@ -77,9 +88,91 @@ class FakeKeyValueStoreTest(absltest.TestCase):
 
   def test_get_missing_key_raises_not_found_status(self):
     store = fake_pubsub.FakeKeyValueStore()
-    with self.assertRaisesRegex(status.StatusNotOk, "missing") as ctx:
+    with _assert_raises_status(self, status.StatusCode.NOT_FOUND, "missing"):
       store.get("missing")
-    self.assertEqual(ctx.exception.status.code(), status.StatusCode.NOT_FOUND)
+    with _assert_raises_status(self, status.StatusCode.NOT_FOUND, "missing"):
+      store.get_raw("missing")
+
+  def test_set_raw_and_get_raw_with_cross_encoding_checks(self):
+    store = fake_pubsub.FakeKeyValueStore()
+    payload = b"\x00\x01\x02raw\xff"
+    mutable_buf = bytearray(payload)
+    store.set_raw("captures/cam0/0", mutable_buf)
+    mutable_buf[0] = 0xAA
+
+    raw_result = store.get_raw("captures/cam0/0", timeout=1.5)
+    self.assertIsInstance(raw_result, bytes)
+    self.assertEqual(raw_result, payload)
+
+    # Strided memoryviews, set_raw_with_verification, and zero-byte payloads.
+    strided_view = memoryview(b"a0b1c2")[::2]
+    store.set_raw_with_verification(
+        "captures/cam0/view",
+        strided_view,
+        options=types.SimpleNamespace(timeout=5.0),
+    )
+    self.assertEqual(store.get_raw("captures/cam0/view"), b"abc")
+    store.set_raw("captures/cam0/empty", b"")
+    self.assertEqual(store.get_raw("captures/cam0/empty"), b"")
+
+    # Bytes subclasses are normalized to exact `bytes`, matching C++ `GetRaw`.
+    store.set_raw("captures/cam0/sub", _BytesSubclass(b"sub_raw"))
+    sub_result = store.get_raw("captures/cam0/sub")
+    self.assertIs(type(sub_result), bytes)
+    self.assertEqual(sub_result, b"sub_raw")
+
+    store.set_raw_with_verification(
+        "captures/cam0/sub_v",
+        _BytesSubclass(b"sub_verified"),
+        options=types.SimpleNamespace(timeout=5.0),
+    )
+    sub_v_result = store.get_raw("captures/cam0/sub_v")
+    self.assertIs(type(sub_v_result), bytes)
+    self.assertEqual(sub_v_result, b"sub_verified")
+
+    with _assert_raises_status(
+        self,
+        status.StatusCode.INVALID_ARGUMENT,
+        "kv_store/captures/cam0/0' stores raw bytes, not a Protobuf message",
+    ):
+      store.get("captures/cam0/0")
+
+    store.set("captures/cam0", test_pb2.TestMessageString(data="meta"))
+    with _assert_raises_status(
+        self,
+        status.StatusCode.INVALID_ARGUMENT,
+        "kv_store/captures/cam0' stores a Protobuf message, not raw bytes",
+    ):
+      store.get_raw("captures/cam0")
+
+    # Overwriting between raw and Protobuf encodings in the shared keyspace.
+    store.set_raw("captures/cam0", b"overwritten")
+    self.assertEqual(store.get_raw("captures/cam0"), b"overwritten")
+    store.set("captures/cam0/0", test_pb2.TestMessageString(data="now_proto"))
+    unpacked = test_pb2.TestMessageString()
+    self.assertTrue(store.get("captures/cam0/0").Unpack(unpacked))
+    self.assertEqual(unpacked.data, "now_proto")
+
+    self.assertCountEqual(
+        store.list_all_keys(),
+        [
+            "kv_store/captures/cam0",
+            "kv_store/captures/cam0/0",
+            "kv_store/captures/cam0/view",
+            "kv_store/captures/cam0/empty",
+            "kv_store/captures/cam0/sub",
+            "kv_store/captures/cam0/sub_v",
+        ],
+    )
+    store.delete("captures/**")
+    self.assertEmpty(store.list_all_keys())
+
+    for bad_value in ("text", 123, test_pb2.TestMessageString(data="x"), None):
+      with self.subTest(bad_value=bad_value):
+        with self.assertRaises(TypeError):
+          store.set_raw("captures/bad", bad_value)  # pytype: disable=wrong-arg-types
+        with self.assertRaises(TypeError):
+          store.set_raw_with_verification("captures/bad", bad_value)  # pytype: disable=wrong-arg-types
 
   def test_signature_compatibility_keyword_arguments(self):
     pubsub = fake_pubsub.FakePubSub(
@@ -89,23 +182,40 @@ class FakeKeyValueStoreTest(absltest.TestCase):
     msg = test_pb2.TestMessageString(data="val")
     verified_msg = test_pb2.TestMessageString(data="verified")
     store.set(key="key", value=msg, high_consistency=True)
+    store.set_raw(key="raw_key", value=b"raw_val")
     store.set_with_verification(
         key="verified_key",
         value=verified_msg,
         options=types.SimpleNamespace(timeout=5.0),
     )
+    store.set_raw_with_verification(
+        key="verified_raw_key",
+        value=b"verified_raw_val",
+        options=types.SimpleNamespace(timeout=5.0),
+    )
 
     self.assertCountEqual(
         store.list_all_keys(timeout=0),
-        ["custom_store/key", "custom_store/verified_key"],
+        [
+            "custom_store/key",
+            "custom_store/raw_key",
+            "custom_store/verified_key",
+            "custom_store/verified_raw_key",
+        ],
     )
     unpacked = test_pb2.TestMessageString()
     self.assertTrue(store.get(key="key", timeout=0).Unpack(unpacked))
     self.assertEqual(unpacked, msg)
+    self.assertEqual(store.get_raw(key="raw_key", timeout=0.0), b"raw_val")
     self.assertTrue(store.get(key="verified_key", timeout=5).Unpack(unpacked))
     self.assertEqual(unpacked, verified_msg)
+    self.assertEqual(
+        store.get_raw(key="verified_raw_key", timeout=5.0), b"verified_raw_val"
+    )
 
     store.delete(key="key")
+    store.delete(key="raw_key")
+    store.delete(key="verified_raw_key")
     self.assertCountEqual(
         store.list_all_keys(timeout=0), ["custom_store/verified_key"]
     )
@@ -120,19 +230,44 @@ class FakeKeyValueStoreTest(absltest.TestCase):
         with _assert_raises_status(self, invalid_arg):
           store.set(bad_key, msg)
         with _assert_raises_status(self, invalid_arg):
+          store.set_raw(bad_key, b"raw")
+        with _assert_raises_status(self, invalid_arg):
           store.set_with_verification(bad_key, msg)
         with _assert_raises_status(self, invalid_arg):
+          store.set_raw_with_verification(bad_key, b"raw")
+        with _assert_raises_status(self, invalid_arg):
           store.get(bad_key)
+        with _assert_raises_status(self, invalid_arg):
+          store.get_raw(bad_key)
         with _assert_raises_status(self, invalid_arg):
           store.delete(bad_key)
 
     with _assert_raises_status(self, invalid_arg):
       store.get("valid/key", timeout=-1)
-
     with _assert_raises_status(self, invalid_arg):
       store.list_all_keys(timeout=-1)
 
-    for bad_timeout in (0.0, -1.0):
+    for non_int_timeout in (1.5, 0.0, float("nan"), float("inf"), True):
+      with self.subTest(non_int_timeout=non_int_timeout):
+        with self.assertRaises(TypeError):
+          store.get("valid/key", timeout=non_int_timeout)  # pytype: disable=wrong-arg-types
+        with self.assertRaises(TypeError):
+          store.list_all_keys(timeout=non_int_timeout)  # pytype: disable=wrong-arg-types
+
+    for bad_raw_timeout in (
+        -1,
+        -0.5,
+        float("nan"),
+        float("inf"),
+        float("-inf"),
+    ):
+      with self.subTest(bad_raw_timeout=bad_raw_timeout):
+        with _assert_raises_status(self, invalid_arg):
+          store.get_raw("valid/key", timeout=bad_raw_timeout)
+    with self.assertRaises(TypeError):
+      store.get_raw("valid/key", timeout=True)
+
+    for bad_timeout in (0.0, -1.0, float("nan"), float("inf"), float("-inf")):
       with self.subTest(bad_timeout=bad_timeout):
         with _assert_raises_status(self, invalid_arg):
           store.set_with_verification(
@@ -140,6 +275,36 @@ class FakeKeyValueStoreTest(absltest.TestCase):
               msg,
               options=types.SimpleNamespace(timeout=bad_timeout),
           )
+        with _assert_raises_status(self, invalid_arg):
+          store.set_raw_with_verification(
+              "valid/key",
+              b"raw",
+              options=types.SimpleNamespace(timeout=bad_timeout),
+          )
+
+    for non_numeric_opt_timeout in (True, "1.0"):
+      with self.subTest(non_numeric_opt_timeout=non_numeric_opt_timeout):
+        with self.assertRaises(TypeError):
+          store.set_with_verification(
+              "valid/key",
+              msg,
+              options=types.SimpleNamespace(timeout=non_numeric_opt_timeout),
+          )
+        with self.assertRaises(TypeError):
+          store.set_raw_with_verification(
+              "valid/key",
+              b"raw",
+              options=types.SimpleNamespace(timeout=non_numeric_opt_timeout),
+          )
+
+    # Buffer protocol validation happens before option timeout checks, matching
+    # pybind11 argument conversion order.
+    with self.assertRaises(TypeError):
+      store.set_raw_with_verification(
+          "valid/key",
+          "not_a_buffer",  # pytype: disable=wrong-arg-types
+          options=types.SimpleNamespace(timeout=0.0),
+      )
 
     self.assertEmpty(store.list_all_keys())
 
@@ -363,6 +528,8 @@ class FakePubSubTest(absltest.TestCase):
     self.assertIsNot(pubsub.key_value_store(), empty_prefix_store)
     with _assert_raises_status(self, status.StatusCode.INVALID_ARGUMENT):
       empty_prefix_store.set("key", test_pb2.TestMessageString(data="x"))
+    with _assert_raises_status(self, status.StatusCode.INVALID_ARGUMENT):
+      empty_prefix_store.set_raw("key", b"x")
     with _assert_raises_status(self, status.StatusCode.INVALID_ARGUMENT):
       empty_prefix_store.list_all_keys()
 

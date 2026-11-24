@@ -15,14 +15,17 @@
 """In-memory fakes for the PubSub key-value store.
 
 These fakes mirror `intrinsic.platform.pubsub.python.pubsub.PubSub` and
-`KeyValueStore` (including `google.protobuf.Any` packing, Zenoh key/timeout
-validation, store-prefixed `list_all_keys` results, `StatusNotOk` error codes,
-and Zenoh `*`/`**`/`$*` wildcard deletions) so clients and services can be
-tested without a live Zenoh session.
+`KeyValueStore` (including `google.protobuf.Any` packing, raw binary `bytes`
+storage with cross-encoding checks, Zenoh key/timeout validation, store-prefixed
+`list_all_keys` results, `StatusNotOk` error codes, and Zenoh `*`/`**`/`$*`
+wildcard deletions) so clients and services can be tested without a live Zenoh
+session.
 """
 
+import math
 import random
 import threading
+from typing import TypeVar
 
 from google.protobuf import any_pb2
 from google.protobuf import message
@@ -30,6 +33,7 @@ from pybind11_abseil import status
 
 _DEFAULT_STORE = "kv_store"
 _REPLICATION_STORE = "kv_store_repl"
+_T = TypeVar("_T")
 
 
 def _validate_zenoh_keyexpr(keyexpr: str) -> None:
@@ -53,12 +57,37 @@ def _validate_zenoh_keyexpr(keyexpr: str) -> None:
     )
 
 
-def _validate_non_negative_timeout(timeout: int) -> None:
-  """Validates that a read/list `timeout` is zero or positive."""
+def _validate_non_negative_int_timeout(timeout: int) -> None:
+  """Validates an integer `timeout` (matching pybind11 `int` bindings)."""
+  if isinstance(timeout, bool) or not isinstance(timeout, int):
+    raise TypeError(f"Expected int timeout, got {type(timeout)}.")
   if timeout < 0:
     raise status.BuildStatusNotOk(
         status.StatusCode.INVALID_ARGUMENT, "Timeout must be zero or positive"
     )
+
+
+def _validate_non_negative_float_timeout(timeout: float) -> None:
+  """Validates a `float` `timeout` (matching pybind11 `double` bindings)."""
+  if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+    raise TypeError(f"Expected float timeout, got {type(timeout)}.")
+  if not math.isfinite(timeout) or timeout < 0:
+    raise status.BuildStatusNotOk(
+        status.StatusCode.INVALID_ARGUMENT, "Timeout must be zero or positive"
+    )
+
+
+def _validate_verification_options(options: object) -> None:
+  """Validates `options.timeout` when a verification options object is given."""
+  timeout = getattr(options, "timeout", None)
+  if timeout is not None:
+    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+      raise TypeError(f"Expected numeric options.timeout, got {type(timeout)}.")
+    if not math.isfinite(timeout) or timeout <= 0:
+      raise status.BuildStatusNotOk(
+          status.StatusCode.INVALID_ARGUMENT,
+          "SetWithVerificationOptions::timeout must be positive",
+      )
 
 
 def _matches_segment(pattern: str, segment: str) -> bool:
@@ -151,7 +180,10 @@ class FakeKeyValueStore:
   """Thread-safe dict-backed stand-in for `pubsub.KeyValueStore`.
 
   Protobuf values are stored packed in `google.protobuf.Any`, exactly like the
-  real store, so readers unpack them with `get(key).Unpack(message)`.
+  real store, so readers unpack them with `get(key).Unpack(message)`. Raw binary
+  payloads written via `set_raw` or `set_raw_with_verification` share the same
+  keyspace and are read via `get_raw`, matching C++ `KeyValueStore`
+  cross-encoding checks.
   """
 
   def __init__(self, prefix_override: str | None = None):
@@ -159,7 +191,7 @@ class FakeKeyValueStore:
         _DEFAULT_STORE if prefix_override is None else prefix_override
     )
     self._lock = threading.Lock()
-    self._entries: dict[str, any_pb2.Any] = {}
+    self._entries: dict[str, any_pb2.Any | bytes] = {}
 
   def _validate_prefixed_key(self, key: str) -> None:
     """Validates `key` and its store-prefixed Zenoh path."""
@@ -208,33 +240,75 @@ class FakeKeyValueStore:
         exposes a `.timeout` attribute, `timeout` must be positive.
 
     Raises:
+      TypeError: If `options.timeout` is not a numeric value.
       status.StatusNotOk: With `StatusCode.INVALID_ARGUMENT` if `key`, the store
         prefix, or `options.timeout` is invalid.
     """
-    timeout = getattr(options, "timeout", None)
-    if timeout is not None and timeout <= 0:
-      raise status.BuildStatusNotOk(
-          status.StatusCode.INVALID_ARGUMENT,
-          "SetWithVerificationOptions::timeout must be positive",
-      )
+    _validate_verification_options(options)
     self.set(key, value)
 
-  def get(self, key: str, timeout: int = 10) -> any_pb2.Any:
-    """Returns a copy of the `Any` stored at `key`.
+  def _set_raw_bytes(self, key: str, raw: bytes) -> None:
+    """Validates `key` and stores normalized immutable `raw` bytes."""
+    self._validate_prefixed_key(key)
+    with self._lock:
+      self._entries[key] = raw
+
+  def set_raw(
+      self,
+      key: str,
+      value: bytes | bytearray | memoryview,
+  ) -> None:
+    """Stores raw binary `bytes` at `key`, mirroring `KeyValueStore.set_raw`.
 
     Args:
-      key: Key to read.
-      timeout: Query timeout in seconds (must be zero or positive).
-
-    Returns:
-      The stored message packed in an `Any`.
+      key: Key to write.
+      value: Buffer-protocol payload (`bytes`, `bytearray`, `memoryview`, etc.).
 
     Raises:
-      status.StatusNotOk: With `StatusCode.INVALID_ARGUMENT` if `key`, the store
-        prefix, or `timeout` is invalid, or `StatusCode.NOT_FOUND` if `key` was
-        never set.
+      TypeError: If `value` does not support the Python buffer protocol.
+      status.StatusNotOk: With `StatusCode.INVALID_ARGUMENT` if `key` or the
+        configured store prefix is not a valid Zenoh key expression.
     """
-    _validate_non_negative_timeout(timeout)
+    if type(value) is bytes:  # pylint: disable=unidiomatic-typecheck
+      raw = value
+    else:
+      with memoryview(value) as view:
+        raw = bytes(view)
+    self._set_raw_bytes(key, raw)
+
+  def set_raw_with_verification(
+      self,
+      key: str,
+      value: bytes | bytearray | memoryview,
+      options: object = None,
+  ) -> None:
+    """Stores raw binary `bytes` at `key`, mirroring `set_raw_with_verification`.
+
+    Args:
+      key: Key to write.
+      value: Buffer-protocol payload (`bytes`, `bytearray`, `memoryview`, etc.).
+      options: Optional `SetWithVerificationOptions`-compatible object; if it
+        exposes a `.timeout` attribute, `timeout` must be positive.
+
+    Raises:
+      TypeError: If `value` does not support the Python buffer protocol or
+        `options.timeout` is not a numeric value.
+      status.StatusNotOk: With `StatusCode.INVALID_ARGUMENT` if `key`, the store
+        prefix, or `options.timeout` is invalid.
+    """
+    if type(value) is bytes:  # pylint: disable=unidiomatic-typecheck
+      _validate_verification_options(options)
+      raw = value
+    else:
+      with memoryview(value) as view:
+        _validate_verification_options(options)
+        raw = bytes(view)
+    self._set_raw_bytes(key, raw)
+
+  def _get_typed(
+      self, key: str, expected_type: type[_T], mismatch_suffix: str
+  ) -> _T:
+    """Validates `key`, fetches its entry, and checks its stored encoding."""
     self._validate_prefixed_key(key)
     with self._lock:
       entry = self._entries.get(key)
@@ -243,9 +317,57 @@ class FakeKeyValueStore:
           status.StatusCode.NOT_FOUND,
           f"Key '{key}' not found in fake KV store.",
       )
+    if not isinstance(entry, expected_type):
+      raise status.BuildStatusNotOk(
+          status.StatusCode.INVALID_ARGUMENT,
+          f"Key '{self._key_prefix}/{key}' {mismatch_suffix}",
+      )
+    return entry
+
+  def get(self, key: str, timeout: int = 10) -> any_pb2.Any:
+    """Returns a copy of the `Any` stored at `key`.
+
+    Args:
+      key: Key to read.
+      timeout: Integer query timeout in seconds (must be zero or positive).
+
+    Returns:
+      The stored message packed in an `Any`.
+
+    Raises:
+      TypeError: If `timeout` is not an `int`.
+      status.StatusNotOk: With `StatusCode.INVALID_ARGUMENT` if `key`, the store
+        prefix, or `timeout` is invalid or `key` stores raw bytes, or
+        `StatusCode.NOT_FOUND` if `key` was never set.
+    """
+    _validate_non_negative_int_timeout(timeout)
+    entry = self._get_typed(
+        key, any_pb2.Any, "stores raw bytes, not a Protobuf message"
+    )
     result = any_pb2.Any()
     result.CopyFrom(entry)
     return result
+
+  def get_raw(self, key: str, timeout: float = 10.0) -> bytes:
+    """Returns the raw `bytes` payload stored at `key`.
+
+    Args:
+      key: Key to read.
+      timeout: Query timeout in seconds (must be finite and zero or positive).
+
+    Returns:
+      The stored raw bytes.
+
+    Raises:
+      TypeError: If `timeout` is not an `int` or `float`.
+      status.StatusNotOk: With `StatusCode.INVALID_ARGUMENT` if `key`, the store
+        prefix, or `timeout` is invalid or `key` stores a Protobuf message, or
+        `StatusCode.NOT_FOUND` if `key` was never set.
+    """
+    _validate_non_negative_float_timeout(timeout)
+    return self._get_typed(
+        key, bytes, "stores a Protobuf message, not raw bytes"
+    )
 
   def delete(self, key: str) -> None:
     """Removes `key` (or all keys matching a Zenoh `*`/`**`/`$*` keyexpr)."""
@@ -273,11 +395,12 @@ class FakeKeyValueStore:
       Store-prefixed keys matching `<prefix>/**`, in randomized order.
 
     Raises:
+      TypeError: If `timeout` is not an `int`.
       status.StatusNotOk: With `StatusCode.UNIMPLEMENTED` on replicated stores
         (`kv_store_repl`), or `StatusCode.INVALID_ARGUMENT` if `timeout < 0` or
         the store prefix is not a valid Zenoh key segment.
     """
-    _validate_non_negative_timeout(timeout)
+    _validate_non_negative_int_timeout(timeout)
     if self._key_prefix == _REPLICATION_STORE:
       raise status.BuildStatusNotOk(
           status.StatusCode.UNIMPLEMENTED,
