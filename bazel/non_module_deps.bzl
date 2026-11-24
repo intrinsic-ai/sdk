@@ -16,7 +16,17 @@
 Module extension for non-module dependencies
 """
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 def _non_module_deps_impl(ctx):
+    http_archive(
+        name = "coal",
+        build_file = Label("//third_party/coal:coal.BUILD.bazel"),
+        sha256 = "136d7f809fccd0027265dead58abb57798fc7631f1a3331f139a74bed92066cc",
+        strip_prefix = "coal-1.0.1",
+        urls = ["https://github.com/torresl-google/coal/archive/refs/tags/v1.0.1.tar.gz"],
+    )
+
     # The set of generated repos is deterministic and does not depend on the environment, so
     # there is no need to store this extension in the lockfile. This statement also ensures
     # that the function stays valid if copybara strips everything else out of it.
