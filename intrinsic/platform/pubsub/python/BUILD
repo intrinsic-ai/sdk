@@ -82,6 +82,16 @@ cc_library(
     ],
 )
 
+pybind_extension(
+    name = "fake_kvstore",
+    testonly = True,
+    srcs = ["fake_kvstore.cc"],
+    deps = [
+        "//intrinsic/platform/pubsub:fake_kvstore",
+        "//intrinsic/platform/pubsub:kvstore",
+    ],
+)
+
 py_test(
     name = "pubsub_test",
     srcs = ["pubsub_test.py"],
@@ -111,6 +121,22 @@ py_test(
         ":pubsub",
         "@com_google_absl_py//absl/testing:absltest",
         "@com_google_protobuf//:protobuf_python",
+    ],
+)
+
+py_test(
+    name = "fake_kvstore_test",
+    srcs = ["fake_kvstore_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+    ],
+    deps = [
+        ":fake_kvstore",
+        ":pubsub",
+        "//intrinsic/platform/common/proto:test_cc_proto",
+        "//intrinsic/platform/common/proto:test_py_pb2",
+        "@com_google_absl_py//absl/testing:absltest",
     ],
 )
 
