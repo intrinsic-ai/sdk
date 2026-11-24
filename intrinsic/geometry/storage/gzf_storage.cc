@@ -29,12 +29,9 @@
 #include "intrinsic/geometry/api/exact_geometry.h"
 #include "intrinsic/geometry/api/geometry.h"
 #include "intrinsic/geometry/api/geometry_fingerprint.h"
-#include "intrinsic/geometry/api/geometry_options.h"
 #include "intrinsic/geometry/api/io.h"
 #include "intrinsic/geometry/api/renderable.h"
 #include "intrinsic/geometry/api/renderable_generation.h"
-#include "intrinsic/geometry/proto/geometry_storage_refs.pb.h"
-#include "intrinsic/geometry/proto/lazy_exact_geometry.pb.h"
 #include "intrinsic/geometry/proto/v1/geometry_storage_refs.pb.h"
 #include "intrinsic/geometry/proto/v1/material.pb.h"
 #include "intrinsic/geometry/storage/geometry_deserializer.h"
@@ -53,7 +50,6 @@ const ChunkId::ValueType kGLBChunkId = 'GLTF';
 // Version 0 == binary glb string for Renderable..
 const uint32_t kRenderableVersionNumber = 0;
 
-// Version 0 == The geometry saved as binary AnyShape proto
 // Version 1 == The geometry saved as binary v1::ExactGeometry proto
 const uint32_t kGeometryVersionNumberV1 = 1;
 
