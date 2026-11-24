@@ -68,3 +68,45 @@ cc_library(
         "@abseil-cpp//absl/status:statusor",
     ],
 )
+
+cc_library(
+    name = "joint_editing",
+    srcs = ["joint_editing.cc"],
+    hdrs = ["joint_editing.h"],
+    visibility = [":__subpackages__"],
+    deps = [
+        "//intrinsic/eigenmath",
+        "//intrinsic/math:pose3",
+        "//intrinsic/math:proto_conversion",
+        "//intrinsic/scene/proto/v1:entity_cc_proto",
+        "//intrinsic/scene/proto/v1:scene_object_cc_proto",
+        "//intrinsic/scene/proto/v1:scene_object_updates_cc_proto",
+        "//intrinsic/scene/scene_object:scene_object_view",
+        "//intrinsic/scene/util:scene_object_updates",
+        "//intrinsic/scene/validate:scene_object_validation",
+        "//intrinsic/util/status:status_macros",
+        "//intrinsic/world/proto:kinematics_component_cc_proto",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:string_view",
+    ],
+)
+
+cc_library(
+    name = "orient_scene_object",
+    srcs = ["orient_scene_object.cc"],
+    hdrs = ["orient_scene_object.h"],
+    visibility = [":__subpackages__"],
+    deps = [
+        ":transform_scene_object",
+        "//intrinsic/eigenmath",
+        "//intrinsic/math:pose3",
+        "//intrinsic/scene/proto/v1:scene_object_cc_proto",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+    ],
+)
