@@ -13,6 +13,10 @@
 # limitations under the License.
 
 load("//intrinsic/skills/build_defs:skill.bzl", "cc_skill", "py_skill", "skill_manifest")
+load(
+    "//intrinsic/util/proto/build_defs:descriptor_set.bzl",
+    "proto_source_code_info_transitive_descriptor_set",
+)
 
 package(
     default_testonly = True,
@@ -65,4 +69,17 @@ py_skill(
         "//intrinsic/skills/testing:no_op_skill_py",
         "//intrinsic/skills/testing:no_op_skill_py_pb2",
     ],
+)
+
+proto_source_code_info_transitive_descriptor_set(
+    name = "no_op_skill_fds",
+    visibility = ["//visibility:private"],
+    deps = ["//intrinsic/skills/testing:no_op_skill_proto"],
+)
+
+skill_manifest(
+    name = "no_op_skill_cc_manifest_from_fds",
+    src = "no_op_skill_manifest_cc.textproto",
+    visibility = ["//visibility:private"],
+    deps = [":no_op_skill_fds"],
 )

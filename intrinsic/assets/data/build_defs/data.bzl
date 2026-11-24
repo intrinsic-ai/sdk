@@ -123,9 +123,16 @@ intrinsic_data = rule(
         ),
         "deps": attr.label_list(
             aspects = [gen_source_code_info_descriptor_set],
-            doc = "Proto dependencies needed to construct the data payload's FileDescriptorSet.",
+            doc = "Proto dependencies needed to construct the data payload's " +
+                  "FileDescriptorSet. Use either one or more proto_library " +
+                  "targets from a consistent source, or a single " +
+                  "self-consistent file descriptor set target (e.g., " +
+                  "binary_file_descriptor_set).",
             mandatory = True,
-            providers = [ProtoInfo],
+            providers = [
+                [ProtoInfo],
+                [ProtoSourceCodeInfo],
+            ],
         ),
         "exclude_data_from_bundle": attr.label_list(
             allow_empty = True,

@@ -24,6 +24,9 @@ package(default_visibility = [
 bzl_library(
     name = "asset_bzl",
     srcs = ["asset.bzl"],
+    deps = [
+        "//intrinsic/util/proto/build_defs:descriptor_set",
+    ],
 )
 
 bzl_library(

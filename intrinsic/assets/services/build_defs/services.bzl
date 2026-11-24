@@ -126,7 +126,16 @@ intrinsic_service = rule(
         ),
         "deps": attr.label_list(
             aspects = [gen_source_code_info_descriptor_set],
-            providers = [ProtoInfo],
+            doc = (
+                "Proto dependencies for the service's FileDescriptorSet. " +
+                "Use either one or more proto_library targets from a " +
+                "consistent source, or a single self-consistent file " +
+                "descriptor set target (e.g., binary_file_descriptor_set)."
+            ),
+            providers = [
+                [ProtoInfo],
+                [ProtoSourceCodeInfo],
+            ],
         ),
         "images": attr.label_list(
             allow_empty = True,

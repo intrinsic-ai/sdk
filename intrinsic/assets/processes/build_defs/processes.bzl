@@ -136,8 +136,13 @@ intrinsic_process = rule(
                   "textprotos. This attribute is for convenience only to allow for more readable " +
                   "input textprotos. These deps will NOT be included in the file descriptor set " +
                   "of the created Process asset. If there are no expanded Any protos in the " +
-                  "input, you can safely omit this attribute.",
-            providers = [ProtoInfo],
+                  "input, you can safely omit this attribute. Use either one or more " +
+                  "proto_library targets from a consistent source, or a single self-consistent " +
+                  "file descriptor set target (e.g., binary_file_descriptor_set).",
+            providers = [
+                [ProtoInfo],
+                [ProtoSourceCodeInfo],
+            ],
         ),
         "_assetlocalinfogen": attr.label(
             cfg = "exec",
