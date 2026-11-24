@@ -20,7 +20,6 @@ load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@intrinsic_js_rules//:defs.bzl", "js_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-load("//bazel:go_macros.bzl", "go_proto_library")
 load("//intrinsic/util/proto/build_defs:descriptor_set.bzl", "proto_source_code_info_transitive_descriptor_set")
 
 package(default_visibility = ["//intrinsic:public_api_users"])
@@ -40,119 +39,19 @@ js_library(
     deps = ["//intrinsic/executive/proto:code_execution_info_service_proto"],
 )
 
-# executive_service
-proto_library(
-    name = "executive_service_proto",
-    srcs = ["executive_service.proto"],
-    deps = [
-        ":run_metadata_proto",
-        "//intrinsic/assets/proto:id_proto",
-        "//intrinsic/executive/proto:behavior_tree_proto",
-        "//intrinsic/executive/proto:executive_execution_mode_proto",
-        "@com_google_googleapis//google/api:annotations_proto",
-        "@com_google_googleapis//google/longrunning:operations_proto",
-        "@com_google_protobuf//:any_proto",
-        "@com_google_protobuf//:empty_proto",
-        "@com_google_protobuf//:field_mask_proto",
-    ],
-)
-
 proto_source_code_info_transitive_descriptor_set(
     name = "executive_service_proto_descriptor_set",
-    deps = [":executive_service_proto"],
-)
-
-py_proto_library(
-    name = "executive_service_py_pb2",
-    deps = [":executive_service_proto"],
-)
-
-py_grpc_library(
-    name = "executive_service_py_pb2_grpc",
-    srcs = [":executive_service_proto"],
-    grpc_library = requirement("grpcio"),
-    deps = [":executive_service_py_pb2"],
-)
-
-cc_grpc_library(
-    name = "executive_service_cc_grpc_proto",
-    srcs = [":executive_service_proto"],
-    generate_mocks = True,
-    grpc_only = True,
-    deps = [":executive_service_cc_proto"],
-)
-
-cc_proto_library(
-    name = "executive_service_cc_proto",
-    deps = [":executive_service_proto"],
-)
-
-go_proto_library(
-    name = "executive_service_go_proto",
-    compilers = [
-        "@io_bazel_rules_go//proto:go_grpc_v2",
-        "@io_bazel_rules_go//proto:go_proto",
-        "//bazel:go_gen_grpc_gateway",
-    ],
-    importpath = "intrinsic/executive/proto/executive_service_go_proto",
-    protos = [":executive_service_proto"],
-    deps = [
-        ":run_metadata_go_proto",
-        "//intrinsic/assets/proto:id_go_proto",
-        "//intrinsic/executive/proto:behavior_tree_go_proto",
-        "//intrinsic/executive/proto:executive_execution_mode_go_proto",
-        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
-        "@org_golang_google_genproto_googleapis_api//annotations",
-        "@org_golang_google_protobuf//types/known/anypb",
-        "@org_golang_google_protobuf//types/known/emptypb",
-        "@org_golang_google_protobuf//types/known/fieldmaskpb",
-    ],
+    deps = ["//intrinsic/executive/proto:executive_service_proto"],
 )
 
 js_library(
     name = "executive_service_jspb_proto",
-    deps = [":executive_service_proto"],
-)
-
-# run_metadata
-proto_library(
-    name = "run_metadata_proto",
-    srcs = ["run_metadata.proto"],
-    deps = [
-        "//intrinsic/executive/proto:behavior_tree_proto",
-        "//intrinsic/executive/proto:executive_execution_mode_proto",
-        "//intrinsic/logging/proto:context_proto",
-        "//intrinsic/util/status:extended_status_proto",
-        "@com_google_protobuf//:duration_proto",
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-py_proto_library(
-    name = "run_metadata_py_pb2",
-    deps = [":run_metadata_proto"],
-)
-
-cc_proto_library(
-    name = "run_metadata_cc_proto",
-    deps = [":run_metadata_proto"],
+    deps = ["//intrinsic/executive/proto:executive_service_proto"],
 )
 
 js_library(
     name = "run_metadata_jspb_proto",
-    deps = [":run_metadata_proto"],
-)
-
-go_proto_library(
-    name = "run_metadata_go_proto",
-    importpath = "intrinsic/executive/proto/run_metadata_go_proto",
-    protos = [":run_metadata_proto"],
-    deps = [
-        "//intrinsic/executive/proto:behavior_tree_go_proto",
-        "//intrinsic/executive/proto:executive_execution_mode_go_proto",
-        "//intrinsic/logging/proto:context_go_proto",
-        "//intrinsic/util/status:extended_status_go_proto",
-    ],
+    deps = ["//intrinsic/executive/proto:run_metadata_proto"],
 )
 
 js_library(
@@ -180,46 +79,9 @@ js_library(
     deps = ["//intrinsic/executive/proto:log_items_proto"],
 )
 
-proto_library(
-    name = "executive_events_proto",
-    srcs = ["executive_events.proto"],
-    deps = [
-        ":run_metadata_proto",
-        "//intrinsic/executive/proto:behavior_tree_proto",
-        "//intrinsic/executive/proto:executive_execution_mode_proto",
-        "@com_google_googleapis//google/rpc:status_proto",
-        "@com_google_protobuf//:any_proto",
-        "@com_google_protobuf//:timestamp_proto",
-    ],
-)
-
-py_proto_library(
-    name = "executive_events_py_pb2",
-    deps = [":executive_events_proto"],
-)
-
-cc_proto_library(
-    name = "executive_events_cc_proto",
-    deps = [":executive_events_proto"],
-)
-
 js_library(
     name = "executive_events_jspb_proto",
-    deps = [":executive_events_proto"],
-)
-
-go_proto_library(
-    name = "executive_events_go_proto",
-    importpath = "intrinsic/executive/proto/executive_events_go_proto",
-    protos = [":executive_events_proto"],
-    deps = [
-        ":run_metadata_go_proto",
-        "//intrinsic/executive/proto:behavior_tree_go_proto",
-        "//intrinsic/executive/proto:executive_execution_mode_go_proto",
-        "@org_golang_google_genproto_googleapis_rpc//status",
-        "@org_golang_google_protobuf//types/known/anypb",
-        "@org_golang_google_protobuf//types/known/timestamppb",
-    ],
+    deps = ["//intrinsic/executive/proto:executive_events_proto"],
 )
 
 js_library(
@@ -547,6 +409,43 @@ py_grpc_library(
 )
 
 proto_library(
+    name = "executive_events_proto",
+    srcs = ["executive_events.proto"],
+    deps = [
+        ":behavior_tree_proto",
+        ":executive_execution_mode_proto",
+        ":run_metadata_proto",
+        "@com_google_googleapis//google/rpc:status_proto",
+        "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "executive_events_cc_proto",
+    deps = [":executive_events_proto"],
+)
+
+go_proto_library(
+    name = "executive_events_go_proto",
+    importpath = "intrinsic/executive/proto/executive_events_go_proto",
+    protos = [":executive_events_proto"],
+    deps = [
+        ":behavior_tree_go_proto",
+        ":executive_execution_mode_go_proto",
+        ":run_metadata_go_proto",
+        "@org_golang_google_genproto_googleapis_rpc//status",
+        "@org_golang_google_protobuf//types/known/anypb",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+    ],
+)
+
+py_proto_library(
+    name = "executive_events_py_pb2",
+    deps = [":executive_events_proto"],
+)
+
+proto_library(
     name = "executive_execution_mode_proto",
     srcs = ["executive_execution_mode.proto"],
 )
@@ -565,6 +464,69 @@ go_proto_library(
 py_proto_library(
     name = "executive_execution_mode_py_pb2",
     deps = [":executive_execution_mode_proto"],
+)
+
+proto_library(
+    name = "executive_service_proto",
+    srcs = ["executive_service.proto"],
+    deps = [
+        ":behavior_tree_proto",
+        ":executive_execution_mode_proto",
+        ":run_metadata_proto",
+        "//intrinsic/assets/proto:id_proto",
+        "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_googleapis//google/longrunning:operations_proto",
+        "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:field_mask_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "executive_service_cc_proto",
+    deps = [":executive_service_proto"],
+)
+
+cc_grpc_library(
+    name = "executive_service_cc_grpc_proto",
+    srcs = [":executive_service_proto"],
+    generate_mocks = True,
+    grpc_only = True,
+    deps = [":executive_service_cc_proto"],
+)
+
+go_proto_library(
+    name = "executive_service_go_proto",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_grpc_v2",
+        "@io_bazel_rules_go//proto:go_proto",
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway:go_gen_grpc_gateway",
+    ],
+    importpath = "intrinsic/executive/proto/executive_service_go_proto",
+    protos = [":executive_service_proto"],
+    deps = [
+        ":behavior_tree_go_proto",
+        ":executive_execution_mode_go_proto",
+        ":run_metadata_go_proto",
+        "//intrinsic/assets/proto:id_go_proto",
+        "@com_google_cloud_go_longrunning//autogen/longrunningpb",
+        "@org_golang_google_genproto_googleapis_api//annotations",
+        "@org_golang_google_protobuf//types/known/anypb",
+        "@org_golang_google_protobuf//types/known/emptypb",
+        "@org_golang_google_protobuf//types/known/fieldmaskpb",
+    ],
+)
+
+py_proto_library(
+    name = "executive_service_py_pb2",
+    deps = [":executive_service_proto"],
+)
+
+py_grpc_library(
+    name = "executive_service_py_pb2_grpc",
+    srcs = [":executive_service_proto"],
+    grpc_library = requirement("grpcio"),
+    deps = [":executive_service_py_pb2"],
 )
 
 proto_library(
@@ -639,6 +601,41 @@ py_grpc_library(
     srcs = [":proto_builder_proto"],
     grpc_library = requirement("grpcio"),
     deps = [":proto_builder_py_pb2"],
+)
+
+proto_library(
+    name = "run_metadata_proto",
+    srcs = ["run_metadata.proto"],
+    deps = [
+        ":behavior_tree_proto",
+        ":executive_execution_mode_proto",
+        "//intrinsic/logging/proto:context_proto",
+        "//intrinsic/util/status:extended_status_proto",
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "run_metadata_cc_proto",
+    deps = [":run_metadata_proto"],
+)
+
+go_proto_library(
+    name = "run_metadata_go_proto",
+    importpath = "intrinsic/executive/proto/run_metadata_go_proto",
+    protos = [":run_metadata_proto"],
+    deps = [
+        ":behavior_tree_go_proto",
+        ":executive_execution_mode_go_proto",
+        "//intrinsic/logging/proto:context_go_proto",
+        "//intrinsic/util/status:extended_status_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "run_metadata_py_pb2",
+    deps = [":run_metadata_proto"],
 )
 
 proto_library(
