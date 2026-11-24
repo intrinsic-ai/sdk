@@ -402,6 +402,21 @@ export declare interface GeometryData {
 }
 
 /**
+ * Physics properties of a link entity.
+ */
+export declare interface LinkPhysics {
+  // Mass of the link in kilograms.
+  readonly massKg?: number;
+  // Contact stiffness coefficient, in N/m.
+  readonly contactKp?: number;
+  // Contact damping coefficient, in N.s/m.
+  readonly contactKd?: number;
+  // Whether the link is kinematic only in physics simulation, i.e., not
+  // affected by dynamics.
+  readonly kinematic?: boolean;
+}
+
+/**
  * LinkEntityData is additional data needed to specialize an entity as
  * a LinkEntity in the world model. It usually is sourced by adding properties
  * to an EntityData, using a backend source such as the world service into this
@@ -409,6 +424,7 @@ export declare interface GeometryData {
  */
 export declare interface LinkEntityData extends EntityData {
   geometries: Map<string, Map<string, GeometryData>>;
+  physics?: LinkPhysics;
 }
 
 /**
@@ -419,6 +435,9 @@ export class LinkEntity extends Entity {
   // The various geometries defined for this link.
   // E.g., geometry type (e.g., visual) -> (geometry_name -> actual_geometry).
   private readonly geometries: Map<string, Map<string, Geometry>>;
+
+  // Physics properties of this link, or `undefined`.
+  private readonly physics: LinkPhysics | undefined;
 
   /**
    * Constructs a link entity.
@@ -431,6 +450,7 @@ export class LinkEntity extends Entity {
     children: Entity[],
   ) {
     super(params, parentObject, children);
+    this.physics = params.physics ? {...params.physics} : undefined;
     this.geometries = new Map<string, Map<string, Geometry>>();
     for (const [geometryGroupName, geometryMap] of params.geometries) {
       const newGeometryMap = new Map<string, Geometry>();
@@ -482,6 +502,10 @@ export class LinkEntity extends Entity {
 
   getGeometries(): Map<string, Map<string, Geometry>> {
     return this.geometries;
+  }
+
+  getPhysics(): LinkPhysics | undefined {
+    return this.physics;
   }
 }
 

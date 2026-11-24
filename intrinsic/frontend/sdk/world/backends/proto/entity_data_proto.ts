@@ -22,6 +22,7 @@ import {
   type KinematicsComponent_Limits,
   KinematicsComponent_MotionType,
 } from '@intrinsic-ai/types/world/proto/kinematics_component_pb';
+import type {PhysicsComponent} from '@intrinsic-ai/types/world/proto/physics_component_pb';
 import type {
   SensorComponent,
   SensorComponent_Camera,
@@ -36,6 +37,7 @@ import {
   type GeometryData,
   type JointEntityData,
   type LinkEntityData,
+  type LinkPhysics,
   MotionType,
   type Sensor,
   type SensorEntityData,
@@ -132,6 +134,24 @@ export function geometryComponentToEntityData(
     geometries.set(setName, geometryDataMap);
   }
   return {...baseData, geometries};
+}
+
+/**
+ * Converts a PhysicsComponent proto into link physics properties, or returns
+ * `undefined` if no physics component is present.
+ */
+export function physicsComponentToLinkPhysics(
+  physicsComponent: PhysicsComponent | undefined,
+): LinkPhysics | undefined {
+  if (!physicsComponent) {
+    return undefined;
+  }
+  return {
+    massKg: physicsComponent.massKg,
+    contactKp: physicsComponent.contactKp,
+    contactKd: physicsComponent.contactKd,
+    kinematic: physicsComponent.kinematic,
+  };
 }
 
 function cameraToClip(

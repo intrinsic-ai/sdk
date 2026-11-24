@@ -54,6 +54,7 @@ import {WorldObjectBuilder} from '../../model/world_object_builder';
 import {
   geometryComponentToEntityData,
   kinematicsComponentToEntityData,
+  physicsComponentToLinkPhysics,
   sensorComponentToEntityData,
 } from '../proto/entity_data_proto';
 import {poseProtoToMatrix} from '../proto/pose_proto';
@@ -256,14 +257,19 @@ function getLinkEntityData(source: EntitySource): LinkEntityData {
       `Cannot get entity data for non-link entity ${source.proto.name}`,
     );
   }
+  const physics = physicsComponentToLinkPhysics(linkProto.physicsComponent);
   const geometryComponent = linkProto.geometryComponent;
   if (geometryComponent) {
-    return geometryComponentToEntityData(data, geometryComponent);
+    return {
+      ...geometryComponentToEntityData(data, geometryComponent),
+      physics,
+    };
   }
 
   return {
     ...data,
     geometries: new Map<string, Map<string, GeometryData>>(),
+    physics,
   };
 }
 

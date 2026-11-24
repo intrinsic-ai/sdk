@@ -24,7 +24,7 @@ import type {
 import type {RobotPayload} from '@intrinsic-ai/types/world/proto/robot_payload_pb';
 import * as three from 'three';
 
-import {EntityData} from '../../model/entity';
+import {EntityData, GeometryData} from '../../model/entity';
 import * as worldIdUtils from '../../model/world_ids';
 import {
   KinematicWorldObjectData,
@@ -35,6 +35,7 @@ import {WorldObjectBuilder} from '../../model/world_object_builder';
 import {
   geometryComponentToEntityData,
   kinematicsComponentToEntityData,
+  physicsComponentToLinkPhysics,
   sensorComponentToEntityData,
 } from '../proto/entity_data_proto';
 import {matrixdProtoToMatrix3} from '../proto/geometry_proto';
@@ -225,13 +226,27 @@ export function buildFromProtoList(
       }
 
       const geometry = entityProto.geometryComponent;
+      const physics = physicsComponentToLinkPhysics(
+        entityProto.physicsComponent,
+      );
       if (geometry) {
-        return geometryComponentToEntityData(data, geometry);
+        return {
+          ...geometryComponentToEntityData(data, geometry),
+          physics,
+        };
       }
 
       const sensorComponent = entityProto.sensorComponent;
       if (sensorComponent) {
         return sensorComponentToEntityData(data, sensorComponent);
+      }
+
+      if (physics) {
+        return {
+          ...data,
+          geometries: new Map<string, Map<string, GeometryData>>(),
+          physics,
+        };
       }
 
       // NOTE - the `Entity` proto above does not have any `isAttachmentFrame` field
