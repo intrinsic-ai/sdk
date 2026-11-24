@@ -206,8 +206,6 @@ export interface ViewControllerDeps {
   worldId: Signal<string>;
   // The WorldModel to display. Expected to be the model for `worldId`.
   worldModel: Signal<WorldModel | undefined>;
-  // When true, polls the backend for updates to the WorldModel.
-  polling: Signal<boolean>;
   viewNamespace: Signal<string>;
   showGimbal: Signal<boolean>;
   pickingEnabled: Signal<boolean>;
@@ -239,7 +237,6 @@ export interface ViewControllerDeps {
 export class ViewController {
   readonly worldId: Signal<string>;
   readonly worldModel: Signal<WorldModel | undefined>;
-  readonly polling: Signal<boolean>;
   readonly viewNamespace: Signal<string>;
   readonly showGimbal: Signal<boolean>;
   readonly pickingEnabled: Signal<boolean>;
@@ -321,7 +318,6 @@ export class ViewController {
     this.canvas = createCanvas();
     this.worldId = deps.worldId;
     this.worldModel = deps.worldModel;
-    this.polling = deps.polling;
     this.viewNamespace = deps.viewNamespace;
     this.showGimbal = deps.showGimbal;
     this.pickingEnabled = deps.pickingEnabled;
@@ -336,7 +332,6 @@ export class ViewController {
     this.worldScene = new WorldScene({
       worldId: this.worldId,
       worldModel: this.worldModel,
-      polling: this.polling,
       assetDepot: deps.assetDepot,
       pickerManager: deps.pickerManager,
       objectStateManager: deps.objectStateManager,

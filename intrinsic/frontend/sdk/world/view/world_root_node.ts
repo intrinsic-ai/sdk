@@ -40,8 +40,6 @@ export interface WorldRootNodeDeps {
   worldId: Signal<string>;
   // The WorldModel to display. Expected to be the model for `worldId`.
   worldModel: Signal<WorldModel | undefined>;
-  // When true, polls the backend for updates to the WorldModel.
-  polling: Signal<boolean>;
 
   assetDepot: AssetDepot;
   pickerManager: PickerManager;
@@ -63,7 +61,6 @@ export interface WorldRootNodeDeps {
 export class WorldRootNode extends IntrRootEntityNode {
   private readonly worldId: Signal<string>;
   private readonly worldModel: Signal<WorldModel | undefined>;
-  private readonly polling: Signal<boolean>;
   private readonly sceneUpdater: SceneUpdater;
 
   // Emits (and completes) on teardown.
@@ -104,7 +101,6 @@ export class WorldRootNode extends IntrRootEntityNode {
     );
     this.worldId = deps.worldId;
     this.worldModel = deps.worldModel;
-    this.polling = deps.polling;
     this.assetDepot = deps.assetDepot;
     this.pickerManager = deps.pickerManager;
     this.objectStateManager = deps.objectStateManager;
@@ -125,6 +121,13 @@ export class WorldRootNode extends IntrRootEntityNode {
       ([model], onCleanup) => {
         if (!model) return;
         this.sceneUpdater.setModel(model);
+        // Ask the model for live updates while we display it. How (and
+        // whether) these are fetched is up to the model's backend, e.g. it may
+        // poll, subscribe to a stream, or do nothing for static worlds.
+        const pollingSub = model
+          .poll()
+          .pipe(takeUntil(this.destroyed))
+          .subscribe();
         const updatedSub = model.updated
           .pipe(takeUntil(this.destroyed))
           .subscribe(() => {
@@ -137,6 +140,7 @@ export class WorldRootNode extends IntrRootEntityNode {
           });
         this.updateSceneFromModel();
         onCleanup(() => {
+          pollingSub.unsubscribe();
           updatedSub.unsubscribe();
           updatedStateSub.unsubscribe();
         });
@@ -144,22 +148,6 @@ export class WorldRootNode extends IntrRootEntityNode {
       effectOptions,
     );
     this.effects.push(modelEffect);
-
-    const pollingEffect = explicitEffect(
-      [this.worldModel, this.polling],
-      ([model, polling], onCleanup) => {
-        if (!model || !polling) return;
-        const pollingSub = model
-          .poll()
-          .pipe(takeUntil(this.destroyed))
-          .subscribe();
-        onCleanup(() => {
-          pollingSub.unsubscribe();
-        });
-      },
-      effectOptions,
-    );
-    this.effects.push(pollingEffect);
 
     // Collision geometry visibility is stored per world, so this needs to
     // react to both the visibility and the current worldId.

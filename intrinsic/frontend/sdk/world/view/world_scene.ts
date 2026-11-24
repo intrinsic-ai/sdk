@@ -39,8 +39,6 @@ export interface WorldSceneDeps {
   worldId: Signal<string>;
   // The WorldModel to display. Expected to be the model for `worldId`.
   worldModel: Signal<WorldModel | undefined>;
-  // When true, polls the backend for updates to the WorldModel.
-  polling: Signal<boolean>;
 
   assetDepot: AssetDepot;
   pickerManager: PickerManager;

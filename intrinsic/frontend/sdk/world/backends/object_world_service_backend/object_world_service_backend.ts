@@ -97,6 +97,12 @@ export interface ObjectWorldServiceBackendDeps {
    */
   readonly worldStreamingSource?: WorldStreamingSource;
   /**
+   * Whether `startStreaming` fetches live updates of the world. Set to false
+   * for worlds that don't change on their own (e.g. snapshots), so that they
+   * are only loaded on `sync`. Defaults to true.
+   */
+  readonly liveUpdates?: boolean;
+  /**
    * Used to compute inverse kinematics solutions. If not provided,
    * `getIkSolution` is unsupported and throws an error.
    */
@@ -146,6 +152,7 @@ export class ObjectWorldServiceBackend implements WorldBackend {
 
   private readonly objectWorldService: ObjectWorldService;
   private readonly worldStreamingSource?: WorldStreamingSource;
+  private readonly liveUpdates: boolean;
   private readonly ikSolver?: IkSolver;
   private readonly collisionChecker?: CollisionChecker;
   private readonly sceneObjectUpdater?: SceneObjectUpdater;
@@ -162,6 +169,7 @@ export class ObjectWorldServiceBackend implements WorldBackend {
   ) {
     this.objectWorldService = deps.objectWorldService;
     this.worldStreamingSource = deps.worldStreamingSource;
+    this.liveUpdates = deps.liveUpdates ?? true;
     this.ikSolver = deps.ikSolver;
     this.collisionChecker = deps.collisionChecker;
     this.sceneObjectUpdater = deps.sceneObjectUpdater;
@@ -177,6 +185,7 @@ export class ObjectWorldServiceBackend implements WorldBackend {
 
   startStreaming(): void {
     this.stopStreaming();
+    if (!this.liveUpdates) return;
 
     if (this.worldStreamingSource) {
       // We subscribe to world state events, but we throttle the updates to less than 60Hz. Deserializing

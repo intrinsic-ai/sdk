@@ -80,9 +80,6 @@ export interface WorldViewerDeps {
   // The camera used to render the world. Pass the same camera to several
   // viewers to share it between them.
   camera: Signal<IntrinsicCamera>;
-  // When true, the WorldRootNode polls the backend for updates to the
-  // WorldModel and applies them to the scene.
-  pollForWorldUpdates: Signal<boolean>;
   // Holds the workspaces (WorldModel, WorldEditor) of the open worlds, and the
   // registered views.
   worldWorkspaceService: WorldWorkspaceService;
@@ -166,10 +163,6 @@ export class WorldViewer {
 
   // The camera used to render the world.
   readonly camera: Signal<IntrinsicCamera>;
-
-  // When set to true, the WorldRootNode will poll the backend for
-  // updates to the WorldModel and apply them to the scene.
-  readonly pollForWorldUpdates: Signal<boolean>;
 
   // For compatibility with the old non-signals interface, we expose this
   // signal through a public getter.
@@ -258,7 +251,6 @@ export class WorldViewer {
     this.pickingEnabled = deps.pickingEnabled;
     this.cameraControlsEnabled = deps.cameraControlsEnabled;
     this.camera = deps.camera;
-    this.pollForWorldUpdates = deps.pollForWorldUpdates;
     this.worldWorkspaceService = deps.worldWorkspaceService;
     this.objectStateManager = deps.objectStateManager;
     this.pickerManager = deps.pickerManager;
@@ -272,7 +264,6 @@ export class WorldViewer {
       container: this.container,
       worldId: this.worldId,
       worldModel: this.worldModelSignal,
-      polling: this.pollForWorldUpdates,
       viewNamespace: this.viewNamespace,
       showGimbal: this.showGimbal,
       pickingEnabled: this.scenePickingEnabled,
