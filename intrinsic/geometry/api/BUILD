@@ -318,7 +318,6 @@ cc_library(
         "//intrinsic/geometry/proto/v1:material_cc_proto",
         "//intrinsic/geometry/shapes",
         "//intrinsic/geometry/shapes:geometry_shape",
-        "//intrinsic/math:pose3",
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/base:core_headers",
         "@abseil-cpp//absl/log:check",
