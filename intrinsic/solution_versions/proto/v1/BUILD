@@ -67,6 +67,7 @@ proto_library(
         "//intrinsic/solution_versions/proto/v1:snapshot_proto",
         "//intrinsic/solution_versions/proto/v1:snapshot_source_proto",
         "//intrinsic/solution_versions/proto/v1:solution_diff_proto",
+        "//intrinsic/solution_versions/proto/v1:solution_source_proto",
         "//intrinsic/solution_versions/proto/v1:warning_proto",
         "@com_google_googleapis//google/api:annotations_proto",
         "@com_google_googleapis//google/api:field_behavior_proto",
@@ -107,6 +108,7 @@ go_proto_library(
         "//intrinsic/solution_versions/proto/v1:snapshot_go_proto",
         "//intrinsic/solution_versions/proto/v1:snapshot_source_go_proto",
         "//intrinsic/solution_versions/proto/v1:solution_diff_go_proto",
+        "//intrinsic/solution_versions/proto/v1:solution_source_go_proto",
         "//intrinsic/solution_versions/proto/v1:warning_go_proto",
         "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
         "@io_bazel_rules_go//proto/wkt:field_mask_go_proto",
@@ -264,6 +266,30 @@ go_proto_library(
 py_proto_library(
     name = "snapshot_source_py_pb2",
     deps = [":snapshot_source_proto"],
+)
+
+proto_library(
+    name = "solution_source_proto",
+    srcs = ["solution_source.proto"],
+    deps = [
+        ":snapshot_source_proto",
+        "//intrinsic/assets/proto/v1:solution_proto",
+    ],
+)
+
+go_proto_library(
+    name = "solution_source_go_proto",
+    importpath = "intrinsic/solution_versions/proto/v1/solution_source_go_proto",
+    protos = [":solution_source_proto"],
+    deps = [
+        ":snapshot_source_go_proto",
+        "//intrinsic/assets/proto/v1:solution_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "solution_source_py_pb2",
+    deps = [":solution_source_proto"],
 )
 
 proto_library(
