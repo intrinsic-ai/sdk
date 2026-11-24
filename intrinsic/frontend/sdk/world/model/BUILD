@@ -39,6 +39,9 @@ ts_project(
     tsconfig = "//intrinsic/frontend/sdk:tsconfig",
     visibility = [
         "//intrinsic/frontend/sdk/world:__pkg__",
+        "//intrinsic/frontend/sdk/world/backends/object_world_service_backend:__pkg__",
+        "//intrinsic/frontend/sdk/world/backends/proto:__pkg__",
+        "//intrinsic/frontend/sdk/world/backends/scene_object_backend:__pkg__",
         "//intrinsic/frontend/sdk/world/backends/simple_world_backend:__pkg__",
         "//intrinsic/frontend/sdk/world/editor:__pkg__",
         "//intrinsic/frontend/sdk/world/loaders:__pkg__",

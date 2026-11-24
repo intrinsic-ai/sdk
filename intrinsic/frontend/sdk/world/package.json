@@ -6,6 +6,18 @@
   "type": "module",
   "license": "Apache-2.0",
   "exports": {
+    "./backends/object_world_service_backend": {
+      "types": "./backends/object_world_service_backend/index.d.ts",
+      "default": "./backends/object_world_service_backend/index.js"
+    },
+    "./backends/proto": {
+      "types": "./backends/proto/index.d.ts",
+      "default": "./backends/proto/index.js"
+    },
+    "./backends/scene_object_backend": {
+      "types": "./backends/scene_object_backend/index.d.ts",
+      "default": "./backends/scene_object_backend/index.js"
+    },
     "./backends/simple_world_backend": {
       "types": "./backends/simple_world_backend/index.d.ts",
       "default": "./backends/simple_world_backend/index.js"
@@ -50,6 +62,7 @@
     "@intrinsic-ai/types": "workspace:*"
   },
   "peerDependencies": {
+    "@angular/common": "^22.2.0",
     "@angular/core": "^22.2.0",
     "@types/three": "~0.186.0",
     "rxjs": "^7.8.0",

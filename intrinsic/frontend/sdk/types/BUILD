@@ -50,6 +50,7 @@ npm_package(
         "//intrinsic/platform/pubsub/adapters:pubsub_jspb_proto",
         "//intrinsic/proto_tools/proto:proto_registry_jspb_proto",
         "//intrinsic/scene/proto/v1:scene_object_import_jspb_proto",
+        "//intrinsic/scene/proto/v1:scene_object_updates_jspb_proto",
         "//intrinsic/world/proto:object_world_service_jspb_proto",
     ],
     include_external_repositories = ["*"],

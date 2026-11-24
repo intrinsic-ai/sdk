@@ -28,6 +28,7 @@ ts_project(
     tsconfig = "//intrinsic/frontend/sdk:tsconfig",
     visibility = [
         "//intrinsic/frontend/sdk/world:__pkg__",
+        "//intrinsic/frontend/sdk/world/backends/object_world_service_backend:__pkg__",
         "//intrinsic/frontend/sdk/world/services:__pkg__",
         "//intrinsic/frontend/sdk/world/view:__pkg__",
     ],

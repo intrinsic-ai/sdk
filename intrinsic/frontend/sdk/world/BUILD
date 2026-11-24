@@ -42,6 +42,9 @@ npm_package(
     srcs = [
         ":license",
         ":package",
+        "//intrinsic/frontend/sdk/world/backends/object_world_service_backend:lib",
+        "//intrinsic/frontend/sdk/world/backends/proto:lib",
+        "//intrinsic/frontend/sdk/world/backends/scene_object_backend:lib",
         "//intrinsic/frontend/sdk/world/backends/simple_world_backend:lib",
         "//intrinsic/frontend/sdk/world/editor:lib",
         "//intrinsic/frontend/sdk/world/loaders:lib",
