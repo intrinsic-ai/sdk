@@ -430,6 +430,102 @@ TEST(SceneObjectViewTest, ReturnsRootPoses) {
       Pose3d(rotate_z_90, eigenmath::Vector3d(1, 1, 0))));
 }
 
+TEST(SceneObjectViewTest, ReturnsPoseInParent) {
+  const SceneObject scene_object = ParseTextProtoOrDie(R"pb(
+    name: "parent_poses"
+    entities {
+      name: "base"
+      parent_t_this {
+        position { x: 9 }
+        orientation { w: 1 }
+      }
+      link {}
+    }
+    entities {
+      name: "base_frame"
+      parent_name: "base"
+      frame {}
+    }
+    entities {
+      name: "fixed_with_pose"
+      parent_name: "base"
+      parent_t_this {
+        position { x: 1 }
+        orientation { z: 0.7071067811865476 w: 0.7071067811865476 }
+      }
+      joint { kinematics_component { motion_type: MOTION_TYPE_FIXED } }
+    }
+    entities {
+      name: "link_a"
+      parent_name: "fixed_with_pose"
+      parent_t_this {
+        position { x: 2 }
+        orientation { w: 1 }
+      }
+      link {}
+    }
+    entities {
+      name: "fixed_inboard_outboard"
+      parent_name: "base"
+      joint {
+        kinematics_component {
+          motion_type: MOTION_TYPE_FIXED
+          parent_t_inboard {
+            position { x: 0.2 }
+            orientation { w: 1 }
+          }
+          outboard_t_child {
+            position { y: 0.3 }
+            orientation { w: 1 }
+          }
+        }
+      }
+    }
+    entities {
+      name: "revolute_joint"
+      parent_name: "link_a"
+      joint {
+        kinematics_component {
+          motion_type: MOTION_TYPE_REVOLUTE
+          axis { z: 1 }
+          raw_value: 1.5707963267948966
+          parent_t_inboard {
+            position { x: 1 }
+            orientation { w: 1 }
+          }
+          outboard_t_child {
+            position { x: 1 }
+            orientation { w: 1 }
+          }
+        }
+      }
+    }
+  )pb");
+  ASSERT_OK_AND_ASSIGN(const SceneObjectView view,
+                       SceneObjectView::Create(scene_object));
+
+  const eigenmath::Quaterniond rotate_z_90(0.7071067811865476, 0, 0,
+                                           0.7071067811865476);
+  EXPECT_THAT(view.GetPoseInParent("base"),
+              IsOkAndHolds(IsApprox(Pose3d::Identity())));
+  EXPECT_THAT(view.GetPoseInParent("base_frame"),
+              IsOkAndHolds(IsApprox(Pose3d::Identity())));
+  EXPECT_THAT(view.GetPoseInParent("fixed_with_pose"),
+              IsOkAndHolds(
+                  IsApprox(Pose3d(rotate_z_90, eigenmath::Vector3d(1, 0, 0)))));
+  // Local pose is not composed with ancestor transforms.
+  EXPECT_THAT(view.GetPoseInParent("link_a"),
+              IsOkAndHolds(IsApprox(Pose3d(eigenmath::Vector3d(2, 0, 0)))));
+  EXPECT_THAT(
+      view.GetPoseInParent("fixed_inboard_outboard"),
+      IsOkAndHolds(IsApprox(Pose3d(eigenmath::Vector3d(0.2, 0.3, 0.0)))));
+  EXPECT_THAT(view.GetPoseInParent("revolute_joint"),
+              IsOkAndHolds(
+                  IsApprox(Pose3d(rotate_z_90, eigenmath::Vector3d(1, 1, 0)))));
+  EXPECT_THAT(view.GetPoseInParent("missing"),
+              StatusIs(absl::StatusCode::kNotFound));
+}
+
 // A revolute or prismatic joint that has `raw_value` set and no
 // `parent_t_this` is posed by parent_t_inboard * motion(raw_value) *
 // outboard_t_child. The child link has no `parent_t_this`, so it has the same
