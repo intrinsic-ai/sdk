@@ -23,9 +23,6 @@ cc_library(
     name = "gltf_matchers",
     testonly = True,
     hdrs = ["gltf_matchers.h"],
-    visibility = [
-        "//intrinsic/geometry:__subpackages__",
-    ],
     deps = [
         "//intrinsic/geometry/api:geometry",
         "//intrinsic/geometry/api:material_properties",

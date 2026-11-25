@@ -17,13 +17,14 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
+package(default_visibility = [
+    "//intrinsic/geometry:__subpackages__",
+])
+
 cc_library(
     name = "ai_scene_to_mesh",
     srcs = ["ai_scene_to_mesh.cc"],
     hdrs = ["ai_scene_to_mesh.h"],
-    visibility = [
-        "//intrinsic/geometry:__subpackages__",
-    ],
     deps = [
         "//intrinsic/geometry/internal/mesh",
         "//intrinsic/geometry/internal/mesh:concatenate_meshes",
@@ -37,12 +38,6 @@ cc_library(
     name = "load_ai_scene_from_buffer",
     srcs = ["load_ai_scene_from_buffer.cc"],
     hdrs = ["load_ai_scene_from_buffer.h"],
-    visibility = [
-        "//intrinsic/geometry/api:__pkg__",
-        "//intrinsic/geometry/internal/legacy/mesh:__pkg__",
-        "//intrinsic/geometry/internal/mesh:__pkg__",
-        "//intrinsic/intrinsic_runtime/intrinsic/geometry/internal/legacy/point_cloud:__pkg__",
-    ],
     deps = [
         ":restrict_importer",
         "//intrinsic/eigenmath",
@@ -61,9 +56,6 @@ cc_library(
     name = "restrict_importer",
     srcs = ["restrict_importer.cc"],
     hdrs = ["restrict_importer.h"],
-    visibility = [
-        "//intrinsic/geometry:__subpackages__",
-    ],
     deps = [
         "@abseil-cpp//absl/strings",
         "@assimp",
@@ -74,11 +66,6 @@ cc_library(
     name = "load_ai_scene_from_file",
     srcs = ["load_ai_scene_from_file.cc"],
     hdrs = ["load_ai_scene_from_file.h"],
-    visibility = [
-        "//intrinsic/geometry/api:__pkg__",
-        "//intrinsic/geometry/internal/legacy/mesh:__pkg__",
-        "//intrinsic/geometry/internal/mesh:__pkg__",
-    ],
     deps = [
         ":restrict_importer",
         "//intrinsic/eigenmath",
@@ -125,9 +112,6 @@ cc_library(
     name = "mesh_to_ai_scene",
     srcs = ["mesh_to_ai_scene.cc"],
     hdrs = ["mesh_to_ai_scene.h"],
-    visibility = [
-        "//intrinsic/geometry/internal/util:__pkg__",
-    ],
     deps = [
         "//intrinsic/geometry/api:material",
         "//intrinsic/geometry/internal/mesh",
@@ -152,10 +136,6 @@ cc_library(
     name = "save_mesh_to_obj_file",
     srcs = ["save_mesh_to_obj_file.cc"],
     hdrs = ["save_mesh_to_obj_file.h"],
-    visibility = [
-        "//intrinsic/geometry:__subpackages__",
-        "//intrinsic/geometry/internal/legacy/mesh:__pkg__",
-    ],
     deps = [
         "//intrinsic/geometry/internal/mesh",
         "//intrinsic/util:full_precision",

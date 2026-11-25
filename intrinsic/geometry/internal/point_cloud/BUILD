@@ -27,7 +27,6 @@ exports_files(
     ],
     visibility = [
         "//intrinsic/geometry:__subpackages__",
-        "//intrinsic/world/service/benchmarks:__subpackages__",
     ],
 )
 
@@ -45,9 +44,6 @@ cc_library(
     name = "validate_pts",
     srcs = ["validate_pts.cc"],
     hdrs = ["validate_pts.h"],
-    visibility = [
-        "//intrinsic/geometry:__subpackages__",
-    ],
     deps = [
         "//intrinsic/util/status:status_macros",
         "@abseil-cpp//absl/status",
@@ -60,9 +56,6 @@ cc_library(
     name = "pts_to_ai_scene",
     srcs = ["pts_to_ai_scene.cc"],
     hdrs = ["pts_to_ai_scene.h"],
-    visibility = [
-        "//intrinsic/geometry:__subpackages__",
-    ],
     deps = [
         ":validate_pts",
         "//intrinsic/eigenmath",
@@ -80,9 +73,6 @@ cc_library(
     name = "pts_to_point_cloud",
     srcs = ["pts_to_point_cloud.cc"],
     hdrs = ["pts_to_point_cloud.h"],
-    visibility = [
-        "//intrinsic/geometry:__subpackages__",
-    ],
     deps = [
         ":validate_pts",
         "//intrinsic/eigenmath",

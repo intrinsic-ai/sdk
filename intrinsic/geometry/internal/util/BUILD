@@ -16,7 +16,9 @@
 
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = [
+    "//intrinsic/geometry:__subpackages__",
+])
 
 cc_library(
     name = "eigen_serialization",
