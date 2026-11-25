@@ -42,6 +42,7 @@ from intrinsic.skills.proto import skills_pb2
 from intrinsic.solutions import blackboard_value
 from intrinsic.solutions import cel
 from intrinsic.solutions import provided
+from intrinsic.solutions.internal import actions
 from intrinsic.solutions.internal import skill_generation
 from intrinsic.solutions.internal import skill_providing
 from intrinsic.solutions.internal import skill_utils
@@ -2115,6 +2116,30 @@ Returns:
               project_timeout {{
                 seconds: 10
               }}
+            }}
+        """,
+        behavior_call_pb2.BehaviorCall(),
+    )
+    compare.assertProto2Equal(self, skill.proto, expected_proto)
+
+  def test_conflict_handling_mode(self):
+    """Tests if conflict_handling_mode is transferred to proto."""
+    asset = skill_test_utils.create_skill_asset('ai.intrinsic.my_skill')
+    skills = skill_providing.Skills(
+        skill_test_utils.create_empty_skill_registry(),
+        skill_test_utils.create_empty_resource_registry(),
+        skill_test_utils.create_installed_assets([asset]),
+        skill_test_utils.create_asset_configuration_client(),
+    )
+
+    skill = skills.ai.intrinsic.my_skill()
+    skill.conflict_handling_mode = actions.ConflictHandlingMode.WAIT
+
+    expected_proto = text_format.Parse(
+        f"""skill_id: 'ai.intrinsic.my_skill'
+            return_value_name: "{skill.proto.return_value_name}"
+            skill_execution_options {{
+              conflict_handling_mode: WAIT
             }}
         """,
         behavior_call_pb2.BehaviorCall(),

@@ -55,6 +55,10 @@ class Action(actions.ActionBase):
       self._proto.skill_execution_options.project_timeout.FromTimedelta(
           self._project_timeout
       )
+    if self._conflict_handling_mode is not None:
+      self._proto.skill_execution_options.conflict_handling_mode = (
+          self._conflict_handling_mode.value
+      )
     return self._proto
 
   @proto.setter

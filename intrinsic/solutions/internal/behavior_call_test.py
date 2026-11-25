@@ -77,6 +77,17 @@ class BehaviorCallActionTest(absltest.TestCase):
     )
     compare.assertProto2Equal(self, action.proto, proto)
 
+  def test_conflict_handling_mode(self):
+    """Tests if conflict_handling_mode is transferred to proto."""
+    proto = _create_behavior_call_proto(123)
+    action = behavior_call.Action(proto)
+    compare.assertProto2Equal(self, action.proto, proto)
+    action.conflict_handling_mode = actions.ConflictHandlingMode.WAIT
+    proto.skill_execution_options.conflict_handling_mode = (
+        behavior_call_pb2.BehaviorCall.SkillExecutionOptions.WAIT
+    )
+    compare.assertProto2Equal(self, action.proto, proto)
+
   def test_str(self):
     """Tests if Action conversion to string works."""
     self.assertEqual(repr(behavior_call.Action()), r"""Action(skill_id='')""")

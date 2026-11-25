@@ -117,6 +117,7 @@ py_library(
     deps = [
         "//intrinsic/executive/proto:behavior_call_py_pb2",
         "//intrinsic/solutions:blackboard_value",
+        "//intrinsic/solutions:utils",
     ],
 )
 
@@ -356,6 +357,7 @@ py_test(
         "//intrinsic/solutions/testing:test_skill_params_proto_descriptors",
     ],
     deps = [
+        ":actions",
         ":skill_generation",
         ":skill_providing",
         ":skill_utils",
