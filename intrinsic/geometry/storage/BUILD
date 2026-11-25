@@ -40,6 +40,37 @@ cc_library(
 )
 
 cc_library(
+    name = "file_system_storage",
+    srcs = ["file_system_storage.cc"],
+    hdrs = ["file_system_storage.h"],
+    copts = ["-fexceptions"] + select({
+        "@platforms//cpu:x86_32": ["-frounding-math"],
+        "@platforms//cpu:x86_64": ["-frounding-math"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":geometry_deserializer",
+        ":geometry_library",
+        ":geometry_serializer",
+        "//intrinsic/geometry/api:exact_geometry",
+        "//intrinsic/geometry/api:geometry",
+        "//intrinsic/geometry/api:geometry_fingerprint",
+        "//intrinsic/geometry/api:io",
+        "//intrinsic/geometry/api:renderable",
+        "//intrinsic/geometry/api:renderable_generation",
+        "//intrinsic/geometry/proto/v1:exact_geometry_cc_proto",
+        "//intrinsic/geometry/proto/v1:geometry_storage_refs_cc_proto",
+        "//intrinsic/geometry/proto/v1:material_cc_proto",
+        "//intrinsic/util/status:status_builder",
+        "//intrinsic/util/status:status_macros",
+        "@abseil-cpp//absl/functional:function_ref",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings:string_view",
+    ],
+)
+
+cc_library(
     name = "geometry_deserializer",
     hdrs = ["geometry_deserializer.h"],
     deps = [
