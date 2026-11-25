@@ -26,6 +26,7 @@ go_library(
     ],
     deps = [
         "//intrinsic/tools/inctl/cmd:root",
+        "//intrinsic/tools/inctl/cmd/solution/copy",
         "//intrinsic/tools/inctl/cmd/solution/create",
         "//intrinsic/tools/inctl/cmd/solution/delete",
         "//intrinsic/tools/inctl/cmd/solution/get",

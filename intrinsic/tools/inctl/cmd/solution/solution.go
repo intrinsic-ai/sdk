@@ -17,6 +17,7 @@ package solution
 
 import (
 	"intrinsic/tools/inctl/cmd/root"
+	"intrinsic/tools/inctl/cmd/solution/copy/copy" 
 	"intrinsic/tools/inctl/cmd/solution/create/create"
 	"intrinsic/tools/inctl/cmd/solution/delete/delete"
 	"intrinsic/tools/inctl/cmd/solution/get/get"
@@ -46,6 +47,7 @@ func init() {
 	cmd.AddCommand(status.NewCommand())
 	cmd.AddCommand(stop.NewCommand())
 	cmd.AddCommand(delete.NewCommand())
+	cmd.AddCommand(copy.NewCommand()) 
 	cmd.AddCommand(migrate.NewCommand())
 
 	root.RootCmd.AddCommand(cmd)

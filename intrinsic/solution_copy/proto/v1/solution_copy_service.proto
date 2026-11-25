@@ -1,0 +1,142 @@
+// Copyright 2026 Intrinsic Innovation LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+edition = "2023";
+
+package intrinsic_proto.solution_copy.v1;
+
+import "google/protobuf/go_features.proto";
+import "google/longrunning/operations.proto";
+import "intrinsic/assets/proto/id.proto";
+import "intrinsic/solution_versions/proto/v1/snapshot.proto";
+
+option go_package = "intrinsic/solution_copy/proto/v1/solution_copy_service_go_proto";
+option features.(pb.go).api_level = API_OPAQUE;
+
+// The Solution Copy service allows to copy solutions from organization A to
+// organization B.
+// For example:
+// - A being a Solution Builder (SB) organization and B being one of
+//      its End Customer (EC) organizations.
+service SolutionCopyService {
+  // Validates the copy parameters and checks for permissions without executing
+  // the copy.
+  //
+  // Use this method to surface potential errors or warnings to the user
+  // before they initiate the actual copy operation.
+  //
+  // Performs the following checks:
+  //
+  // Operation Checks:
+  // - The specified branch exists. Unlike Copy, which requires a VERSION
+  //   branch, PreviewCopy also accepts DEPLOYMENT branches.
+  // - The snapshot belongs to the history of the specified branch itself.
+  //   For a DEPLOYMENT branch, snapshots that exist only in its upstream
+  //   VERSION branch are rejected.
+  // - The target organization is different from the source organization.
+  // - The user has access to the source branch (and implicitly, the source
+  // organization).
+  // - The user is a member of the target organization.
+  //
+  // Asset Checks (per asset):
+  // - The asset exists in the source organization.
+  // - The asset is not restricted by `org_private` in the target organization
+  //   (this check is skipped if the target organization owns the asset).
+  // - Users in the target organization have the required "use" permission.
+  rpc PreviewCopy(PreviewCopyRequest) returns (PreviewCopyResponse) {}
+
+  // Copy allows to copy a solution from one organization to another.
+  // The specified branch must be a VERSION branch.
+  rpc Copy(CopyRequest) returns (google.longrunning.Operation) {
+    option (google.longrunning.operation_info) = {
+      response_type: "CopyResponse"
+    };
+  }
+}
+
+enum PermissionState {
+  PERMISSION_STATE_UNSPECIFIED = 0;
+  PERMISSION_STATE_GRANTED = 1;
+  PERMISSION_STATE_MISSING = 2;
+  PERMISSION_STATE_ORG_PRIVATE = 3;
+  PERMISSION_STATE_NOT_FOUND = 4;
+}
+
+message AssetPermissionState {
+  intrinsic_proto.assets.IdVersion id_version = 1;
+  PermissionState state = 2;
+}
+
+message PreviewCopyRequest {
+  // The ID of the branch to copy.
+  string branch_id = 1;
+
+  // The ID of the snapshot to copy.
+  string snapshot_id = 2;
+
+  // The organization that should receive the version.
+  string target_org = 3;
+}
+
+message PreviewCopyResponse {
+  // A list of all asset permission states that are being checked.
+  // For each item, indicates whether everyone in the target organization
+  // has permissions on the item.
+  repeated AssetPermissionState asset_permission_states = 1;
+
+  // A list of the ID and version of sideloaded assets.
+  repeated intrinsic_proto.assets.IdVersion sideloaded_assets = 2;
+
+  // The total number of assets to copy.
+  // Can be used to populate a progress bar.
+  int64 asset_count = 3;
+}
+
+message CopyRequest {
+  // The ID of the branch to copy.
+  string branch_id = 1;
+
+  // The ID of the snapshot to copy.
+  string snapshot_id = 2;
+
+  // The organization to copy to.
+  string target_org = 3;
+
+  // The ID of the branch to copy into.
+  // Can be empty, if so, it will create a new solution.
+  string target_branch_id = 4;
+
+  // The display name of the branch.
+  // Must be specified, if `target_branch_id` is empty.
+  string target_branch_display_name = 5;
+
+  // The commit message to use for the initial version
+  // or the version to create.
+  intrinsic_proto.solution_versions.v1.CommitMessage commit_message = 6;
+}
+
+// CopyResponse is used as the metadata content for the `Operation` message.
+message CopyResponse {
+  // The count of items to copy in total.
+  int64 asset_count = 1;
+
+  // The count of already copied items.
+  int64 copied_asset_count = 2;
+
+  // The ID of the target branch.
+  string target_branch_id = 3;
+
+  // The display name of the target branch.
+  string target_branch_display_name = 4;
+}
