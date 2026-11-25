@@ -99,6 +99,19 @@ message BehaviorCall {
     reserved "skill_metadata";
     reserved 3;
 
+    enum ConflictHandlingMode {
+      // Defaults to FAIL.
+      CONFLICT_HANDLING_MODE_UNSPECIFIED = 0;
+      // Fail the task node if a footprint conflict is detected.
+      FAIL = 1;
+      // Wait until all conflicting skills finish, then retry projection.
+      WAIT = 2;
+      // Wait on conflict, and retry projection early if a blocking skill that
+      // was not yet running starts executing with a footprint volumes.
+      REPROJECT_ON_VOLUME = 3;
+    }
+    // Configures how footprint conflicts are handled for this skill call.
+    ConflictHandlingMode conflict_handling_mode = 4;
   }
   optional SkillExecutionOptions skill_execution_options = 7;
 
