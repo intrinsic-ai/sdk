@@ -39,6 +39,7 @@ cc_library(
     srcs = ["load_ai_scene_from_buffer.cc"],
     hdrs = ["load_ai_scene_from_buffer.h"],
     deps = [
+        ":check_gltf_binary_header",
         ":restrict_importer",
         "//intrinsic/eigenmath",
         "//intrinsic/geometry/internal/point_cloud:pts_to_ai_scene",
@@ -49,6 +50,42 @@ cc_library(
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
         "@assimp",
+    ],
+)
+
+cc_library(
+    name = "check_gltf_binary_header",
+    srcs = ["check_gltf_binary_header.cc"],
+    hdrs = ["check_gltf_binary_header.h"],
+    visibility = [
+    ],
+    deps = [
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@abseil-cpp//absl/strings:string_view",
+    ],
+)
+
+cc_test(
+    name = "check_gltf_binary_header_test",
+    srcs = ["check_gltf_binary_header_test.cc"],
+    deps = [
+        ":check_gltf_binary_header",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
+        "@abseil-cpp//absl/strings:string_view",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "load_ai_scene_from_buffer_test",
+    srcs = ["load_ai_scene_from_buffer_test.cc"],
+    deps = [
+        ":load_ai_scene_from_buffer",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/status:status_matchers",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
