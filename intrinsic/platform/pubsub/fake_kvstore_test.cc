@@ -17,19 +17,26 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <string>
+#include <thread>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/flags/flag.h"
+#include "absl/flags/reflection.h"
 #include "absl/status/status.h"
 #include "absl/status/status_matchers.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
+#include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/wrappers.pb.h"
@@ -38,6 +45,8 @@
 #include "intrinsic/middleware/buffers/mutable_buffer.h"
 #include "internal/testing.h"
 #include "intrinsic/platform/pubsub/kvstore.h"
+#include "intrinsic/platform/pubsub/subscription.h"
+#include "intrinsic/platform/pubsub/topic_config.h"
 
 namespace intrinsic {
 namespace {
@@ -45,9 +54,11 @@ namespace {
 using ::absl_testing::IsOkAndHolds;
 using ::absl_testing::StatusIs;
 using ::google::protobuf::StringValue;
+using ::testing::ElementsAre;
 using ::testing::HasSubstr;
 using ::testing::IsEmpty;
 using ::testing::Key;
+using ::testing::Pair;
 using ::testing::Test;
 using ::testing::UnorderedElementsAre;
 
@@ -623,6 +634,527 @@ TEST_F(FakeKeyValueStoreTest,
   EXPECT_THAT(two_arg_keys, UnorderedElementsAre("kv_store/x/a1bccde"));
 }
 
+TEST_F(FakeKeyValueStoreTest, RawSubscriptionReceivesUpdatesAndDeletion) {
+  std::vector<std::pair<std::string, size_t>> updates;
+  std::vector<std::string> deletions;
+  ASSERT_OK_AND_ASSIGN(
+      Subscription sub,
+      kv_store_.CreateRawSubscription(
+          "device/**", TopicConfig(),
+          [&updates](absl::string_view key, const ImmutableBuffer& buf) {
+            updates.emplace_back(std::string(key), buf.size());
+          },
+          [&deletions](absl::string_view key) {
+            deletions.emplace_back(std::string(key));
+          }));
+  EXPECT_EQ(sub.TopicName(), "kv_store/device/**");
+
+  // 1. SetRaw and 0-byte SetRaw trigger update callback, not deletion.
+  ASSERT_OK_AND_ASSIGN(MutableBuffer status_buf, AllocateMutableBuffer(42));
+  EXPECT_OK(kv_store_.SetRaw("device/status", std::move(status_buf)));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer heartbeat_buf, AllocateMutableBuffer(0));
+  EXPECT_OK(kv_store_.SetRaw("device/heartbeat", std::move(heartbeat_buf)));
+
+  // 2. Protobuf writes do not trigger raw updates, though Delete does.
+  StringValue pv;
+  pv.set_value("ignored");
+  EXPECT_OK(kv_store_.Set("device/status", pv));
+  EXPECT_OK(kv_store_.Set("device/proto_only", pv));
+  EXPECT_OK(kv_store_.Delete("device/status"));
+  EXPECT_OK(kv_store_.Delete("device/proto_only"));
+  EXPECT_THAT(updates, ElementsAre(Pair("kv_store/device/status", 42),
+                                   Pair("kv_store/device/heartbeat", 0)));
+  EXPECT_THAT(deletions, ElementsAre("kv_store/device/status",
+                                     "kv_store/device/proto_only"));
+
+  // 3. Unsubscribe stops subsequent deliveries.
+  sub.Unsubscribe();
+  EXPECT_TRUE(sub.TopicName().empty());
+  ASSERT_OK_AND_ASSIGN(MutableBuffer after_unsub_buf,
+                       AllocateMutableBuffer(10));
+  EXPECT_OK(kv_store_.SetRaw("device/status", std::move(after_unsub_buf)));
+  EXPECT_EQ(updates.size(), 2);
+}
+
+TEST_F(FakeKeyValueStoreTest,
+       ProtoSubscriptionIgnoresRawWritesAndDeliversDeletions) {
+  std::vector<std::pair<std::string, std::string>> updates;
+  std::vector<std::string> deletions;
+  ASSERT_OK_AND_ASSIGN(
+      Subscription sub,
+      kv_store_.CreateSubscription(
+          "proto/topic", TopicConfig(),
+          [&updates](absl::string_view key, const google::protobuf::Any& any) {
+            StringValue unpacked;
+            EXPECT_TRUE(any.UnpackTo(&unpacked));
+            updates.emplace_back(std::string(key), unpacked.value());
+          },
+          [&deletions](absl::string_view key) {
+            deletions.emplace_back(std::string(key));
+          }));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer raw_buf, AllocateMutableBuffer(16));
+  EXPECT_OK(kv_store_.SetRaw("proto/topic", std::move(raw_buf)));
+  EXPECT_TRUE(updates.empty());
+  EXPECT_OK(kv_store_.Delete("proto/topic"));
+  EXPECT_THAT(deletions, ElementsAre("kv_store/proto/topic"));
+  StringValue val;
+  val.set_value("hello");
+  EXPECT_OK(kv_store_.Set("proto/topic", val));
+  EXPECT_THAT(updates, ElementsAre(Pair("kv_store/proto/topic", "hello")));
+}
+
+TEST_F(FakeKeyValueStoreTest, SubscriptionOutlivingFakeKeyValueStoreIsSafe) {
+  Subscription sub;
+  {
+    FakeKeyValueStore short_lived_kv;
+    ASSERT_OK_AND_ASSIGN(sub,
+                         short_lived_kv.CreateRawSubscription(
+                             "short/**", TopicConfig(),
+                             [](absl::string_view, const ImmutableBuffer&) {},
+                             [](absl::string_view) {}));
+    EXPECT_EQ(sub.TopicName(), "kv_store/short/**");
+  }
+  sub.Unsubscribe();
+  EXPECT_TRUE(sub.TopicName().empty());
+}
+
+TEST_F(FakeKeyValueStoreTest, SubscriptionCallbacksSupportReentrancy) {
+  auto noop = [](absl::string_view, const ImmutableBuffer&) {};
+  ASSERT_OK_AND_ASSIGN(MutableBuffer transient_buf, AllocateMutableBuffer(4));
+  EXPECT_OK(kv_store_.SetRaw("reentrant/transient", std::move(transient_buf)));
+  int update_calls = 0;
+  int nested_calls = 0;
+  std::optional<Subscription> nested_sub;
+  ASSERT_OK_AND_ASSIGN(
+      Subscription update_sub,
+      kv_store_.CreateRawSubscription(
+          "reentrant/src", TopicConfig(),
+          [this, &update_calls, &nested_calls, &nested_sub](
+              absl::string_view key, const ImmutableBuffer& buf) {
+            ++update_calls;
+            EXPECT_EQ(key, "kv_store/reentrant/src");
+            if (!nested_sub.has_value()) {
+              ASSERT_OK_AND_ASSIGN(nested_sub,
+                                   kv_store_.CreateRawSubscription(
+                                       "reentrant/derived", TopicConfig(),
+                                       [&nested_calls](absl::string_view,
+                                                       const ImmutableBuffer&) {
+                                         ++nested_calls;
+                                       }));
+              EXPECT_OK(kv_store_.Delete("reentrant/transient"));
+            }
+            EXPECT_OK(kv_store_.SetRaw("reentrant/derived", buf));
+          },
+          /*deletion_callback=*/nullptr));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer src_buf, MakeMutableBuffer("reentr"));
+  EXPECT_OK(kv_store_.SetRaw("reentrant/src", std::move(src_buf)));
+  EXPECT_EQ(update_calls, 1);
+  EXPECT_EQ(nested_calls, 1);
+  EXPECT_THAT(kv_store_.GetRaw("reentrant/transient"),
+              StatusIs(absl::StatusCode::kNotFound));
+  update_sub.Unsubscribe();
+  EXPECT_TRUE(update_sub.TopicName().empty());
+  nested_sub->Unsubscribe();
+  ASSERT_OK_AND_ASSIGN(MutableBuffer after_unsub_buf, AllocateMutableBuffer(3));
+  EXPECT_OK(kv_store_.SetRaw("reentrant/src", std::move(after_unsub_buf)));
+  EXPECT_EQ(update_calls, 1);
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer derived_read,
+                       kv_store_.GetRaw("reentrant/derived"));
+  EXPECT_EQ(AsStringView(derived_read), "reentr");
+
+  int delete_calls = 0;
+  ASSERT_OK_AND_ASSIGN(
+      Subscription delete_sub,
+      kv_store_.CreateRawSubscription(
+          "reentrant/del", TopicConfig(), noop,
+          [this, &delete_calls](absl::string_view key) {
+            ++delete_calls;
+            EXPECT_EQ(key, "kv_store/reentrant/del");
+            ASSERT_OK_AND_ASSIGN(MutableBuffer ok_buf, MakeMutableBuffer("ok"));
+            EXPECT_OK(
+                kv_store_.SetRaw("reentrant/after_del", std::move(ok_buf)));
+          }));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer del_buf, AllocateMutableBuffer(4));
+  EXPECT_OK(kv_store_.SetRaw("reentrant/del", std::move(del_buf)));
+  EXPECT_OK(kv_store_.Delete("reentrant/del"));
+  EXPECT_EQ(delete_calls, 1);
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer after_del_read,
+                       kv_store_.GetRaw("reentrant/after_del"));
+  EXPECT_EQ(AsStringView(after_del_read), "ok");
+  delete_sub.Unsubscribe();
+  EXPECT_TRUE(delete_sub.TopicName().empty());
+}
+
+TEST_F(FakeKeyValueStoreTest,
+       CreateRawSubscriptionRejectsEmptyKeyAndSupportsDeleteOnly) {
+  auto noop = [](absl::string_view, const ImmutableBuffer&) {};
+  EXPECT_THAT(kv_store_.CreateRawSubscription("", TopicConfig(), noop),
+              StatusIs(absl::StatusCode::kInvalidArgument));
+
+  std::vector<std::string> del_only;
+  ASSERT_OK_AND_ASSIGN(
+      Subscription del_sub,
+      kv_store_.CreateRawSubscription(
+          "reentrant/d0", TopicConfig(), /*value_callback=*/nullptr,
+          [&del_only](absl::string_view k) { del_only.emplace_back(k); }));
+  // Also register a matching subscription with no deletion callback to verify
+  // `Delete()` skips null deletion callbacks safely.
+  ASSERT_OK_AND_ASSIGN(
+      Subscription value_only_sub,
+      kv_store_.CreateRawSubscription("reentrant/d0", TopicConfig(), noop));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer del_buf, MakeMutableBuffer("x"));
+  EXPECT_OK(kv_store_.SetRaw("reentrant/d0", std::move(del_buf)));
+  EXPECT_OK(kv_store_.Delete("reentrant/d0"));
+  EXPECT_THAT(del_only, ElementsAre("kv_store/reentrant/d0"));
+  value_only_sub.Unsubscribe();
+}
+
+TEST_F(FakeKeyValueStoreTest,
+       UnsubscribeDestroyingCapturedSiblingSubscriptionIsSafe) {
+  auto noop = [](absl::string_view, const ImmutableBuffer&) {};
+  ASSERT_OK_AND_ASSIGN(
+      Subscription sibling_sub,
+      kv_store_.CreateRawSubscription("reentrant/s", TopicConfig(), noop));
+  auto sib = std::make_shared<Subscription>(std::move(sibling_sub));
+  ASSERT_OK_AND_ASSIGN(
+      Subscription outer_sub,
+      kv_store_.CreateRawSubscription(
+          "reentrant/o", TopicConfig(),
+          [s = std::move(sib)](absl::string_view, const ImmutableBuffer&) {}));
+  outer_sub.Unsubscribe();
+  EXPECT_TRUE(outer_sub.TopicName().empty());
+}
+
+TEST_F(FakeKeyValueStoreTest, UnsubscribeDestroyingSelfOwnerIsSafe) {
+  class Owner {
+   public:
+    explicit Owner(bool* destroyed) : destroyed_(destroyed) {}
+    Owner(const Owner&) = delete;
+    Owner& operator=(const Owner&) = delete;
+    ~Owner() { *destroyed_ = true; }
+
+    Subscription& sub() { return sub_; }
+
+   private:
+    Subscription sub_;
+    bool* destroyed_;
+  };
+  bool owner_destroyed = false;
+  auto owner = std::make_shared<Owner>(&owner_destroyed);
+  ASSERT_OK_AND_ASSIGN(
+      owner->sub(), kv_store_.CreateRawSubscription(
+                        "reentrant/self_owner", TopicConfig(),
+                        [owner](absl::string_view, const ImmutableBuffer&) {}));
+  Owner* raw_owner = owner.get();
+  owner = nullptr;
+  ASSERT_FALSE(owner_destroyed);
+  raw_owner->sub().Unsubscribe();
+  EXPECT_TRUE(owner_destroyed);
+}
+
+TEST_F(FakeKeyValueStoreTest,
+       UnsubscribeCoMatchingSiblingInsideCallbackSkipsAndDestroysCaptures) {
+  class DestroyFlag {
+   public:
+    explicit DestroyFlag(bool* destroyed) : destroyed_(destroyed) {}
+    DestroyFlag(const DestroyFlag&) = delete;
+    DestroyFlag& operator=(const DestroyFlag&) = delete;
+    ~DestroyFlag() { *destroyed_ = true; }
+
+   private:
+    bool* destroyed_;
+  };
+  bool a_destroyed = false;
+  bool b_destroyed = false;
+  int total_calls = 0;
+  Subscription sub_a;
+  Subscription sub_b;
+  auto sentinel_a = std::make_shared<DestroyFlag>(&a_destroyed);
+  auto sentinel_b = std::make_shared<DestroyFlag>(&b_destroyed);
+
+  ASSERT_OK_AND_ASSIGN(
+      sub_a, kv_store_.CreateRawSubscription(
+                 "reentrant/co_match", TopicConfig(),
+                 [sentinel = std::move(sentinel_a), &sub_b, &b_destroyed,
+                  &total_calls](absl::string_view, const ImmutableBuffer&) {
+                   ++total_calls;
+                   sub_b.Unsubscribe();
+                   EXPECT_TRUE(b_destroyed);
+                 }));
+  ASSERT_OK_AND_ASSIGN(
+      sub_b, kv_store_.CreateRawSubscription(
+                 "reentrant/co_match", TopicConfig(),
+                 [sentinel = std::move(sentinel_b), &sub_a, &a_destroyed,
+                  &total_calls](absl::string_view, const ImmutableBuffer&) {
+                   ++total_calls;
+                   sub_a.Unsubscribe();
+                   EXPECT_TRUE(a_destroyed);
+                 }));
+
+  ASSERT_OK_AND_ASSIGN(MutableBuffer buf, MakeMutableBuffer("ping"));
+  EXPECT_OK(kv_store_.SetRaw("reentrant/co_match", std::move(buf)));
+  EXPECT_EQ(total_calls, 1);
+  EXPECT_TRUE(a_destroyed || b_destroyed);
+}
+
+TEST_F(FakeKeyValueStoreTest,
+       SubscriptionCallbacksInvokeInPlaceWithoutCopying) {
+  class CopyTracker {
+   public:
+    CopyTracker(int* copies, int* destructions)
+        : copies_(copies), destructions_(destructions) {}
+    CopyTracker(const CopyTracker& other)
+        : copies_(other.copies_), destructions_(other.destructions_) {
+      ++(*copies_);
+    }
+    CopyTracker(CopyTracker&& other) noexcept
+        : copies_(other.copies_),
+          destructions_(other.destructions_),
+          is_live_(std::exchange(other.is_live_, false)) {}
+    CopyTracker& operator=(const CopyTracker&) = delete;
+    CopyTracker& operator=(CopyTracker&&) = delete;
+    ~CopyTracker() {
+      if (is_live_) {
+        ++(*destructions_);
+      }
+    }
+
+   private:
+    int* copies_;
+    int* destructions_;
+    bool is_live_ = true;
+  };
+
+  int raw_copies = 0;
+  int raw_destructions = 0;
+  int del_copies = 0;
+  int del_destructions = 0;
+  std::vector<int> raw_seqs;
+  std::vector<int> del_seqs;
+  ASSERT_OK_AND_ASSIGN(
+      Subscription raw_sub,
+      kv_store_.CreateRawSubscription(
+          "stateful/raw", TopicConfig(),
+          [this, tracker = CopyTracker(&raw_copies, &raw_destructions), seq = 0,
+           &raw_seqs](absl::string_view, const ImmutableBuffer& buf) mutable {
+            static_cast<void>(tracker);
+            ++seq;
+            raw_seqs.push_back(seq);
+            if (seq == 1) {
+              EXPECT_OK(kv_store_.SetRaw("stateful/raw", buf));
+            }
+          },
+          [tracker = CopyTracker(&del_copies, &del_destructions), del_seq = 0,
+           &del_seqs](absl::string_view) mutable {
+            static_cast<void>(tracker);
+            del_seqs.push_back(++del_seq);
+          }));
+
+  // Reset counters after registration so we strictly assert zero copies or
+  // destructions on notification dispatch.
+  raw_copies = 0;
+  raw_destructions = 0;
+  del_copies = 0;
+  del_destructions = 0;
+
+  ASSERT_OK_AND_ASSIGN(MutableBuffer buf1, MakeMutableBuffer("v1"));
+  EXPECT_OK(kv_store_.SetRaw("stateful/raw", std::move(buf1)));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer buf2, MakeMutableBuffer("v2"));
+  EXPECT_OK(kv_store_.SetRaw("stateful/raw", std::move(buf2)));
+  EXPECT_OK(kv_store_.Delete("stateful/raw"));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer buf3, MakeMutableBuffer("v3"));
+  EXPECT_OK(kv_store_.SetRaw("stateful/raw", std::move(buf3)));
+  EXPECT_OK(kv_store_.Delete("stateful/raw"));
+
+  EXPECT_THAT(raw_seqs, ElementsAre(1, 2, 3, 4));
+  EXPECT_THAT(del_seqs, ElementsAre(1, 2));
+  EXPECT_EQ(raw_copies, 0);
+  EXPECT_EQ(raw_destructions, 0);
+  EXPECT_EQ(del_copies, 0);
+  EXPECT_EQ(del_destructions, 0);
+
+  raw_sub.Unsubscribe();
+  EXPECT_EQ(raw_copies, 0);
+  EXPECT_EQ(raw_destructions, 1);
+  EXPECT_EQ(del_copies, 0);
+  EXPECT_EQ(del_destructions, 1);
+
+  // Verify pointer stability across `flat_hash_map` rehashes using a small
+  // trivially-copyable lambda stored inline in `std::function`'s SBO buffer.
+  struct SboRehashContext {
+    FakeKeyValueStore* store;
+    std::vector<int> seqs;
+    std::vector<Subscription> extra_subs;
+  };
+  SboRehashContext sbo_ctx{.store = &kv_store_};
+  auto sbo_cb = [&sbo_ctx, seq = 0](absl::string_view,
+                                    const ImmutableBuffer&) mutable {
+    if (seq == 0) {
+      for (int i = 0; i < 64; ++i) {
+        ASSERT_OK_AND_ASSIGN(
+            Subscription extra,
+            sbo_ctx.store->CreateRawSubscription(
+                "stateful/rehash_other", TopicConfig(),
+                [](absl::string_view, const ImmutableBuffer&) {}));
+        sbo_ctx.extra_subs.push_back(std::move(extra));
+      }
+    }
+    sbo_ctx.seqs.push_back(++seq);
+  };
+  static_assert(std::is_trivially_copyable_v<decltype(sbo_cb)> &&
+                sizeof(sbo_cb) <= 16);
+  ASSERT_OK_AND_ASSIGN(Subscription sbo_sub,
+                       kv_store_.CreateRawSubscription("stateful/sbo_rehash",
+                                                       TopicConfig(), sbo_cb));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer sbo_buf1, MakeMutableBuffer("r1"));
+  EXPECT_OK(kv_store_.SetRaw("stateful/sbo_rehash", std::move(sbo_buf1)));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer sbo_buf2, MakeMutableBuffer("r2"));
+  EXPECT_OK(kv_store_.SetRaw("stateful/sbo_rehash", std::move(sbo_buf2)));
+  EXPECT_THAT(sbo_ctx.seqs, ElementsAre(1, 2));
+  sbo_sub.Unsubscribe();
+
+  std::vector<int> proto_seqs;
+  ASSERT_OK_AND_ASSIGN(
+      Subscription proto_sub,
+      kv_store_.CreateSubscription(
+          "stateful/proto", TopicConfig(),
+          [seq = 0, &proto_seqs](absl::string_view,
+                                 const google::protobuf::Any&) mutable {
+            proto_seqs.push_back(++seq);
+          },
+          /*deletion_callback=*/nullptr));
+  StringValue val;
+  val.set_value("p");
+  EXPECT_OK(kv_store_.Set("stateful/proto", val));
+  EXPECT_OK(kv_store_.Set("stateful/proto", val));
+  EXPECT_THAT(proto_seqs, ElementsAre(1, 2));
+  proto_sub.Unsubscribe();
+}
+
+TEST_F(FakeKeyValueStoreTest,
+       ReentrantSameSubscriptionCompletesNestedInvocations) {
+  int calls = 0;
+  ASSERT_OK_AND_ASSIGN(
+      Subscription sub,
+      kv_store_.CreateRawSubscription(
+          "reentrant/same_key", TopicConfig(),
+          [this, &calls](absl::string_view, const ImmutableBuffer& buf) {
+            ++calls;
+            if (calls == 1) {
+              EXPECT_OK(kv_store_.SetRaw("reentrant/same_key", buf));
+            }
+          }));
+
+  ASSERT_OK_AND_ASSIGN(MutableBuffer buf, MakeMutableBuffer("nested"));
+  EXPECT_OK(kv_store_.SetRaw("reentrant/same_key", std::move(buf)));
+  EXPECT_EQ(calls, 2);
+  sub.Unsubscribe();
+  EXPECT_TRUE(sub.TopicName().empty());
+}
+
+TEST_F(FakeKeyValueStoreTest,
+       UnsubscribeWaitsForInFlightCallbackOnOtherThread) {
+  absl::Notification entered;
+  absl::Notification proceed;
+  absl::Notification unsub_done;
+  class DestroySentinel {
+   public:
+    explicit DestroySentinel(std::atomic<bool>* destroyed)
+        : destroyed_(destroyed) {}
+    DestroySentinel(const DestroySentinel&) = delete;
+    DestroySentinel& operator=(const DestroySentinel&) = delete;
+    ~DestroySentinel() { destroyed_->store(true); }
+
+    int value() const { return value_; }
+
+   private:
+    int value_ = 42;
+    std::atomic<bool>* destroyed_;
+  };
+  std::atomic<bool> capture_destroyed{false};
+  auto sentinel = std::make_shared<DestroySentinel>(&capture_destroyed);
+  ASSERT_OK_AND_ASSIGN(Subscription drain,
+                       kv_store_.CreateRawSubscription(
+                           "reentrant/drain", TopicConfig(),
+                           [&entered, &proceed, &capture_destroyed,
+                            sentinel = std::move(sentinel)](
+                               absl::string_view, const ImmutableBuffer&) {
+                             entered.Notify();
+                             proceed.WaitForNotification();
+                             EXPECT_FALSE(capture_destroyed.load());
+                             EXPECT_EQ(sentinel->value(), 42);
+                           }));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer drain_buf, MakeMutableBuffer("d"));
+  std::thread writer([this, buf = std::move(drain_buf)]() mutable {
+    EXPECT_OK(kv_store_.SetRaw("reentrant/drain", std::move(buf)));
+  });
+  entered.WaitForNotification();
+  std::thread unsubscriber([&drain, &unsub_done] {
+    drain.Unsubscribe();
+    unsub_done.Notify();
+  });
+  EXPECT_FALSE(
+      unsub_done.WaitForNotificationWithTimeout(absl::Milliseconds(20)));
+  EXPECT_FALSE(capture_destroyed.load());
+  proceed.Notify();
+  writer.join();
+  unsubscriber.join();
+  EXPECT_TRUE(unsub_done.HasBeenNotified());
+  EXPECT_TRUE(capture_destroyed.load());
+}
+
+#ifdef GTEST_HAS_DEATH_TEST
+TEST(FakeKeyValueStoreDeathTest, SelfUnsubscribeInsideCallbackAborts) {
+  EXPECT_DEATH(
+      {
+        FakeKeyValueStore kv;
+        Subscription s;
+        ASSERT_OK_AND_ASSIGN(
+            s, kv.CreateRawSubscription(
+                   "death/put", TopicConfig(),
+                   [&s](absl::string_view, const ImmutableBuffer&) {
+                     s.Unsubscribe();
+                   }));
+        ASSERT_OK_AND_ASSIGN(MutableBuffer buf, AllocateMutableBuffer(4));
+        kv.SetRaw("death/put", std::move(buf)).IgnoreError();
+      },
+      "Cannot Unsubscribe");
+  EXPECT_DEATH(
+      {
+        FakeKeyValueStore kv;
+        Subscription s;
+        ASSERT_OK_AND_ASSIGN(
+            s, kv.CreateRawSubscription(
+                   "death/del", TopicConfig(),
+                   [](absl::string_view, const ImmutableBuffer&) {},
+                   [&s](absl::string_view) { s.Unsubscribe(); }));
+        ASSERT_OK_AND_ASSIGN(MutableBuffer buf, AllocateMutableBuffer(4));
+        kv.SetRaw("death/del", std::move(buf)).IgnoreError();
+        kv.Delete("death/del").IgnoreError();
+      },
+      "Cannot Unsubscribe");
+  EXPECT_DEATH(
+      {
+        FakeKeyValueStore kv;
+        Subscription s;
+        int depth = 0;
+        ASSERT_OK_AND_ASSIGN(
+            s, kv.CreateRawSubscription(
+                   "death/nested", TopicConfig(),
+                   [&kv, &s, &depth](absl::string_view,
+                                     const ImmutableBuffer& buf) {
+                     if (++depth == 1) {
+                       kv.SetRaw("death/nested", buf).IgnoreError();
+                       s.Unsubscribe();
+                     }
+                   }));
+        ASSERT_OK_AND_ASSIGN(MutableBuffer buf, AllocateMutableBuffer(4));
+        kv.SetRaw("death/nested", std::move(buf)).IgnoreError();
+      },
+      "Cannot Unsubscribe");
+}
+#endif
+
 TEST_F(FakeKeyValueStoreTest,
        ListAllKeysIncludesBothEncodingsAndValidatesReplicationMode) {
   StringValue proto_val;
@@ -688,6 +1220,38 @@ TEST_F(FakeKeyValueStoreTest,
           [&repl_done_key](absl::string_view k) { repl_done_key = k; }));
   EXPECT_THAT(repl_raw_keys, UnorderedElementsAre("kv_store_repl/wc2/frame"));
   EXPECT_EQ(repl_done_key, "kv_store_repl/wc2/**");
+}
+
+TEST_F(FakeKeyValueStoreTest, ReplicatedFlagUsesReplicationKeyPrefix) {
+  absl::FlagSaver flag_saver;
+  FakeKeyValueStore custom_kv("custom_kv");
+  std::string ckey;
+  ASSERT_OK_AND_ASSIGN(
+      Subscription custom_sub,
+      custom_kv.CreateRawSubscription(
+          "item", TopicConfig(),
+          [&ckey](absl::string_view k, const ImmutableBuffer&) { ckey = k; }));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer cbuf, MakeMutableBuffer("v"));
+  EXPECT_OK(custom_kv.SetRaw("item", std::move(cbuf)));
+  EXPECT_EQ(ckey, "custom_kv/item");
+
+  absl::SetFlag(&FLAGS_use_replicated_kv_store, true);
+  FakeKeyValueStore repl_kv;
+  std::vector<std::string> update_keys, del_keys;
+  ASSERT_OK_AND_ASSIGN(
+      Subscription sub,
+      repl_kv.CreateRawSubscription(
+          "repl/**", TopicConfig(),
+          [&update_keys](absl::string_view k, const ImmutableBuffer&) {
+            update_keys.emplace_back(k);
+          },
+          [&del_keys](absl::string_view k) { del_keys.emplace_back(k); }));
+  EXPECT_EQ(sub.TopicName(), "kv_store_repl/repl/**");
+  ASSERT_OK_AND_ASSIGN(MutableBuffer buf, MakeMutableBuffer("value"));
+  EXPECT_OK(repl_kv.SetRaw("repl/item", std::move(buf)));
+  EXPECT_THAT(update_keys, ElementsAre("kv_store_repl/repl/item"));
+  EXPECT_OK(repl_kv.Delete("repl/item"));
+  EXPECT_THAT(del_keys, ElementsAre("kv_store_repl/repl/item"));
 }
 
 }  // namespace

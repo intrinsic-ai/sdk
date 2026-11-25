@@ -197,6 +197,7 @@ cc_test(
         "@abseil-cpp//absl/status:status_matchers",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings:string_view",
+        "@abseil-cpp//absl/synchronization",
         "@abseil-cpp//absl/time",
         "@com_google_cel_cpp//internal:testing_no_main",
         "@com_google_googletest//:gtest_main",
