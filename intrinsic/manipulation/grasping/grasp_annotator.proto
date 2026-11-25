@@ -67,11 +67,13 @@ message ParameterizedGripperSpecs {
 message ParameterizedSuctionGripperSpecs {
   // The radius of the suction cup in meters.
   float radius_in_meters = 1;
+
   // The surface roughness threshold of the suction cup in meters.
   // This is a measure of the "flatness" of the contact surface. Defaults to
   // a lower bounded value of 0.003 meters, enter a larger value for more
   // aggressive filtering.
   optional float surface_roughness_threshold_in_meters = 2;
+
   // The 2D coordinates of the suction cup locations in meters in the x-y plane
   // of the tool frame where z = 0.
   repeated Vector2 suction_cup_coordinates = 3;
@@ -93,9 +95,9 @@ message ParameterizedPinchGripperSpecs {
   float finger_width_in_meters = 2;
   // The length of the finger in meters.
   float finger_length_in_meters = 3;
-  // The minimum closing distance of the gripper in meters. Should be a
-  // non-negative value less than the opening of the gripper. By default, the
-  // value is assumed to be 0.0, i.e., the gripper closes completely.
+  // The minimum closing distance of the gripper in meters, in the range
+  // [0, `opening_in_meters`]. By default, the value is assumed to be 0.0, i.e.,
+  // the gripper closes completely.
   optional float min_closing_distance_in_meters = 6;
   // The antipodal threshold in radians. If the two surface normals on the
   // object is larger than the threshold, the pose is considered as antipodal.
@@ -118,10 +120,13 @@ message ParameterizedVNotchPinchGripperSpecs {
   float finger_width_in_meters = 2;
   // The length of each finger in meters.
   float finger_length_in_meters = 3;
-  // The dimension of each finger along the opening axis. Must be larger than
-  // `notch_depth_in_meters` to provide structural back-wall for the V-notch.
-  // Defaults to `notch_depth_in_meters` plus a default thickness of 1 mm.
+
+  // The dimension of each finger along the opening axis. Must be at least 1 mm
+  // larger than `notch_depth_in_meters` to provide structural back-wall for the
+  // V-notch. Defaults to `notch_depth_in_meters` plus a default thickness of
+  // 1 mm.
   optional float finger_thickness_in_meters = 4;
+
   // The position of the V-notch vertex along the direction of the finger
   // length, measured from the base of the finger. To avoid a degenerate
   // V-notch extending beyond the finger boundaries
