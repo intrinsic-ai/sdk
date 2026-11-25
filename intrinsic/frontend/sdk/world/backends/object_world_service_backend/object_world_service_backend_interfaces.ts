@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import type {ReadonlyPose} from '@intrinsic-ai/core/math';
-import type {Pose as PoseProto} from '@intrinsic-ai/types/math/proto/pose_pb';
 import type {SceneObjectInstanceUpdate} from '@intrinsic-ai/types/scene/proto/v1/scene_object_updates_pb';
+import type {WorldStateUpdate} from '@intrinsic-ai/types/world/proto/world_state_pb';
 import type {Observable} from 'rxjs';
 
 import type {CollisionPair} from '../../model/world_backend';
@@ -22,25 +22,8 @@ import type {CollisionPair} from '../../model/world_backend';
 /**
  * A snapshot of the entity poses and joint positions of a world. It doesn't
  * describe the whole world, e.g. its objects and their structure.
- *
- * This is the subset of the `GetWorldStateResponse` proto (from
- * world_compatibility_service.proto) that the ObjectWorldServiceBackend reads,
- * so that proto can be passed in directly.
  */
-export interface WorldStateUpdate {
-  /** Metadata of the world. `worldStructureHash` changes with its structure. */
-  readonly worldMetadata?: {readonly worldStructureHash: string};
-  /** The poses of entities relative to their parents. */
-  readonly entityPoses: ReadonlyArray<{
-    readonly entityId: number;
-    readonly parentTThis?: PoseProto;
-  }>;
-  /** The joint positions of kinematic objects, in their joint order. */
-  readonly kinematicObjectJoints: ReadonlyArray<{
-    readonly objectId: string;
-    readonly jointPositions: readonly number[];
-  }>;
-}
+export type {WorldStateUpdate};
 
 /**
  * Streams live data about worlds from the backend, e.g. over a pubsub

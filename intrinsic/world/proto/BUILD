@@ -203,6 +203,40 @@ js_library(
 )
 
 proto_library(
+    name = "world_state_proto",
+    srcs = ["world_state.proto"],
+    deps = [
+        ":object_world_service_proto",
+        "//intrinsic/math/proto:pose_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "world_state_cc_proto",
+    deps = [":world_state_proto"],
+)
+
+go_proto_library(
+    name = "world_state_go_proto",
+    importpath = "intrinsic/world/proto/world_state_go_proto",
+    protos = [":world_state_proto"],
+    deps = [
+        ":object_world_service_go_proto",
+        "//intrinsic/math/proto:pose_go_proto",
+    ],
+)
+
+py_proto_library(
+    name = "world_state_py_pb2",
+    deps = [":world_state_proto"],
+)
+
+js_library(
+    name = "world_state_jspb_proto",
+    deps = [":world_state_proto"],
+)
+
+proto_library(
     name = "collision_action_proto",
     srcs = ["collision_action.proto"],
 )

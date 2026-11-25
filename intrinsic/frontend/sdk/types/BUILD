@@ -52,6 +52,7 @@ npm_package(
         "//intrinsic/scene/proto/v1:scene_object_import_jspb_proto",
         "//intrinsic/scene/proto/v1:scene_object_updates_jspb_proto",
         "//intrinsic/world/proto:object_world_service_jspb_proto",
+        "//intrinsic/world/proto:world_state_jspb_proto",
     ],
     include_external_repositories = ["*"],
     include_srcs_packages = ["**"],
