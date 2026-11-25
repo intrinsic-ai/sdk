@@ -39,7 +39,7 @@ class OrientedBoundingBox3 {
   const Pose3<Scalar>& RefTBox() const { return ref_t_box_; }
   // Returns the pose of the center of the bounding box in the reference frame.
   Pose3<Scalar>& RefTBox() { return ref_t_box_; }
-  // Returns the pose of the center of the bounding box in the reference frame.
+  // Returns a copy with the dimensions and pose cast to OtherScalar.
   template <typename OtherScalar>
   OrientedBoundingBox3<OtherScalar> Cast() const {
     return OrientedBoundingBox3<OtherScalar>(
