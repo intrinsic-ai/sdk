@@ -1254,5 +1254,173 @@ TEST_F(FakeKeyValueStoreTest, ReplicatedFlagUsesReplicationKeyPrefix) {
   EXPECT_THAT(del_keys, ElementsAre("kv_store_repl/repl/item"));
 }
 
+absl::StatusOr<Subscription> CreateDeleteRecordingSub(
+    FakeKeyValueStore& kv_store, absl::string_view keyexpr,
+    std::vector<std::string>& del_keys) {
+  return kv_store.CreateRawSubscription(
+      keyexpr, TopicConfig(), /*value_callback=*/nullptr,
+      [&del_keys](absl::string_view k) { del_keys.emplace_back(k); });
+}
+
+TEST_F(FakeKeyValueStoreTest,
+       DeleteDoubleStarWildcardRemovesDescendantsIsIdempotentAndNotifiesRaw) {
+  std::vector<std::string> broad_del_keys;
+  std::vector<std::string> narrow_del_keys;
+  std::vector<std::string> sibling_del_keys;
+  ASSERT_OK_AND_ASSIGN(
+      Subscription broad_sub,
+      CreateDeleteRecordingSub(kv_store_, "cam/**", broad_del_keys));
+  ASSERT_OK_AND_ASSIGN(
+      Subscription narrow_sub,
+      CreateDeleteRecordingSub(kv_store_, "cam/latest/0", narrow_del_keys));
+  ASSERT_OK_AND_ASSIGN(Subscription sibling_sub,
+                       CreateDeleteRecordingSub(kv_store_, "cam/latest_other",
+                                                sibling_del_keys));
+
+  StringValue meta;
+  meta.set_value("meta");
+  EXPECT_OK(kv_store_.Set("cam/latest", meta));
+  EXPECT_OK(kv_store_.Set("cam/latest_other", meta));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer b0, MakeMutableBuffer("s0"));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer b1, MakeMutableBuffer("s1"));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer deep, MakeMutableBuffer("deep"));
+  EXPECT_OK(kv_store_.SetRaw("cam/latest/0", std::move(b0)));
+  EXPECT_OK(kv_store_.SetRaw("cam/latest/1", std::move(b1)));
+  EXPECT_OK(kv_store_.SetRaw("cam/latest/0/deep", std::move(deep)));
+
+  EXPECT_OK(kv_store_.Delete("cam/latest/**"));
+  EXPECT_THAT(kv_store_.Get<StringValue>("cam/latest"),
+              StatusIs(absl::StatusCode::kNotFound));
+  EXPECT_THAT(kv_store_.GetRaw("cam/latest/0"),
+              StatusIs(absl::StatusCode::kNotFound));
+  EXPECT_THAT(kv_store_.GetRaw("cam/latest/1"),
+              StatusIs(absl::StatusCode::kNotFound));
+  EXPECT_THAT(kv_store_.GetRaw("cam/latest/0/deep"),
+              StatusIs(absl::StatusCode::kNotFound));
+  EXPECT_OK(kv_store_.Get<StringValue>("cam/latest_other"));
+  EXPECT_THAT(broad_del_keys, ElementsAre("kv_store/cam/latest/**"));
+  EXPECT_THAT(narrow_del_keys, ElementsAre("kv_store/cam/latest/**"));
+  EXPECT_THAT(sibling_del_keys, IsEmpty());
+
+  // Wildcard delete on an empty prefix succeeds idempotently and still
+  // dispatches the raw pattern to intersecting subscribers (matching Zenoh).
+  EXPECT_OK(kv_store_.Delete("cam/latest/**"));
+  EXPECT_THAT(broad_del_keys,
+              ElementsAre("kv_store/cam/latest/**", "kv_store/cam/latest/**"));
+  EXPECT_THAT(narrow_del_keys,
+              ElementsAre("kv_store/cam/latest/**", "kv_store/cam/latest/**"));
+  EXPECT_THAT(sibling_del_keys, IsEmpty());
+}
+
+TEST_F(FakeKeyValueStoreTest,
+       DeleteSingleStarWildcardPreservesParentAndGrandchildren) {
+  std::vector<std::string> broad_del_keys;
+  std::vector<std::string> child_del_keys;
+  std::vector<std::string> parent_del_keys;
+  std::vector<std::string> grandchild_del_keys;
+  ASSERT_OK_AND_ASSIGN(
+      Subscription broad_sub,
+      CreateDeleteRecordingSub(kv_store_, "cam/**", broad_del_keys));
+  ASSERT_OK_AND_ASSIGN(
+      Subscription child_sub,
+      CreateDeleteRecordingSub(kv_store_, "cam/latest/0", child_del_keys));
+  ASSERT_OK_AND_ASSIGN(
+      Subscription parent_sub,
+      CreateDeleteRecordingSub(kv_store_, "cam/latest", parent_del_keys));
+  ASSERT_OK_AND_ASSIGN(Subscription grandchild_sub,
+                       CreateDeleteRecordingSub(kv_store_, "cam/latest/0/sub",
+                                                grandchild_del_keys));
+
+  StringValue meta;
+  meta.set_value("meta");
+  EXPECT_OK(kv_store_.Set("cam/latest", meta));
+  EXPECT_OK(kv_store_.Set("cam/latest/1", meta));
+  EXPECT_OK(kv_store_.Set("cam/latest_other", meta));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer b0, MakeMutableBuffer("s0"));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer sub_buf, MakeMutableBuffer("sub"));
+  EXPECT_OK(kv_store_.SetRaw("cam/latest/0", std::move(b0)));
+  EXPECT_OK(kv_store_.SetRaw("cam/latest/0/sub", std::move(sub_buf)));
+
+  EXPECT_OK(kv_store_.Delete("cam/latest/*"));
+  EXPECT_THAT(kv_store_.GetRaw("cam/latest/0"),
+              StatusIs(absl::StatusCode::kNotFound));
+  EXPECT_THAT(kv_store_.Get<StringValue>("cam/latest/1"),
+              StatusIs(absl::StatusCode::kNotFound));
+  EXPECT_OK(kv_store_.Get<StringValue>("cam/latest"));
+  EXPECT_OK(kv_store_.GetRaw("cam/latest/0/sub"));
+  EXPECT_OK(kv_store_.Get<StringValue>("cam/latest_other"));
+
+  EXPECT_THAT(broad_del_keys, ElementsAre("kv_store/cam/latest/*"));
+  EXPECT_THAT(child_del_keys, ElementsAre("kv_store/cam/latest/*"));
+  EXPECT_THAT(parent_del_keys, IsEmpty());
+  EXPECT_THAT(grandchild_del_keys, IsEmpty());
+
+  EXPECT_OK(kv_store_.Delete("cam/latest/*"));
+}
+
+TEST_F(FakeKeyValueStoreTest,
+       DeleteSubSegmentWildcardRemovesMatchingKeysAndIntersectsSubscriptions) {
+  std::vector<std::string> prefix_sub_dels;
+  std::vector<std::string> suffix_sub_dels;
+  std::vector<std::string> shorter_prefix_longer_suffix_dels;
+  std::vector<std::string> longer_prefix_shorter_suffix_dels;
+  std::vector<std::string> concrete_sub_dels;
+  std::vector<std::string> mismatch_suffix_dels;
+  std::vector<std::string> mismatch_prefix_dels;
+  ASSERT_OK_AND_ASSIGN(
+      Subscription prefix_sub,
+      CreateDeleteRecordingSub(kv_store_, "cam/frame_$*", prefix_sub_dels));
+  ASSERT_OK_AND_ASSIGN(
+      Subscription suffix_sub,
+      CreateDeleteRecordingSub(kv_store_, "cam/$*_rgb", suffix_sub_dels));
+  ASSERT_OK_AND_ASSIGN(
+      Subscription shorter_prefix_longer_suffix_sub,
+      CreateDeleteRecordingSub(kv_store_, "cam/fr$*_0_rgb",
+                               shorter_prefix_longer_suffix_dels));
+  ASSERT_OK_AND_ASSIGN(
+      Subscription longer_prefix_shorter_suffix_sub,
+      CreateDeleteRecordingSub(kv_store_, "cam/frame_0_$*gb",
+                               longer_prefix_shorter_suffix_dels));
+  ASSERT_OK_AND_ASSIGN(Subscription concrete_sub,
+                       CreateDeleteRecordingSub(kv_store_, "cam/frame_0_rgb",
+                                                concrete_sub_dels));
+  ASSERT_OK_AND_ASSIGN(Subscription mismatch_suffix_sub,
+                       CreateDeleteRecordingSub(kv_store_, "cam/frame_$*_depth",
+                                                mismatch_suffix_dels));
+  ASSERT_OK_AND_ASSIGN(Subscription mismatch_prefix_sub,
+                       CreateDeleteRecordingSub(kv_store_, "cam/other_$*_rgb",
+                                                mismatch_prefix_dels));
+
+  StringValue meta;
+  meta.set_value("meta");
+  ASSERT_OK_AND_ASSIGN(MutableBuffer rgb0, MakeMutableBuffer("rgb0"));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer depth0, MakeMutableBuffer("depth0"));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer other0, MakeMutableBuffer("other0"));
+  EXPECT_OK(kv_store_.SetRaw("cam/frame_0_rgb", std::move(rgb0)));
+  EXPECT_OK(kv_store_.Set("cam/frame_12_rgb", meta));
+  EXPECT_OK(kv_store_.SetRaw("cam/frame_0_depth", std::move(depth0)));
+  EXPECT_OK(kv_store_.SetRaw("cam/other_0_rgb", std::move(other0)));
+
+  EXPECT_OK(kv_store_.Delete("cam/frame_$*_rgb"));
+  EXPECT_THAT(kv_store_.GetRaw("cam/frame_0_rgb"),
+              StatusIs(absl::StatusCode::kNotFound));
+  EXPECT_THAT(kv_store_.Get<StringValue>("cam/frame_12_rgb"),
+              StatusIs(absl::StatusCode::kNotFound));
+  EXPECT_OK(kv_store_.GetRaw("cam/frame_0_depth"));
+  EXPECT_OK(kv_store_.GetRaw("cam/other_0_rgb"));
+
+  EXPECT_THAT(prefix_sub_dels, ElementsAre("kv_store/cam/frame_$*_rgb"));
+  EXPECT_THAT(suffix_sub_dels, ElementsAre("kv_store/cam/frame_$*_rgb"));
+  EXPECT_THAT(shorter_prefix_longer_suffix_dels,
+              ElementsAre("kv_store/cam/frame_$*_rgb"));
+  EXPECT_THAT(longer_prefix_shorter_suffix_dels,
+              ElementsAre("kv_store/cam/frame_$*_rgb"));
+  EXPECT_THAT(concrete_sub_dels, ElementsAre("kv_store/cam/frame_$*_rgb"));
+  EXPECT_THAT(mismatch_suffix_dels, IsEmpty());
+  EXPECT_THAT(mismatch_prefix_dels, IsEmpty());
+
+  EXPECT_OK(kv_store_.Delete("cam/frame_$*_rgb"));
+}
+
 }  // namespace
 }  // namespace intrinsic
