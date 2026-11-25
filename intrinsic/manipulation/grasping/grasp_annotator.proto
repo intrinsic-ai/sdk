@@ -278,9 +278,9 @@ enum AnnotationCheck {
   // face or for a surface without thickness.
   RAY_SINGLE_HIT = 13;
   // Centric / V-notch pinch: the object mesh is not sufficiently cylindrical
-  // for cylinder-based grasp sampling (the convex-hull-to-bounding-cylinder
-  // volume ratio is below `threshold`, or `0.0` when the mesh has negligible
-  // convex-hull volume).
+  // for cylinder-based grasp sampling (the mesh has a negligible convex-hull
+  // volume or the convex-hull-to-bounding-cylinder volume ratio is below
+  // `threshold`).
   INCOMPATIBLE_OBJECT_SHAPE = 14;
 }
 
@@ -341,10 +341,11 @@ message StageCount {
 message GraspAnnotationDiagnostics {
   // Stages of the annotation funnel in pipeline order. For suction and parallel
   // pinch grippers the first stage is `RAY_MISSED_SURFACE`, whose `input_count`
-  // is the number of rays cast. For centric and V-notch pinch grippers it is
-  // `INCOMPATIBLE_RADIAL_DIMENSION` with an `input_count` of 1: the radius
-  // check of the cylinder fitted to the object (a mesh that no cylinder fits
-  // fails the request with an error instead).
+  // is the number of rays cast. For centric and V-notch pinch grippers the
+  // first stage is `INCOMPATIBLE_OBJECT_SHAPE` with an `input_count` of 1
+  // (checking whether the object mesh is sufficiently cylindrical), followed by
+  // `INCOMPATIBLE_RADIAL_DIMENSION` if that check passes. A mesh with
+  // negligible volume fails the request with an error and records no stage.
   repeated StageCount stage_breakdown = 1;
   // Number of annotations that passed every stage but were not returned because
   // of `max_num_annotations` (the lowest-scored ones when scoring metrics are
