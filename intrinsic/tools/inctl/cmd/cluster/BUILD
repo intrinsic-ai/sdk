@@ -27,6 +27,7 @@ go_library(
         "migrate.go",
         "mode.go",
         "poweroff.go",
+        "reboot.go",
         "upgrade.go",
         "ups.go",
     ],
