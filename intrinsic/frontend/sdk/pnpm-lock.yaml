@@ -38,10 +38,10 @@ importers:
     dependencies:
       '@angular/common':
         specifier: ^22.2.0
-        version: 22.2.6(@angular/core@22.2.6(rxjs@7.8.2))(rxjs@7.8.2)
+        version: 22.3.0(@angular/core@22.3.0(rxjs@7.8.2))(rxjs@7.8.2)
       '@angular/core':
         specifier: ^22.2.0
-        version: 22.2.6(rxjs@7.8.2)
+        version: 22.3.0(rxjs@7.8.2)
 
   core:
     dependencies:
@@ -78,10 +78,10 @@ importers:
     dependencies:
       '@angular/common':
         specifier: ^22.2.0
-        version: 22.2.6(@angular/core@22.2.6(rxjs@7.8.2))(rxjs@7.8.2)
+        version: 22.3.0(@angular/core@22.3.0(rxjs@7.8.2))(rxjs@7.8.2)
       '@angular/core':
         specifier: ^22.2.0
-        version: 22.2.6(rxjs@7.8.2)
+        version: 22.3.0(rxjs@7.8.2)
       '@bufbuild/protobuf':
         specifier: 2.17.0
         version: 2.17.0
@@ -109,18 +109,18 @@ importers:
 
 packages:
 
-  '@angular/common@22.2.6':
-    resolution: {integrity: sha512-wL7qv2fb/qWIDhq6leX3SFGql76ljCPC6qXHB2KpKJ3GlppuF9fYJwLo+RicRyM72nFu9qQPzd9Zl9k3/eUisQ==}
+  '@angular/common@22.3.0':
+    resolution: {integrity: sha512-bM49PPn/W1GaW9dqqS3n+JfQ7q3Jz7/gBFQV3t6hY45dPYyTcWW0WupM4QLuPWMrcYVRCc2+VnZt7Wihuqx1xQ==}
     engines: {node: ^22.22.3 || ^24.15.0 || >=26.0.0}
     peerDependencies:
-      '@angular/core': 22.2.6
+      '@angular/core': 22.3.0
       rxjs: ^6.5.3 || ^7.4.0
 
-  '@angular/core@22.2.6':
-    resolution: {integrity: sha512-atESNSPsM0dBXU88aDtByBP4W/wb8USbhL16lsePyxBvAWtM1Xn7QBB489QTmHpY6VCXHnqMhXWcrZsDpoIBsw==}
+  '@angular/core@22.3.0':
+    resolution: {integrity: sha512-wGXoO1eiBa5xPF7Y+Vm9eVj7W7x7drRv3StF2HubXX6l/osaIxeQc9ewaHaWl/teywr/LlGblu5ClKE65wF0Zw==}
     engines: {node: ^22.22.3 || ^24.15.0 || >=26.0.0}
     peerDependencies:
-      '@angular/compiler': 22.2.6
+      '@angular/compiler': 22.3.0
       rxjs: ^6.5.3 || ^7.4.0
       zone.js: ~0.15.0 || ~0.16.0
     peerDependenciesMeta:
@@ -213,13 +213,13 @@ packages:
 
 snapshots:
 
-  '@angular/common@22.2.6(@angular/core@22.2.6(rxjs@7.8.2))(rxjs@7.8.2)':
+  '@angular/common@22.3.0(@angular/core@22.3.0(rxjs@7.8.2))(rxjs@7.8.2)':
     dependencies:
-      '@angular/core': 22.2.6(rxjs@7.8.2)
+      '@angular/core': 22.3.0(rxjs@7.8.2)
       rxjs: 7.8.2
       tslib: 2.9.1
 
-  '@angular/core@22.2.6(rxjs@7.8.2)':
+  '@angular/core@22.3.0(rxjs@7.8.2)':
     dependencies:
       rxjs: 7.8.2
       tslib: 2.9.1
