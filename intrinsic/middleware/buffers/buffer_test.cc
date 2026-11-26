@@ -14,8 +14,10 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <iterator>
 #include <limits>
 #include <numeric>
+#include <optional>
 #include <span>
 #include <thread>
 #include <type_traits>
@@ -27,6 +29,7 @@
 #include "absl/status/statusor.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "intrinsic/middleware/buffers/allocators/buffer_allocator.h"
 #include "intrinsic/middleware/buffers/allocators/heap_buffer_allocator.h"
 #include "intrinsic/middleware/buffers/buffer_factory.h"
 #include "intrinsic/middleware/buffers/buffer_internal.h"
@@ -94,6 +97,12 @@ MATCHER_P(IsValidAllocatedBuffer, expected_size,
                           static_cast<size_t>(expected_size),
                           BufferT::kAlignment, result_listener);
 }
+
+template <typename AllocatorT>
+concept CanUnfreezeOrCopyWith =
+    requires(ImmutableBuffer&& buffer, AllocatorT&& allocator) {
+      UnfreezeOrCopy(std::move(buffer), std::forward<AllocatorT>(allocator));
+    };
 
 absl::StatusOr<MutableBuffer> AllocateIotaBuffer(size_t size,
                                                  uint8_t start_value = 0) {
@@ -227,6 +236,108 @@ TEST(ImmutableBufferTest, FreezeTransfersOwnershipWithoutCopyingBytes) {
       StatusIs(absl::StatusCode::kInvalidArgument, HasSubstr("invalid")));
 }
 
+TEST(ImmutableBufferTest, UnfreezeOrCopyReclaimsUniqueAlignedBufferInPlace) {
+  static_assert(CanUnfreezeOrCopyWith<HeapBufferAllocator&>);
+  static_assert(CanUnfreezeOrCopyWith<const HeapBufferAllocator&>);
+  static_assert(CanUnfreezeOrCopyWith<const BufferAllocator&>);
+  static_assert(!CanUnfreezeOrCopyWith<HeapBufferAllocator>);
+  static_assert(!CanUnfreezeOrCopyWith<const HeapBufferAllocator&&>);
+  static_assert(!CanUnfreezeOrCopyWith<const BufferAllocator&&>);
+
+  ASSERT_OK_AND_ASSIGN(MutableBuffer writable,
+                       AllocateIotaBuffer(/*size=*/64, /*start_value=*/10));
+  const uint8_t* const original_ptr = writable.data();
+
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer frozen,
+                       FreezeMutableBuffer(std::move(writable)));
+  ASSERT_OK_AND_ASSIGN(MutableBuffer unfrozen,
+                       UnfreezeOrCopy(std::move(frozen)));
+  EXPECT_THAT(frozen, IsEmptyAndInvalid());
+  ASSERT_THAT(unfrozen, IsValidView(original_ptr, /*expected_size=*/64,
+                                    MutableBuffer::kAlignment));
+  EXPECT_EQ(unfrozen.data()[0], 10);
+  EXPECT_EQ(unfrozen.data()[63], 73);
+
+  unfrozen.data()[0] = 200;
+  EXPECT_EQ(unfrozen.data()[0], 200);
+}
+
+TEST(ImmutableBufferTest,
+     UnfreezeOrCopyCopiesSharedBufferWithoutMutatingRemainingCopy) {
+  ASSERT_OK_AND_ASSIGN(MutableBuffer writable,
+                       AllocateIotaBuffer(/*size=*/16, /*start_value=*/10));
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer root,
+                       FreezeMutableBuffer(std::move(writable)));
+  ImmutableBuffer shared = root;
+
+  ASSERT_OK_AND_ASSIGN(MutableBuffer copy, UnfreezeOrCopy(std::move(root)));
+  EXPECT_THAT(root, IsEmptyAndInvalid());
+  ASSERT_THAT(copy, IsValidAllocatedBuffer(/*expected_size=*/16));
+  EXPECT_NE(copy.data(), shared.data());
+  EXPECT_THAT(copy, ElementsAreArray(shared));
+
+  copy.data()[0] = 255;
+  EXPECT_EQ(shared.data()[0], 10);
+
+  const HeapBufferAllocator custom_heap_allocator;
+  ImmutableBuffer shared_copy = shared;
+  ASSERT_OK_AND_ASSIGN(
+      MutableBuffer custom_copy,
+      UnfreezeOrCopy(std::move(shared_copy), custom_heap_allocator));
+  EXPECT_THAT(shared_copy, IsEmptyAndInvalid());
+  EXPECT_THAT(custom_copy, IsValidAllocatedBuffer(/*expected_size=*/16));
+  EXPECT_NE(custom_copy.data(), shared.data());
+  EXPECT_THAT(custom_copy, ElementsAreArray(shared));
+}
+
+TEST(ImmutableBufferTest, UnfreezeOrCopyCopiesUnalignedSliceIntoAlignedBuffer) {
+  ASSERT_OK_AND_ASSIGN(MutableBuffer writable,
+                       AllocateIotaBuffer(/*size=*/512, /*start_value=*/0));
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer root,
+                       FreezeMutableBuffer(std::move(writable)));
+  ImmutableBuffer unaligned_slice = root.Slice(/*offset=*/16, /*length=*/32);
+  root = ImmutableBuffer();
+
+  const uint8_t* const slice_ptr = unaligned_slice.data();
+  EXPECT_EQ(unaligned_slice.alignment(), 16);
+
+  ASSERT_OK_AND_ASSIGN(MutableBuffer copy,
+                       UnfreezeOrCopy(std::move(unaligned_slice)));
+  EXPECT_THAT(unaligned_slice, IsEmptyAndInvalid());
+  EXPECT_THAT(copy, IsValidAllocatedBuffer(/*expected_size=*/32));
+  EXPECT_NE(copy.data(), slice_ptr);
+  std::vector<uint8_t> expected(32);
+  std::iota(expected.begin(), expected.end(), uint8_t{16});
+  EXPECT_THAT(copy, ElementsAreArray(expected));
+}
+
+TEST(ImmutableBufferTest, UnfreezeOrCopyHandlesEmptyValidAndInvalidBuffers) {
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer empty_unique,
+                       CopyToImmutableBuffer(/*data=*/nullptr, /*size=*/0));
+  const uint8_t* const empty_ptr = empty_unique.data();
+
+  ASSERT_OK_AND_ASSIGN(MutableBuffer unfrozen_empty,
+                       UnfreezeOrCopy(std::move(empty_unique)));
+  EXPECT_THAT(empty_unique, IsEmptyAndInvalid());
+  EXPECT_THAT(unfrozen_empty, IsValidView(empty_ptr, /*expected_size=*/0,
+                                          MutableBuffer::kAlignment));
+
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer empty_shared,
+                       CopyToImmutableBuffer(/*data=*/nullptr, /*size=*/0));
+  ImmutableBuffer empty_copy = empty_shared;
+  ASSERT_OK_AND_ASSIGN(MutableBuffer copied_empty,
+                       UnfreezeOrCopy(std::move(empty_copy)));
+  EXPECT_THAT(empty_copy, IsEmptyAndInvalid());
+  EXPECT_THAT(copied_empty, IsValidAllocatedBuffer(/*expected_size=*/0));
+  EXPECT_THAT(empty_shared, IsValidAllocatedBuffer(/*expected_size=*/0));
+
+  ImmutableBuffer invalid;
+  EXPECT_THAT(
+      UnfreezeOrCopy(std::move(invalid)),
+      StatusIs(absl::StatusCode::kInvalidArgument, HasSubstr("invalid")));
+  EXPECT_THAT(invalid, IsEmptyAndInvalid());
+}
+
 TEST(ImmutableBufferTest, SlicePreservesBackingStorageAndComputesAlignment) {
   ASSERT_OK_AND_ASSIGN(MutableBuffer writable,
                        AllocateIotaBuffer(/*size=*/512, /*start_value=*/0));
@@ -346,19 +457,24 @@ TEST(ImmutableBufferTest, ConcurrentCopySliceAndDestructionAreThreadSafe) {
 
 class TrackingControlBlock final : public buffer_internal::BufferControlBlock {
  public:
-  explicit TrackingControlBlock(int* destroyed_count) noexcept
-      : destroyed_count_(destroyed_count) {}
+  explicit TrackingControlBlock(int* destroyed_count,
+                                bool writable = true) noexcept
+      : destroyed_count_(destroyed_count), writable_(writable) {}
 
   ~TrackingControlBlock() override { ++(*destroyed_count_); }
 
+  [[nodiscard]] bool IsWritable() const noexcept override { return writable_; }
+
  private:
   int* destroyed_count_;
+  bool writable_;
 };
 
 TEST(BufferControlBlockTest,
      PolymorphicSubclassRunsDerivedDestructorOnLastRelease) {
   static_assert(
       std::has_virtual_destructor_v<buffer_internal::BufferControlBlock>);
+  static_assert(std::is_abstract_v<buffer_internal::BufferControlBlock>);
   static_assert(!std::is_constructible_v<buffer_internal::BufferControlBlock>);
   static_assert(
       !std::is_copy_constructible_v<buffer_internal::BufferControlBlock>);
@@ -391,6 +507,207 @@ TEST(BufferControlBlockTest,
 
   slice = ImmutableBuffer();
   EXPECT_EQ(destroyed_count, 2);
+}
+
+TEST(BufferControlBlockTest,
+     TryUnfreezeRejectsInvalidBufferWithoutModification) {
+  ImmutableBuffer invalid;
+  EXPECT_FALSE(
+      buffer_internal::PrivateAccessor::TryUnfreeze(invalid).has_value());
+  EXPECT_THAT(invalid, IsEmptyAndInvalid());
+}
+
+TEST(BufferControlBlockTest,
+     TryUnfreezeRejectsSharedBufferWithoutModification) {
+  alignas(MutableBuffer::kAlignment)
+      uint8_t aligned_bytes[MutableBuffer::kAlignment * 2] = {};
+  int destroyed_count = 0;
+
+  MutableBuffer writable =
+      buffer_internal::PrivateAccessor::CreateMutableBuffer(
+          aligned_bytes, sizeof(aligned_bytes),
+          new TrackingControlBlock(&destroyed_count), /*is_shm=*/false);
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer root,
+                       FreezeMutableBuffer(std::move(writable)));
+  ImmutableBuffer shared = root;
+
+  EXPECT_FALSE(buffer_internal::PrivateAccessor::TryUnfreeze(root).has_value());
+  EXPECT_THAT(root, IsValidView(aligned_bytes, sizeof(aligned_bytes),
+                                ImmutableBuffer::kAlignment));
+  EXPECT_EQ(destroyed_count, 0);
+
+  root = ImmutableBuffer();
+  shared = ImmutableBuffer();
+  EXPECT_EQ(destroyed_count, 1);
+}
+
+TEST(BufferControlBlockTest,
+     TryUnfreezeRejectsUnalignedSliceWithoutModification) {
+  alignas(MutableBuffer::kAlignment)
+      uint8_t aligned_bytes[MutableBuffer::kAlignment * 2] = {};
+  int destroyed_count = 0;
+
+  MutableBuffer writable =
+      buffer_internal::PrivateAccessor::CreateMutableBuffer(
+          aligned_bytes, sizeof(aligned_bytes),
+          new TrackingControlBlock(&destroyed_count), /*is_shm=*/false);
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer root,
+                       FreezeMutableBuffer(std::move(writable)));
+  ImmutableBuffer unaligned_slice = root.Slice(/*offset=*/16, /*length=*/32);
+  root = ImmutableBuffer();
+
+  EXPECT_FALSE(buffer_internal::PrivateAccessor::TryUnfreeze(unaligned_slice)
+                   .has_value());
+  EXPECT_THAT(unaligned_slice,
+              IsValidView(aligned_bytes + 16, /*expected_size=*/32,
+                          /*expected_alignment=*/16));
+  EXPECT_EQ(destroyed_count, 0);
+
+  unaligned_slice = ImmutableBuffer();
+  EXPECT_EQ(destroyed_count, 1);
+}
+
+TEST(BufferControlBlockTest,
+     TryUnfreezeReclaimsAlignedSliceInPlaceAndTransfersControlBlock) {
+  alignas(MutableBuffer::kAlignment)
+      uint8_t aligned_bytes[MutableBuffer::kAlignment * 2] = {};
+  int destroyed_count = 0;
+
+  MutableBuffer writable =
+      buffer_internal::PrivateAccessor::CreateMutableBuffer(
+          aligned_bytes, sizeof(aligned_bytes),
+          new TrackingControlBlock(&destroyed_count), /*is_shm=*/false);
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer root,
+                       FreezeMutableBuffer(std::move(writable)));
+  ImmutableBuffer aligned_slice =
+      root.Slice(/*offset=*/MutableBuffer::kAlignment, /*length=*/64);
+  root = ImmutableBuffer();
+
+  {
+    std::optional<MutableBuffer> unfrozen =
+        buffer_internal::PrivateAccessor::TryUnfreeze(aligned_slice);
+    ASSERT_TRUE(unfrozen.has_value());
+    EXPECT_THAT(aligned_slice, IsEmptyAndInvalid());
+    EXPECT_THAT(*unfrozen,
+                IsValidView(aligned_bytes + MutableBuffer::kAlignment,
+                            /*expected_size=*/64, MutableBuffer::kAlignment));
+    EXPECT_EQ(destroyed_count, 0);
+  }
+  EXPECT_EQ(destroyed_count, 1);
+}
+
+TEST(BufferControlBlockTest,
+     TryUnfreezeRejectsShmBufferAndUnfreezeOrCopyCopies) {
+  alignas(MutableBuffer::kAlignment)
+      uint8_t aligned_bytes[MutableBuffer::kAlignment * 2] = {};
+  std::iota(std::begin(aligned_bytes), std::end(aligned_bytes), uint8_t{0});
+  int destroyed_count = 0;
+
+  MutableBuffer shm_writable =
+      buffer_internal::PrivateAccessor::CreateMutableBuffer(
+          aligned_bytes, sizeof(aligned_bytes),
+          new TrackingControlBlock(&destroyed_count), /*is_shm=*/true);
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer shm_buffer,
+                       FreezeMutableBuffer(std::move(shm_writable)));
+
+  EXPECT_FALSE(
+      buffer_internal::PrivateAccessor::TryUnfreeze(shm_buffer).has_value());
+  EXPECT_TRUE(shm_buffer.valid());
+  EXPECT_TRUE(shm_buffer.is_shm());
+  EXPECT_EQ(shm_buffer.data(), aligned_bytes);
+  EXPECT_EQ(shm_buffer.size(), sizeof(aligned_bytes));
+  EXPECT_EQ(destroyed_count, 0);
+
+  ASSERT_OK_AND_ASSIGN(MutableBuffer shm_copy,
+                       UnfreezeOrCopy(std::move(shm_buffer)));
+  EXPECT_THAT(shm_buffer, IsEmptyAndInvalid());
+  EXPECT_EQ(destroyed_count, 1);
+  EXPECT_THAT(shm_copy, IsValidAllocatedBuffer(sizeof(aligned_bytes)));
+  EXPECT_NE(shm_copy.data(), aligned_bytes);
+  EXPECT_THAT(shm_copy, ElementsAreArray(aligned_bytes));
+}
+
+TEST(BufferControlBlockTest,
+     TryUnfreezeRejectsReadOnlyControlBlockAndUnfreezeOrCopyCopies) {
+  alignas(MutableBuffer::kAlignment)
+      uint8_t aligned_bytes[MutableBuffer::kAlignment] = {};
+  std::iota(std::begin(aligned_bytes), std::end(aligned_bytes), uint8_t{1});
+  int destroyed_count = 0;
+
+  MutableBuffer writable =
+      buffer_internal::PrivateAccessor::CreateMutableBuffer(
+          aligned_bytes, sizeof(aligned_bytes),
+          new TrackingControlBlock(&destroyed_count, /*writable=*/false),
+          /*is_shm=*/false);
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer read_only_buffer,
+                       FreezeMutableBuffer(std::move(writable)));
+
+  // Even when uniquely owned, non-SHM, and 256-byte-aligned, a control block
+  // with IsWritable() == false must not be unfrozen in place and remains
+  // unmodified when TryUnfreeze returns std::nullopt.
+  EXPECT_FALSE(buffer_internal::PrivateAccessor::TryUnfreeze(read_only_buffer)
+                   .has_value());
+  EXPECT_THAT(read_only_buffer,
+              IsValidView(aligned_bytes, sizeof(aligned_bytes),
+                          ImmutableBuffer::kAlignment));
+  EXPECT_EQ(destroyed_count, 0);
+
+  ASSERT_OK_AND_ASSIGN(MutableBuffer copy,
+                       UnfreezeOrCopy(std::move(read_only_buffer)));
+  EXPECT_THAT(read_only_buffer, IsEmptyAndInvalid());
+  EXPECT_EQ(destroyed_count, 1);
+  ASSERT_THAT(copy, IsValidAllocatedBuffer(sizeof(aligned_bytes)));
+  EXPECT_NE(copy.data(), aligned_bytes);
+  EXPECT_THAT(copy, ElementsAreArray(aligned_bytes));
+
+  copy.data()[0] = 0xFF;
+  EXPECT_EQ(aligned_bytes[0], 1);
+}
+
+TEST(BufferControlBlockTest,
+     TryUnfreezeSynchronizesWithConcurrentReaderRelease) {
+  constexpr size_t kSize = 256;
+  constexpr int kIterations = 64;
+  for (int iter = 0; iter < kIterations; ++iter) {
+    const uint8_t start = static_cast<uint8_t>(iter);
+    ASSERT_OK_AND_ASSIGN(MutableBuffer writable,
+                         AllocateIotaBuffer(kSize, start));
+    const uint8_t* const original_ptr = writable.data();
+    const uint32_t expected_sum =
+        std::accumulate(writable.begin(), writable.end(), uint32_t{0});
+
+    ASSERT_OK_AND_ASSIGN(ImmutableBuffer owner,
+                         FreezeMutableBuffer(std::move(writable)));
+    ImmutableBuffer reader = owner;
+    uint32_t observed_sum = 0;
+
+    std::thread worker([reader = std::move(reader), &observed_sum]() mutable {
+      observed_sum = std::accumulate(reader.begin(), reader.end(), uint32_t{0});
+      reader = ImmutableBuffer();
+    });
+
+    std::optional<MutableBuffer> unfrozen;
+    while (!unfrozen.has_value()) {
+      unfrozen = buffer_internal::PrivateAccessor::TryUnfreeze(owner);
+      if (!unfrozen.has_value()) {
+        std::this_thread::yield();
+      }
+    }
+
+    // Mutate in place before joining `worker` so TSan verifies the
+    // `Release()` (`memory_order_acq_rel`) -> `IsUnique()`
+    // (`memory_order_acquire`) happens-before edge directly.
+    if (unfrozen->valid() && unfrozen->size() == kSize) {
+      std::iota(unfrozen->begin(), unfrozen->end(),
+                static_cast<uint8_t>(~start));
+    }
+
+    worker.join();
+    EXPECT_EQ(observed_sum, expected_sum);
+    EXPECT_THAT(owner, IsEmptyAndInvalid());
+    EXPECT_THAT(*unfrozen,
+                IsValidView(original_ptr, kSize, MutableBuffer::kAlignment));
+  }
 }
 
 }  // namespace

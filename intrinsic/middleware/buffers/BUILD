@@ -53,6 +53,7 @@ cc_test(
         ":buffer_internal",
         ":immutable_buffer",
         ":mutable_buffer",
+        "//intrinsic/middleware/buffers/allocators:buffer_allocator",
         "//intrinsic/middleware/buffers/allocators:heap_buffer_allocator",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:status_matchers",
