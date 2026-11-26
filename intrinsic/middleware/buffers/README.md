@@ -42,13 +42,19 @@ Buffer ownership follows a write-once, read-many flow:
     memory via an internal atomic reference count until the last handle drops.
 
 If you already have bytes in memory and want a read-only buffer in one step,
-call `CopyToImmutableBuffer(data, size)`. If a consumer receives an
-`ImmutableBuffer` and needs mutable ownership (for example, to hand the backing
-storage into a mutable image or tensor container), call
-`UnfreezeOrCopy(std::move(buf))`: when `buf` is uniquely owned
-(`ref_count == 1`), writable, non-SHM, and 256-byte aligned, ownership
-transfers back to a `MutableBuffer` in O(1) without copying; otherwise it
-allocates a fresh 256-byte-aligned `MutableBuffer` and copies the bytes.
+call `CopyToImmutableBuffer(data, size)`. If you already own read-only host
+storage and want to wrap it without copying, call
+`AdoptImmutableBuffer(data, size, deleter)`; the returned `ImmutableBuffer`
+preserves `data` when `size > 0` (when `size == 0`, `data` may be `nullptr` and
+`data()` points to an internal 256-byte-aligned static byte) and invokes the
+optional `deleter` (if non-null) once the final reference drops, or immediately
+before returning an error on validation or control-block allocation failure so
+callers do not double-free. If a consumer receives an `ImmutableBuffer` and
+needs mutable ownership (for example, to hand the backing storage into a mutable
+image or tensor container), call `UnfreezeOrCopy(std::move(buf))`: when `buf` is
+uniquely owned (`ref_count == 1`), writable, non-SHM, and 256-byte aligned,
+ownership transfers back to a `MutableBuffer` in O(1) without copying; otherwise
+it allocates a fresh 256-byte-aligned `MutableBuffer` and copies the bytes.
 
 ```cpp
 absl::StatusOr<intrinsic::MutableBuffer> mutable_buf =
@@ -82,10 +88,11 @@ intrinsic::ImmutableBuffer payload = shared_buf->Slice(64, 960);
 *   Slicing checks bounds without integer overflow. `Slice(offset, length)`
     returns an invalid buffer if the source is invalid, `offset > size()`, or
     `length > size() - offset`.
-*   Root buffers always align to 256 bytes (`kAlignment`), while slices report
-    their effective byte alignment capped at 256 bytes. Slicing at a multiple of
-    256 preserves 256-byte alignment; slicing at offset 4 reports 4-byte
-    alignment.
+*   Allocator-backed and frozen root buffers always align to 256 bytes
+    (`kAlignment`), while adopted buffers and slices report their effective byte
+    alignment capped at 256 bytes. From a 256-byte-aligned buffer, slicing at a
+    multiple of 256 preserves 256-byte alignment; slicing at offset 4 reports
+    4-byte alignment.
 *   A mutable buffer requires external synchronization if touched by multiple
     threads. Separate `ImmutableBuffer` copies or slices sharing the same
     allocation can be read, copied, and destroyed concurrently from any thread.
@@ -113,13 +120,14 @@ storage when the count drops to 0.
 *   `immutable_buffer.h`, `immutable_buffer.cc`: Reference-counted read-only
     buffer class with zero-copy `Slice()` views (`:immutable_buffer`).
 *   `buffer_factory.h`, `buffer_factory.cc`: Public `AllocateMutableBuffer`,
-    `CopyToImmutableBuffer`, `FreezeMutableBuffer`, and `UnfreezeOrCopy` helpers
-    (`:buffer_factory`).
+    `CopyToImmutableBuffer`, `FreezeMutableBuffer`, `UnfreezeOrCopy`, and
+    `AdoptImmutableBuffer` helpers (`:buffer_factory`).
 *   `buffer_internal.h`: Middleware-private header defining the polymorphic
     `BufferControlBlock` base and `PrivateAccessor` (`:buffer_internal`).
 *   `buffer_test.cc`: Unit tests covering alignment, empty buffers, moves,
-    copies, slicing, freeze and unfreeze transfers, polymorphic control-block
-    destruction, and multi-threaded readers (`:buffer_test`).
+    copies, slicing, freeze and unfreeze transfers, zero-copy adoption,
+    polymorphic control-block destruction, and multi-threaded readers
+    (`:buffer_test`).
 *   `allocators/`: Backing-storage allocator interface and heap allocator. See
     [the allocators README](allocators/README.md).
 

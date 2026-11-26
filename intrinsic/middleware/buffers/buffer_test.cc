@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <memory>
 #include <numeric>
 #include <optional>
 #include <span>
@@ -24,6 +26,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
 #include "absl/status/status_matchers.h"
 #include "absl/status/statusor.h"
@@ -336,6 +339,301 @@ TEST(ImmutableBufferTest, UnfreezeOrCopyHandlesEmptyValidAndInvalidBuffers) {
       UnfreezeOrCopy(std::move(invalid)),
       StatusIs(absl::StatusCode::kInvalidArgument, HasSubstr("invalid")));
   EXPECT_THAT(invalid, IsEmptyAndInvalid());
+}
+
+TEST(ImmutableBufferTest,
+     AdoptImmutableBufferPreservesPointerAlignmentAndRunsDeleterOnLastDrop) {
+  alignas(ImmutableBuffer::kAlignment)
+      uint8_t aligned_bytes[ImmutableBuffer::kAlignment * 2] = {};
+  std::iota(std::begin(aligned_bytes), std::end(aligned_bytes), uint8_t{1});
+
+  // 256-byte-aligned external buffer: preserves pointer identity and alignment,
+  // and runs deleter only after all copies and slices are destroyed.
+  int aligned_deleter_calls = 0;
+  ASSERT_OK_AND_ASSIGN(
+      ImmutableBuffer adopted_aligned,
+      AdoptImmutableBuffer(
+          aligned_bytes, sizeof(aligned_bytes),
+          [&aligned_deleter_calls]() { ++aligned_deleter_calls; }));
+  ASSERT_THAT(adopted_aligned, IsValidView(aligned_bytes, sizeof(aligned_bytes),
+                                           ImmutableBuffer::kAlignment));
+  EXPECT_THAT(adopted_aligned, ElementsAreArray(aligned_bytes));
+
+  ImmutableBuffer copy = adopted_aligned;
+  ImmutableBuffer slice = adopted_aligned.Slice(/*offset=*/16, /*length=*/32);
+  adopted_aligned = ImmutableBuffer();
+  copy = ImmutableBuffer();
+  EXPECT_EQ(aligned_deleter_calls, 0);
+  ASSERT_THAT(slice, IsValidView(aligned_bytes + 16, /*expected_size=*/32,
+                                 /*expected_alignment=*/16));
+  EXPECT_EQ(slice.data()[0], aligned_bytes[16]);
+
+  slice = ImmutableBuffer();
+  EXPECT_EQ(aligned_deleter_calls, 1);
+
+  // 16-byte-aligned external buffer with a move-only rvalue-qualified deleter.
+  int unaligned_deleter_calls = 0;
+  struct MoveOnlyDeleter {
+    std::unique_ptr<int> token;
+    int* calls = nullptr;
+    void operator()() && {
+      EXPECT_NE(token, nullptr);
+      ++(*calls);
+    }
+  };
+  absl::AnyInvocable<void() &&> move_only_deleter = MoveOnlyDeleter{
+      .token = std::make_unique<int>(42), .calls = &unaligned_deleter_calls};
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer adopted_unaligned,
+                       AdoptImmutableBuffer(aligned_bytes + 16, /*size=*/32,
+                                            std::move(move_only_deleter)));
+  EXPECT_THAT(adopted_unaligned,
+              IsValidView(aligned_bytes + 16, /*expected_size=*/32,
+                          /*expected_alignment=*/16));
+  ImmutableBuffer unaligned_copy = adopted_unaligned;
+  adopted_unaligned = ImmutableBuffer();
+  EXPECT_EQ(unaligned_deleter_calls, 0);
+  unaligned_copy = ImmutableBuffer();
+  EXPECT_EQ(unaligned_deleter_calls, 1);
+
+  // Odd alignment reports 1; slicing at offset 255 restores 256-byte alignment,
+  // while slicing at offset 256 remains 1-byte aligned.
+  ASSERT_OK_AND_ASSIGN(
+      ImmutableBuffer odd_aligned,
+      AdoptImmutableBuffer(aligned_bytes + 1,
+                           /*size=*/ImmutableBuffer::kAlignment + 1,
+                           /*deleter=*/nullptr));
+  EXPECT_THAT(odd_aligned,
+              IsValidView(aligned_bytes + 1,
+                          /*expected_size=*/ImmutableBuffer::kAlignment + 1,
+                          /*expected_alignment=*/1));
+  EXPECT_THAT(odd_aligned.Slice(/*offset=*/255, /*length=*/2),
+              IsValidView(aligned_bytes + ImmutableBuffer::kAlignment,
+                          /*expected_size=*/2, ImmutableBuffer::kAlignment));
+  EXPECT_THAT(odd_aligned.Slice(/*offset=*/256, /*length=*/1),
+              IsValidView(aligned_bytes + ImmutableBuffer::kAlignment + 1,
+                          /*expected_size=*/1, /*expected_alignment=*/1));
+
+  // Over-aligned (> 256B) external pointers cap `alignment()` at `kAlignment`.
+  alignas(512) uint8_t over_aligned_bytes[16] = {};
+  EXPECT_THAT(
+      AdoptImmutableBuffer(over_aligned_bytes, sizeof(over_aligned_bytes),
+                           /*deleter=*/nullptr),
+      IsOkAndHolds(IsValidView(over_aligned_bytes, sizeof(over_aligned_bytes),
+                               ImmutableBuffer::kAlignment)));
+
+  // Null deleter is allowed for externally pinned or static storage.
+  EXPECT_THAT(
+      AdoptImmutableBuffer(aligned_bytes, /*size=*/8, /*deleter=*/nullptr),
+      IsOkAndHolds(IsValidView(aligned_bytes, /*expected_size=*/8,
+                               ImmutableBuffer::kAlignment)));
+}
+
+TEST(ImmutableBufferTest,
+     AdoptImmutableBufferUnfreezeOrCopyCopiesForBothUnalignedAnd256BAligned) {
+  alignas(ImmutableBuffer::kAlignment)
+      uint8_t aligned_bytes[ImmutableBuffer::kAlignment * 2] = {};
+  std::iota(std::begin(aligned_bytes), std::end(aligned_bytes), uint8_t{10});
+
+  // 1) < 256B-aligned adopted buffer must copy into a 256B-aligned buffer and
+  // invoke its deleter.
+  int unaligned_deleter_calls = 0;
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer unaligned_adopted,
+                       AdoptImmutableBuffer(aligned_bytes + 16, /*size=*/32,
+                                            [&unaligned_deleter_calls]() {
+                                              ++unaligned_deleter_calls;
+                                            }));
+  EXPECT_EQ(unaligned_adopted.alignment(), 16);
+  EXPECT_FALSE(buffer_internal::PrivateAccessor::TryUnfreeze(unaligned_adopted)
+                   .has_value());
+  EXPECT_EQ(unaligned_deleter_calls, 0);
+
+  ASSERT_OK_AND_ASSIGN(MutableBuffer unaligned_copy,
+                       UnfreezeOrCopy(std::move(unaligned_adopted)));
+  EXPECT_THAT(unaligned_adopted, IsEmptyAndInvalid());
+  EXPECT_EQ(unaligned_deleter_calls, 1);
+  ASSERT_THAT(unaligned_copy, IsValidAllocatedBuffer(/*expected_size=*/32));
+  EXPECT_NE(unaligned_copy.data(), aligned_bytes + 16);
+  EXPECT_THAT(unaligned_copy,
+              ElementsAreArray(aligned_bytes + 16, /*count=*/32));
+  unaligned_copy.data()[0] = 0xFF;
+  EXPECT_EQ(aligned_bytes[16], 26);
+
+  // 2) Even a uniquely-owned 256B-aligned adopted buffer is read-only
+  // (`IsWritable() == false`) and must copy rather than const_cast caller data.
+  int aligned_deleter_calls = 0;
+  ASSERT_OK_AND_ASSIGN(
+      ImmutableBuffer aligned_adopted,
+      AdoptImmutableBuffer(
+          aligned_bytes, sizeof(aligned_bytes),
+          [&aligned_deleter_calls]() { ++aligned_deleter_calls; }));
+  EXPECT_EQ(aligned_adopted.alignment(), ImmutableBuffer::kAlignment);
+  EXPECT_FALSE(buffer_internal::PrivateAccessor::TryUnfreeze(aligned_adopted)
+                   .has_value());
+  EXPECT_THAT(aligned_adopted, IsValidView(aligned_bytes, sizeof(aligned_bytes),
+                                           ImmutableBuffer::kAlignment));
+  EXPECT_EQ(aligned_deleter_calls, 0);
+
+  ASSERT_OK_AND_ASSIGN(MutableBuffer aligned_copy,
+                       UnfreezeOrCopy(std::move(aligned_adopted)));
+  EXPECT_THAT(aligned_adopted, IsEmptyAndInvalid());
+  EXPECT_EQ(aligned_deleter_calls, 1);
+  ASSERT_THAT(aligned_copy, IsValidAllocatedBuffer(sizeof(aligned_bytes)));
+  EXPECT_NE(aligned_copy.data(), aligned_bytes);
+  EXPECT_THAT(aligned_copy, ElementsAreArray(aligned_bytes));
+  aligned_copy.data()[0] = 0xEE;
+  EXPECT_EQ(aligned_bytes[0], 10);
+}
+
+TEST(ImmutableBufferTest,
+     AdoptImmutableBufferHandlesNullDataErrorsAndEmptyAdoption) {
+  int error_deleter_calls = 0;
+  EXPECT_THAT(AdoptImmutableBuffer(
+                  /*data=*/nullptr, /*size=*/16,
+                  [&error_deleter_calls]() { ++error_deleter_calls; }),
+              StatusIs(absl::StatusCode::kInvalidArgument, HasSubstr("null")));
+  EXPECT_EQ(error_deleter_calls, 1);
+
+  EXPECT_THAT(
+      AdoptImmutableBuffer(/*data=*/nullptr, /*size=*/16, /*deleter=*/nullptr),
+      StatusIs(absl::StatusCode::kInvalidArgument, HasSubstr("null")));
+
+  int empty_null_deleter_calls = 0;
+  ASSERT_OK_AND_ASSIGN(
+      ImmutableBuffer empty_from_null,
+      AdoptImmutableBuffer(
+          /*data=*/nullptr, /*size=*/0,
+          [&empty_null_deleter_calls]() { ++empty_null_deleter_calls; }));
+  EXPECT_THAT(empty_from_null, IsValidAllocatedBuffer(/*expected_size=*/0));
+  const uint8_t* const empty_dummy_ptr = empty_from_null.data();
+  EXPECT_EQ(empty_null_deleter_calls, 0);
+  {
+    ImmutableBuffer empty_slice =
+        empty_from_null.Slice(/*offset=*/0, /*length=*/0);
+    EXPECT_THAT(empty_slice,
+                IsValidView(empty_dummy_ptr,
+                            /*expected_size=*/0, ImmutableBuffer::kAlignment));
+    empty_from_null = ImmutableBuffer();
+    EXPECT_EQ(empty_null_deleter_calls, 0);
+  }
+  EXPECT_EQ(empty_null_deleter_calls, 1);
+
+  const uint8_t non_null_byte = 7;
+  int empty_non_null_deleter_calls = 0;
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer empty_from_non_null,
+                       AdoptImmutableBuffer(&non_null_byte, /*size=*/0,
+                                            [&empty_non_null_deleter_calls]() {
+                                              ++empty_non_null_deleter_calls;
+                                            }));
+  EXPECT_THAT(empty_from_non_null,
+              IsValidView(empty_dummy_ptr, /*expected_size=*/0,
+                          ImmutableBuffer::kAlignment));
+  EXPECT_NE(empty_from_non_null.data(), &non_null_byte);
+  EXPECT_EQ(empty_non_null_deleter_calls, 0);
+  EXPECT_FALSE(
+      buffer_internal::PrivateAccessor::TryUnfreeze(empty_from_non_null)
+          .has_value());
+  ASSERT_OK_AND_ASSIGN(MutableBuffer unfrozen_empty,
+                       UnfreezeOrCopy(std::move(empty_from_non_null)));
+  EXPECT_THAT(empty_from_non_null, IsEmptyAndInvalid());
+  EXPECT_EQ(empty_non_null_deleter_calls, 1);
+  EXPECT_THAT(unfrozen_empty, IsValidAllocatedBuffer(/*expected_size=*/0));
+  EXPECT_NE(unfrozen_empty.data(), empty_dummy_ptr);
+
+  EXPECT_THAT(
+      AdoptImmutableBuffer(/*data=*/nullptr, /*size=*/0, /*deleter=*/nullptr),
+      IsOkAndHolds(IsValidView(empty_dummy_ptr, /*expected_size=*/0,
+                               ImmutableBuffer::kAlignment)));
+}
+
+TEST(ImmutableBufferTest,
+     AdoptImmutableBufferAssignmentReleasesOldBlockAfterReadingRhs) {
+  struct Node {
+    ImmutableBuffer next;
+  };
+  alignas(ImmutableBuffer::kAlignment) uint8_t first_bytes[16] = {1, 2, 3, 4};
+  alignas(ImmutableBuffer::kAlignment) uint8_t second_bytes[16] = {5, 6, 7, 8};
+
+  // Copy-assignment: LHS deleter destroys the object owning RHS.
+  int copy_first_deleted = 0;
+  int copy_second_deleted = 0;
+  auto copy_node = std::make_unique<Node>();
+  ASSERT_OK_AND_ASSIGN(copy_node->next,
+                       AdoptImmutableBuffer(second_bytes, sizeof(second_bytes),
+                                            [&copy_second_deleted]() {
+                                              ++copy_second_deleted;
+                                            }));
+  const Node* const copy_node_ptr = copy_node.get();
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer copy_current,
+                       AdoptImmutableBuffer(first_bytes, sizeof(first_bytes),
+                                            [owned = std::move(copy_node),
+                                             &copy_first_deleted]() mutable {
+                                              owned.reset();
+                                              ++copy_first_deleted;
+                                            }));
+
+  copy_current = copy_node_ptr->next;
+  EXPECT_EQ(copy_first_deleted, 1);
+  EXPECT_EQ(copy_second_deleted, 0);
+  EXPECT_THAT(copy_current, IsValidView(second_bytes, sizeof(second_bytes),
+                                        ImmutableBuffer::kAlignment));
+  EXPECT_THAT(copy_current, ElementsAreArray(second_bytes));
+  copy_current = ImmutableBuffer();
+  EXPECT_EQ(copy_second_deleted, 1);
+
+  // Move-assignment: LHS deleter destroys the object owning RHS.
+  int move_first_deleted = 0;
+  int move_second_deleted = 0;
+  auto move_node = std::make_unique<Node>();
+  ASSERT_OK_AND_ASSIGN(move_node->next,
+                       AdoptImmutableBuffer(second_bytes, sizeof(second_bytes),
+                                            [&move_second_deleted]() {
+                                              ++move_second_deleted;
+                                            }));
+  Node* const move_node_ptr = move_node.get();
+  ASSERT_OK_AND_ASSIGN(ImmutableBuffer move_current,
+                       AdoptImmutableBuffer(first_bytes, sizeof(first_bytes),
+                                            [owned = std::move(move_node),
+                                             &move_first_deleted]() mutable {
+                                              owned.reset();
+                                              ++move_first_deleted;
+                                            }));
+
+  move_current = std::move(move_node_ptr->next);
+  EXPECT_EQ(move_first_deleted, 1);
+  EXPECT_EQ(move_second_deleted, 0);
+  EXPECT_THAT(move_current, IsValidView(second_bytes, sizeof(second_bytes),
+                                        ImmutableBuffer::kAlignment));
+  EXPECT_THAT(move_current, ElementsAreArray(second_bytes));
+  move_current = ImmutableBuffer();
+  EXPECT_EQ(move_second_deleted, 1);
+}
+
+TEST(ImmutableBufferTest,
+     AdoptImmutableBufferConcurrentCopySliceAndDropInvokesDeleterOnce) {
+  const std::vector<uint8_t> source = {10, 20, 30, 40, 50, 60, 70, 80};
+  std::atomic<int> deleter_calls{0};
+  ASSERT_OK_AND_ASSIGN(
+      ImmutableBuffer shared,
+      AdoptImmutableBuffer(source.data(), source.size(), [&deleter_calls]() {
+        deleter_calls.fetch_add(1, std::memory_order_relaxed);
+      }));
+
+  std::vector<std::thread> threads;
+  threads.reserve(8);
+  for (int t = 0; t < 8; ++t) {
+    threads.emplace_back([shared]() {
+      for (int i = 0; i < 500; ++i) {
+        ImmutableBuffer copy = shared;
+        ImmutableBuffer slice = copy.Slice(/*offset=*/2, /*length=*/4);
+        EXPECT_THAT(slice, ElementsAre(30, 40, 50, 60));
+      }
+    });
+  }
+  shared = ImmutableBuffer();
+  for (std::thread& worker : threads) {
+    worker.join();
+  }
+  EXPECT_EQ(deleter_calls.load(std::memory_order_acquire), 1);
 }
 
 TEST(ImmutableBufferTest, SlicePreservesBackingStorageAndComputesAlignment) {
@@ -708,6 +1006,61 @@ TEST(BufferControlBlockTest,
     EXPECT_THAT(*unfrozen,
                 IsValidView(original_ptr, kSize, MutableBuffer::kAlignment));
   }
+}
+
+TEST(BufferControlBlockTest,
+     MutableBufferMoveAssignmentReleasesOldBlockAfterMovingRhs) {
+  class CallbackControlBlock final
+      : public buffer_internal::BufferControlBlock {
+   public:
+    explicit CallbackControlBlock(
+        absl::AnyInvocable<void() &&> on_destroy) noexcept
+        : on_destroy_(std::move(on_destroy)) {}
+
+    ~CallbackControlBlock() override {
+      if (on_destroy_) {
+        std::move(on_destroy_)();
+      }
+    }
+
+    [[nodiscard]] bool IsWritable() const noexcept override { return true; }
+
+   private:
+    absl::AnyInvocable<void() &&> on_destroy_;
+  };
+
+  struct Node {
+    MutableBuffer next;
+  };
+  alignas(MutableBuffer::kAlignment) uint8_t first_bytes[16] = {1, 2, 3, 4};
+  alignas(MutableBuffer::kAlignment) uint8_t second_bytes[16] = {5, 6, 7, 8};
+
+  int first_deleted = 0;
+  int second_deleted = 0;
+  auto node = std::make_unique<Node>();
+  node->next = buffer_internal::PrivateAccessor::CreateMutableBuffer(
+      second_bytes, sizeof(second_bytes),
+      new TrackingControlBlock(&second_deleted), /*is_shm=*/false);
+  Node* const node_ptr = node.get();
+
+  MutableBuffer current = buffer_internal::PrivateAccessor::CreateMutableBuffer(
+      first_bytes, sizeof(first_bytes),
+      new CallbackControlBlock(
+          [owned = std::move(node), &first_deleted]() mutable {
+            owned.reset();
+            ++first_deleted;
+          }),
+      /*is_shm=*/false);
+
+  current = std::move(node_ptr->next);
+  EXPECT_EQ(first_deleted, 1);
+  EXPECT_EQ(second_deleted, 0);
+  EXPECT_THAT(current, IsValidView(second_bytes, sizeof(second_bytes),
+                                   MutableBuffer::kAlignment));
+  EXPECT_THAT(current, ElementsAreArray(second_bytes));
+
+  current = MutableBuffer();
+  EXPECT_EQ(second_deleted, 1);
 }
 
 }  // namespace
