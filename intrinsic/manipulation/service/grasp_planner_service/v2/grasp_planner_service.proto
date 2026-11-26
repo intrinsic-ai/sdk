@@ -162,6 +162,16 @@ message PlanGraspsRequest {
   // `PlanGraspsResponse.logging_id` stays empty. If unset,
   // `GraspPlannerServiceConfig.disable_logging` decides.
   optional bool disable_logging = 16;
+
+  // If true, the service creates no grasp and pregrasp frames for the returned
+  // grasps: `world_updates` contains no CreateFrameRequests for them, and their
+  // `grasp_frame` and `pre_grasp_frame` stay unset. Use their poses instead
+  // (e.g. `root_t_grasp` or `object_t_grasp`). Target objects of
+  // `pose_estimates` are still created. Has no effect if `output_grasp_frame`
+  // and `output_pregrasp_frame` are set: they are updated instead of creating
+  // frames. This avoids needing to clean up generated frames when reusing
+  // object instances.
+  bool disable_grasp_frames_generation = 17;
 }
 
 // Response of GraspPlannerService.PlanGrasps. An empty `grasps` list is a
@@ -245,7 +255,8 @@ message PlanGraspsResponse {
   // Planned grasps expressed as world frame references, best grasp first.
   // `grasps[i]` corresponds to `grasp_plan.grasps[i]`. The referenced
   // grasp/pregrasp frames (and, for `pose_estimates`, the target objects) only
-  // exist after `world_updates` has been applied to the world `world_id`.
+  // exist after `world_updates` has been applied to the world `world_id`; the
+  // frames are unset with `disable_grasp_frames_generation`.
   // Each grasp's `root_t_grasp` / `root_t_pregrasp` give the grasp/pregrasp
   // poses in the root frame of `world_id` at planning time, and its
   // `object_t_grasp` / `object_t_pregrasp` give them relative to the grasped
