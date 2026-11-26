@@ -22,11 +22,11 @@ py_test(
     srcs = ["grpc_synchronized_test.py"],
     args = [
         "--module-bazel",
-        "$(location //:MODULE.bazel)",
+        "$(rootpath //:MODULE.bazel)",
         "--requirements-in",
-        "$(location //:requirements.in)",
+        "$(rootpath //:requirements.in)",
         "--requirements-txt",
-        "$(location //:requirements.txt)",
+        "$(rootpath //:requirements.txt)",
     ],
     data = [
         "//:MODULE.bazel",

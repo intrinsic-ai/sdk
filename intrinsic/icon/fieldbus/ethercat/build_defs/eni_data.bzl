@@ -46,8 +46,8 @@ def intrinsic_eni_data(
     eni_datagen_label = Label("//intrinsic/icon/fieldbus/ethercat/build_defs:eni_datagen")
 
     eni_datagen_cmd = """
-        $(location {tool}) \
-            --eni_file=$(location {eni_file}) \
+        $(execpath {tool}) \
+            --eni_file=$(execpath {eni_file}) \
             --output_file=$@ \
             --asset_package=\"{asset_package}\" \
             --asset_name=\"{asset_name}\" \
