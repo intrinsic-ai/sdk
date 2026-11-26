@@ -247,8 +247,9 @@ message PlanGraspsResponse {
   // grasp/pregrasp frames (and, for `pose_estimates`, the target objects) only
   // exist after `world_updates` has been applied to the world `world_id`.
   // Each grasp's `root_t_grasp` / `root_t_pregrasp` give the grasp/pregrasp
-  // poses in the root frame of `world_id` at planning time; they can be used
-  // without applying `world_updates`.
+  // poses in the root frame of `world_id` at planning time, and its
+  // `object_t_grasp` / `object_t_pregrasp` give them relative to the grasped
+  // object. The root poses can be used without applying `world_updates`.
   repeated intrinsic_proto.grasping.PoseBasedGrasp grasps = 1;
 
   // World updates (CreateObjectRequest, CreateFrameRequest,

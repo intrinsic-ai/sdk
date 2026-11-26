@@ -208,6 +208,19 @@ message PoseBasedGrasp {
   // snapshot and does not change if the world changes afterwards. May be unset
   // if the producer of this grasp does not provide it.
   optional intrinsic_proto.Pose root_t_pregrasp = 10;
+  // Pose of the grasp frame relative to the base entity of `object`, even if
+  // `grasp_frame` has another parent. With the object's pose `root_t_object`
+  // at planning time, `root_t_grasp = root_t_object * object_t_grasp`. Unlike
+  // `root_t_grasp`, this stays valid if the object moves afterwards (e.g.
+  // after the robot picked it up).
+  intrinsic_proto.Pose object_t_grasp = 11;
+  // Pose of the pregrasp frame relative to the base entity of `object`, even
+  // if `pre_grasp_frame` has another parent. With the object's pose
+  // `root_t_object` at planning time,
+  // `root_t_pregrasp = root_t_object * object_t_pregrasp`. Unlike
+  // `root_t_pregrasp`, this stays valid if the object moves afterwards (e.g.
+  // after the robot picked it up).
+  intrinsic_proto.Pose object_t_pregrasp = 12;
 }
 
 message RepeatedPoseBasedGrasps {
