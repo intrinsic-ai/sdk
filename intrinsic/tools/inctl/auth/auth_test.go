@@ -611,3 +611,45 @@ func TestNewCloudConnection_MissingProjectAndOrgReturnsErrCredentialsRequired(t 
 		t.Errorf("NewCloudClient(ctx) error = %v, want %v", err, ErrCredentialsRequired)
 	}
 }
+
+func TestWriteJSONFile(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "nested")
+	path := filepath.Join(dir, "config.json")
+
+	if err := writeJSONFile(path, map[string]string{"k": "v1"}); err != nil {
+		t.Fatalf("writeJSONFile(initial) failed: %v", err)
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("os.Stat(%s) failed: %v", path, err)
+	}
+	if got := info.Mode().Perm(); got != fileMode {
+		t.Errorf("file mode = %o, want %o", got, fileMode)
+	}
+
+	// Overwriting replaces content atomically and leaves no temp files behind.
+	if err := writeJSONFile(path, map[string]string{"k": "v2"}); err != nil {
+		t.Fatalf("writeJSONFile(overwrite) failed: %v", err)
+	}
+
+	// A serialization error must not corrupt the existing file or leak temp files.
+	if err := writeJSONFile(path, make(chan int)); err == nil {
+		t.Fatal("writeJSONFile(unserializable) expected error, got nil")
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("os.ReadFile(%s) failed: %v", path, err)
+	}
+	if got, want := string(data), "{\n  \"k\": \"v2\"\n}\n"; got != want {
+		t.Errorf("file content = %q, want %q", got, want)
+	}
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("os.ReadDir(%s) failed: %v", dir, err)
+	}
+	if len(entries) != 1 || entries[0].Name() != "config.json" {
+		t.Errorf("unexpected directory entries: %v", entries)
+	}
+}
