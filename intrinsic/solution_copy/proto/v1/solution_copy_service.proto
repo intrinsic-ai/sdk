@@ -41,6 +41,8 @@ service SolutionCopyService {
   // Operation Checks:
   // - The specified branch exists. Unlike Copy, which requires a VERSION
   //   branch, PreviewCopy also accepts DEPLOYMENT branches.
+  // - If no snapshot is specified, the tip snapshot of the branch is used.
+  //   Fails with FAILED_PRECONDITION if the branch has no tip snapshot.
   // - The snapshot belongs to the history of the specified branch itself.
   //   For a DEPLOYMENT branch, snapshots that exist only in its upstream
   //   VERSION branch are rejected.
@@ -58,6 +60,8 @@ service SolutionCopyService {
 
   // Copy allows to copy a solution from one organization to another.
   // The specified branch must be a VERSION branch.
+  // If no snapshot is specified, the tip snapshot of the branch is used.
+  // Fails with FAILED_PRECONDITION if the branch has no tip snapshot.
   rpc Copy(CopyRequest) returns (google.longrunning.Operation) {
     option (google.longrunning.operation_info) = {
       response_type: "CopyResponse"
@@ -83,6 +87,7 @@ message PreviewCopyRequest {
   string branch_id = 1;
 
   // The ID of the snapshot to copy.
+  // Optional. If empty, the tip snapshot of `branch_id` is used.
   string snapshot_id = 2;
 
   // The organization that should receive the version.
@@ -101,6 +106,11 @@ message PreviewCopyResponse {
   // The total number of assets to copy.
   // Can be used to populate a progress bar.
   int64 asset_count = 3;
+
+  // The ID of the previewed snapshot: the request's `snapshot_id`, or the tip
+  // snapshot of `branch_id` if the request did not specify one. Pass it to Copy
+  // to copy exactly the previewed snapshot.
+  string snapshot_id = 4;
 }
 
 message CopyRequest {
@@ -108,6 +118,7 @@ message CopyRequest {
   string branch_id = 1;
 
   // The ID of the snapshot to copy.
+  // Optional. If empty, the tip snapshot of `branch_id` is used.
   string snapshot_id = 2;
 
   // The organization to copy to.
