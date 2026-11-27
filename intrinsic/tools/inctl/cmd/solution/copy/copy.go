@@ -17,6 +17,7 @@ package copy
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"fmt"
 	"io"
@@ -95,11 +96,16 @@ func runPreview(ctx context.Context, scsc solutioncopyservicepb.SolutionCopyServ
 	return resp, nil
 }
 
-// printPreview renders the preview summary and the asset tables to out.
-func printPreview(out io.Writer, params previewParams, res *solutioncopyservicepb.PreviewCopyResponse) {
+// printPreview renders the preview summary and the asset tables to out. snapshotID is the snapshot
+// that the preview resolved, which is the branch tip if params has no snapshot ID.
+func printPreview(out io.Writer, params previewParams, snapshotID string, res *solutioncopyservicepb.PreviewCopyResponse) {
+	snapshot := cmp.Or(snapshotID, "latest (tip of branch)")
+	if snapshotID != "" && params.snapshotID == "" {
+		snapshot += " (latest)"
+	}
 	color.C.Yellow().Fprintf(out, "\nPreview Copy summary:\n")
 	color.C.Magenta().Fprintf(out, "* Solution:\t%s\n", params.branchID)
-	color.C.Magenta().Fprintf(out, "* Snapshot:\t%s\n", params.snapshotID)
+	color.C.Magenta().Fprintf(out, "* Snapshot:\t%s\n", snapshot)
 	color.C.Magenta().Fprintf(out, "* Target organization:\t%s\n\n", params.targetOrg)
 
 	if res.GetAssetCount() > 0 {
@@ -162,21 +168,29 @@ func checkPermissions(res *solutioncopyservicepb.PreviewCopyResponse, targetOrg 
 	return nil
 }
 
-// confirmCopy asks the user to confirm the copy. It returns false on any answer other than yes,
-// including when stdin is not interactive.
-func confirmCopy(cmd *cobra.Command) (bool, error) {
+// confirmCopy asks the user to confirm the copy of snapshotID. isTip reports whether snapshotID is
+// the branch tip. It returns false on any answer other than yes, including when stdin is not
+// interactive.
+func confirmCopy(cmd *cobra.Command, snapshotID string, isTip bool) (bool, error) {
 	target := fmt.Sprintf("as new solution %q", flagTargetBranchDisplayName)
 	if flagTargetBranchID != "" {
 		target = fmt.Sprintf("as a new version of existing solution %q", flagTargetBranchID)
 	}
-	prompt := fmt.Sprintf("\nCopy solution %q (snapshot %q) to organization %q %s?", flagBranchID, flagSnapshotID, flagTargetOrg, target)
+	snapshot := "the latest snapshot"
+	if snapshotID != "" {
+		snapshot = fmt.Sprintf("snapshot %q", snapshotID)
+		if isTip {
+			snapshot += " (latest)"
+		}
+	}
+	prompt := fmt.Sprintf("\nCopy %s of solution %q to organization %q %s?", snapshot, flagBranchID, flagTargetOrg, target)
 	return promptutil.PromptYesNo(cmd, prompt, promptutil.DefaultNo, promptutil.ReemitPromptOnInvalidInput)
 }
 
-func runCopy(ctx context.Context, scsc solutioncopyservicepb.SolutionCopyServiceClient) (*longrunningpb.Operation, error) {
+func runCopy(ctx context.Context, scsc solutioncopyservicepb.SolutionCopyServiceClient, snapshotID string) (*longrunningpb.Operation, error) {
 	b := solutioncopyservicepb.CopyRequest_builder{
 		BranchId:   proto.String(flagBranchID),
-		SnapshotId: proto.String(flagSnapshotID),
+		SnapshotId: proto.String(snapshotID),
 		TargetOrg:  proto.String(flagTargetOrg),
 	}
 	if flagTargetBranchID != "" {
@@ -217,6 +231,9 @@ and to which assets the target organization has access.
 The branch must be a version branch, such as the version branch ID printed by "inctl solution create".
 Solution IDs listed by "inctl solution list" are deployment branches and cannot be copied directly.
 
+If --snapshot-id is omitted, the tip snapshot of the branch is used. The tip is resolved once, during
+the preview, and that snapshot is the one copied.
+
 The copy either creates a new solution in the target organization (--target-branch-display-name),
 or adds a new version to an existing solution of the target organization (--target-branch-id).
 --target-branch-id must be the solution's version branch, ending in _MAIN, such as the version
@@ -226,7 +243,14 @@ The copy only starts after you confirm it. Pass --yes to skip the confirmation, 
 
 During the copy, the service ensures that members of the target organization have access to all assets
 of the solution and copies all required data to the target organization.`,
-		Example: `  # Preview a solution snapshot copy, confirm it, and start the copy
+		Example: `  # Preview and copy the latest snapshot (branch tip) of a solution
+  inctl solution copy \
+    --org "source_org_id" \
+    --branch-id "f47ac10b-58cc-4372-a567-0e02b2c3d479_MAIN" \
+    --target-org "destination_org_id" \
+    --target-branch-display-name "My copied solution"
+
+  # Preview a solution snapshot copy, confirm it, and start the copy
   inctl solution copy \
     --org "source_org_id" \
     --branch-id "f47ac10b-58cc-4372-a567-0e02b2c3d479_MAIN" \
@@ -282,13 +306,17 @@ of the solution and copies all required data to the target organization.`,
 				return err
 			}
 
-			printPreview(cmd.OutOrStdout(), params, res)
+			// Copy the snapshot that the preview resolved, so that a tip that moves after the preview
+			// does not change what is copied. Services that do not return the snapshot ID leave it
+			// empty; fall back to --snapshot-id then.
+			snapshotID := cmp.Or(res.GetSnapshotId(), params.snapshotID)
+			printPreview(cmd.OutOrStdout(), params, snapshotID, res)
 			if err := checkPermissions(res, params.targetOrg); err != nil {
 				return err
 			}
 
 			if !flagYes {
-				ok, err := confirmCopy(cmd)
+				ok, err := confirmCopy(cmd, snapshotID, params.snapshotID == "")
 				if err != nil {
 					return err
 				}
@@ -297,7 +325,7 @@ of the solution and copies all required data to the target organization.`,
 				}
 			}
 
-			op, err := runCopy(ctx, scsc)
+			op, err := runCopy(ctx, scsc, snapshotID)
 			if err != nil {
 				return err
 			}
@@ -307,7 +335,7 @@ of the solution and copies all required data to the target organization.`,
 	}, viperLocal)
 
 	solutionCopyCmd.Flags().StringVar(&flagBranchID, "branch-id", "", "ID of the version branch to copy (not the solution ID listed by 'inctl solution list').")
-	solutionCopyCmd.Flags().StringVar(&flagSnapshotID, "snapshot-id", "", "ID of the snapshot to copy.")
+	solutionCopyCmd.Flags().StringVar(&flagSnapshotID, "snapshot-id", "", "ID of the snapshot to copy. If not set, the tip snapshot of the branch, as resolved by the preview, is used.")
 	solutionCopyCmd.Flags().StringVar(&flagTargetOrg, "target-org", "", "ID of the organization to copy the solution to.")
 	solutionCopyCmd.Flags().StringVar(&flagTargetBranchDisplayName, "target-branch-display-name", "", "Display name of the new solution created in the target organization (at most 80 characters). Mutually exclusive with --target-branch-id.")
 	solutionCopyCmd.Flags().StringVar(&flagTargetBranchID, "target-branch-id", "", "ID of the existing solution in the target organization to add the copy to as a new version: its version branch, ending in _MAIN (not the solution ID listed by 'inctl solution list'). Mutually exclusive with --target-branch-display-name.")
@@ -316,7 +344,6 @@ of the solution and copies all required data to the target organization.`,
 	solutionCopyCmd.Flags().BoolVar(&flagYes, "yes", false, "Start the copy without asking for confirmation.")
 
 	solutionCopyCmd.MarkFlagRequired("branch-id")
-	solutionCopyCmd.MarkFlagRequired("snapshot-id")
 	solutionCopyCmd.MarkFlagRequired("target-org")
 	solutionCopyCmd.MarkFlagsMutuallyExclusive("target-branch-display-name", "target-branch-id")
 	solutionCopyCmd.MarkFlagsOneRequired("target-branch-display-name", "target-branch-id")
