@@ -88,7 +88,9 @@ intrinsic_service(
 
 go_test(
     name = "deviceservice_test",
-    srcs = ["device_service_test.go"],
+    srcs = [
+        "device_service_test.go",
+    ],
     embed = [":deviceservice"],
     importpath = "intrinsic/icon/fieldbus/ethercat/device_service/deviceservice_test",
     deps = [
