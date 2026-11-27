@@ -28,6 +28,29 @@ DEFAULT_GRASP_PLANNER_SERVICE_ADDRESS: str = (
 )
 DEFAULT_GRASP_PLANNER_SERVICE_INSTANCE_NAME: str = "grasp_planner_service"
 
+MAX_MESSAGE_SIZE_BYTES: int = 16 * 1024 * 1024
+"""Largest gRPC message that `GraspPlannerService` and `GraspPlannerClient` accept.
+
+A `PlanGraspsResponse` lists a bounded number of rejected and unexamined
+candidates, see `PlanGraspsRequest.max_num_rejected_grasps_per_stage`. With the
+platform-default motion planner a listed candidate measured 330 to 4,030 bytes,
+which puts these lists at about 3 MiB at the largest setting of 100 candidates
+per stage. The rest of the limit is room for the returned grasps, whose number
+the caller chooses, and for unusually long error texts. A larger message fails
+with RESOURCE_EXHAUSTED.
+"""
+
+GRPC_CHANNEL_OPTIONS: tuple[tuple[str, int], ...] = (
+    ("grpc.max_send_message_length", MAX_MESSAGE_SIZE_BYTES),
+    ("grpc.max_receive_message_length", MAX_MESSAGE_SIZE_BYTES),
+)
+"""Options of the channels `GraspPlannerClient` connects with.
+
+They limit sent and received messages to `MAX_MESSAGE_SIZE_BYTES`, instead of
+the 4 MiB that gRPC applies to received messages by default. The service sets
+the same options on its server.
+"""
+
 
 def grasp_planner_service_interface_uri() -> str:
   """Returns the interface URI of the GraspPlannerService v2 dependency."""
@@ -79,7 +102,7 @@ class GraspPlannerClient:
       gRPC channel, grasp planner client
     """
     logging.info("Connecting to grasp_planner_service v2 at %s", address)
-    channel = grpc.insecure_channel(address)
+    channel = grpc.insecure_channel(address, options=GRPC_CHANNEL_OPTIONS)
     return channel, GraspPlannerClient(
         stub=grasp_planner_service_pb2_grpc.GraspPlannerServiceStub(channel),
         instance_name=instance_name,
@@ -98,7 +121,11 @@ class GraspPlannerClient:
     Returns:
       gRPC channel, grasp planner client
     """
-    channel = utils.connect(dep, grasp_planner_service_interface_uri())
+    channel = utils.connect(
+        dep,
+        grasp_planner_service_interface_uri(),
+        grpc_options=GRPC_CHANNEL_OPTIONS,
+    )
     return channel, GraspPlannerClient(
         stub=grasp_planner_service_pb2_grpc.GraspPlannerServiceStub(channel),
         instance_name=None,

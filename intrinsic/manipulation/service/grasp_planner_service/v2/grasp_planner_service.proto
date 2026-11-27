@@ -172,6 +172,17 @@ message PlanGraspsRequest {
   // frames. This avoids needing to clean up generated frames when reusing
   // object instances.
   bool disable_grasp_frames_generation = 17;
+
+  // Maximum number of rejected candidates that
+  // `PlanGraspsResponse.grasp_plan.filtered_grasps` lists per `FailedStage`,
+  // in the order in which the planner examined them. The same number limits
+  // `grasp_plan.unexamined_grasps`. Defaults to 10 if unset; 0 lists no
+  // candidates. Must be in [0, 100]; values outside that range are rejected
+  // with INVALID_ARGUMENT. Does not affect planning, the returned grasps, or
+  // the failure diagnostics. The full numbers are reported in
+  // `PlanGraspsResponse.rejected_stage_counts` and
+  // `PlanGraspsResponse.num_unexamined_grasps`.
+  optional int32 max_num_rejected_grasps_per_stage = 18;
 }
 
 // Response of GraspPlannerService.PlanGrasps. An empty `grasps` list is a
@@ -252,6 +263,16 @@ message PlanGraspsResponse {
     NO_CANDIDATES = 17;
   }
 
+  // Number of candidate grasps that one stage of the planning funnel rejected.
+  message RejectedStageCount {
+    // The stage. `FAILED_STAGE_UNSPECIFIED` stands for rejected candidates
+    // that no stage explains, for example the candidates of a pose estimate
+    // with a score of 0.
+    FailedStage stage = 1;
+    // Number of candidates rejected at `stage`.
+    int64 num_rejected_grasps = 2;
+  }
+
   // Planned grasps expressed as world frame references, best grasp first.
   // `grasps[i]` corresponds to `grasp_plan.grasps[i]`. The referenced
   // grasp/pregrasp frames (and, for `pose_estimates`, the target objects) only
@@ -271,8 +292,10 @@ message PlanGraspsResponse {
   // `ObjectWorldClient.batch_update`) or recorded as preview world updates.
   intrinsic_proto.world.ObjectWorldUpdates world_updates = 2;
 
-  // The raw grasp plan, including filtered and unexamined candidates and their
-  // scoring history. Intended for debugging and logging.
+  // The raw grasp plan with the scoring history of its candidates. Intended
+  // for debugging and logging. `filtered_grasps` lists at most
+  // `PlanGraspsRequest.max_num_rejected_grasps_per_stage` rejected candidates
+  // per stage, and `unexamined_grasps` at most that many candidates.
   intrinsic_proto.grasping.GraspPlan grasp_plan = 3;
 
   // Short, human-readable explanation why no grasp was found. Only set if
@@ -299,6 +322,19 @@ message PlanGraspsResponse {
   // treat `FAILED_STAGE_UNSPECIFIED` on an empty `grasps` response as an
   // unknown failure stage.
   FailedStage failed_stage = 7;
+
+  // Number of rejected candidates per stage, ordered by `stage`, for every
+  // stage that rejected at least one candidate. Counts all rejected candidates,
+  // including those omitted from `grasp_plan.filtered_grasps` due to exceeding
+  // `PlanGraspsRequest.max_num_rejected_grasps_per_stage`. Also set when
+  // `grasps` is non-empty.
+  repeated RejectedStageCount rejected_stage_counts = 8;
+
+  // Number of candidates the planner did not examine because it stopped early
+  // (for example after it found `max_num_grasps` grasps), including those that
+  // `grasp_plan.unexamined_grasps` does not list due to exceeding
+  // `PlanGraspsRequest.max_num_rejected_grasps_per_stage`.
+  int64 num_unexamined_grasps = 9;
 }
 
 // Debug data the service logs for each PlanGrasps request (unless logging is
